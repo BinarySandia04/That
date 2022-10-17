@@ -7,3 +7,5 @@ Un llenguatge de programació programable interpretat molt petit
 ·
 <a href="https://github.com/othneildrew/Best-README-Template/issues">Demana una proposta</a>
 </p>
+
+Hola buenas

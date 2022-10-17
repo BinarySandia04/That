@@ -1,10 +1,11 @@
 @echo off
+mkdir build
 cd build
 cmake ../
 cmake --build .
 cd ..
 
 echo --------------------------------------------------------------------------------
-cd build/Debug/
+cd build/src/Debug/
 Glass.exe
-cd ../..
+cd ../../..
