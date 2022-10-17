@@ -1,4 +1,9 @@
 #!/bin/bash
+mkdir build
 cd build
 cmake ../
-cmake . --build
+cmake --build .
+cd ..
+
+echo "--------------------------------------------------------------------------------"
+build/src/Glass test.txt
