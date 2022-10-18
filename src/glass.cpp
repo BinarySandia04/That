@@ -19,7 +19,6 @@ int main(int argc, char *argv[]){
 }
 
 int cli(){
-    // Modo cli
     GKernel kernel;
     GShell::CreateShell(&kernel);
 }
