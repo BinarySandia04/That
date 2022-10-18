@@ -6,4 +6,4 @@ cmake --build .
 cd ..
 
 echo "--------------------------------------------------------------------------------"
-build/src/Glass test.txt
+build/src/Glass

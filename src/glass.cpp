@@ -1,15 +1,29 @@
 #include <iostream>
 #include "version.h"
+#include "shell.h"
+#include "kernel.h"
 
-// Main loop. S'hauria de comprovar si veure el interpret o no
+int cli();
+int script();
+
 int main(int argc, char *argv[]){
-    printVersion();
 
     if(argc < 2){
-        std::cout << "No has passat res" << std::endl;
+        printVersion();
+        cli();
     } else {
-        std::cout << "Has passat alguna cosa" << std::endl;
+        script();
     }
 
     return 0;
+}
+
+int cli(){
+    // Modo cli
+    GKernel kernel;
+    GShell::CreateShell(&kernel);
+}
+
+int script(){
+
 }
