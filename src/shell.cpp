@@ -11,7 +11,7 @@ Glass::Shell::~Shell(){
 
 }
 
-Glass::Shell Glass::Shell::CreateShell(Kernel *kernel){
+void Glass::Shell::CreateShell(Kernel *kernel){
     std::string line;
 
     std::cout << ">> ";

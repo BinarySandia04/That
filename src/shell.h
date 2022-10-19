@@ -8,6 +8,6 @@ namespace Glass {
         public:
             Shell();
             ~Shell();
-            static Shell CreateShell(Kernel *kernel);
+            static void CreateShell(Kernel *kernel);
     };
 }

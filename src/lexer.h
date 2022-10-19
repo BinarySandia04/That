@@ -74,6 +74,7 @@ namespace Glass {
             SPACE,
             NEWLINE,
             SEMICOLON,
+            COMMENT,
         };
 
         std::map<Symbols, char> typeSymbol = {
@@ -81,6 +82,7 @@ namespace Glass {
             {SPACE, ' '},
             {NEWLINE, '\n'},
             {SEMICOLON, ';'},
+            {COMMENT, '#'}
         };
        
         public:
@@ -94,6 +96,9 @@ namespace Glass {
             int isSemicolon(char c);
             int isSeparator(char c);
             int isEnd(int i);
+            int isComment(char c);
+            
+            void skipComment(int pos, int *next);
 
             Token getNumber(int pos, int *next);
 

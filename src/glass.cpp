@@ -21,8 +21,10 @@ int main(int argc, char *argv[]){
 int cli(){
     Glass::Kernel kernel;
     Glass::Shell::CreateShell(&kernel);
+
+    return 0;
 }
 
 int script(){
-
+    return 0;
 }

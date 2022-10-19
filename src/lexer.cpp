@@ -39,7 +39,18 @@ int Glass::Lexer::isSemicolon(char c){
 }
 
 int Glass::Lexer::isSeparator(char c){
-    
+    return 0;
+}
+
+void Glass::Lexer::skipComment(int pos, int *next){
+    while(code[pos] != typeSymbol[Symbols::NEWLINE] && !isEnd(pos)){
+        pos++;
+    }
+    *next = pos + 1;
+}
+
+int Glass::Lexer::isComment(char c){
+    return c == typeSymbol[Symbols::COMMENT];
 }
 
 int Glass::Lexer::isEnd(int pos){
@@ -75,8 +86,14 @@ int Glass::Lexer::GenerateTokens(){
     for(int i = 0; i < code.size(); i++){
         char c = code[i];
 
+        if(isComment(c)){
+            skipComment(i, &i);
+        }
+
         if(isNumber(c)){
             tokenList.push_back(getNumber(i, &i));
         }
     }
+
+    return 0;
 }
