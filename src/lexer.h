@@ -9,11 +9,10 @@ namespace Glass {
             enum TokenType {
                 ERROR,
 
-                T_INT,                  // int a<1024> = 3
-                T_RATIONAL,             // float q<32> = 2.3
-                T_STRING,               // string s = "Hola"
-                T_BOOLEAN,              // bool p = True
-                T_NULL,                 // int b = NULL;
+                T_INT,                  // int
+                T_REAL,                 // real
+                T_STRING,               // string
+                T_BOOLEAN,              // bool
 
                 S_PLUS,                 // +
                 S_MINUS,                // -
@@ -51,17 +50,23 @@ namespace Glass {
                 K_BREAK,                //break
                 K_CONTINUE,             //continue
 
-                LITERAL,                // 3
+                L_INT,                  // 3
+                L_REAL,                 // 3.2
+                L_STRING,               // "Hola"
+                L_TRUE,                 // True
+                L_FALSE,                // False
+                L_NULL,                 // Null
+
                 ARRAY_INDEXING,         // [3]
                 FUNCTION_CALL,          // Amongus()
-                FUNCTION_DECLARATION,   // Declarame esta loco
-                FUNCTION,               // func
+                FUNCTION_DECLARATION,   // func
 
-                IDENTIFIER
+                IDENTIFIER              // algo
 
             };
 
             Token(TokenType type, std::string value);
+            Token(TokenType type);
             ~Token();
 
             std::string value;
@@ -75,6 +80,31 @@ namespace Glass {
             NEWLINE,
             SEMICOLON,
             COMMENT,
+            DOUBLE_QUOT,
+            QUOT,
+            ESCAPE,
+        };
+
+        enum Keywords {
+            FUNC,
+            INT,
+            REAL,
+            STRING,
+            BOOLEAN,
+            TRUE,
+            FALSE,
+            _NULL
+        };
+
+        std::map<std::string, Keywords> typeKeyword = {
+            {"func", FUNC},
+            {"int", INT},
+            {"real", REAL},
+            {"string", STRING},
+            {"bool", BOOLEAN},
+            {"True", TRUE},
+            {"False", FALSE},
+            {"Null", _NULL}
         };
 
         std::map<Symbols, char> typeSymbol = {
@@ -82,7 +112,10 @@ namespace Glass {
             {SPACE, ' '},
             {NEWLINE, '\n'},
             {SEMICOLON, ';'},
-            {COMMENT, '#'}
+            {COMMENT, '#'},
+            {DOUBLE_QUOT, '"'},
+            {QUOT, '\''},
+            {ESCAPE, '\\'}
         };
        
         public:
@@ -91,16 +124,28 @@ namespace Glass {
             std::vector<Token>* GetTokens();
             int GenerateTokens();
         private:
+            std::string nextWord(int pos, int* nextPos);
+            void flush(int* next);
+
             int isNumber(char c);
             int isEmpty(char c);
             int isSemicolon(char c);
             int isSeparator(char c);
             int isEnd(int i);
             int isComment(char c);
+            int isPoint(char c);
+            int isQuot(char c);
+            int isDoubleQuot(char c);
+            int isSymbol(char c);
             
-            void skipComment(int pos, int *next);
+            void skipComment(int *next);
+            void checkLiterals(int *next);
+            void checkKeywords(int *next);
 
-            Token getNumber(int pos, int *next);
+            void getNumber(int *next);
+            void getString(int *next);
+
+            void addError();
 
             std::string code;
             std::vector<Token> tokenList;

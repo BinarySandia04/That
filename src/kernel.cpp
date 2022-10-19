@@ -18,8 +18,12 @@ void Glass::Kernel::send(std::string code){
 
     for(int i = 0; i < tokens.size(); i++){
         std::cout << "[";
-        std::cout << "type: " << tokens[i].type << ", ";
-        std::cout << "value: " << tokens[i].value << "]";
+        std::cout << "type: " << tokens[i].type;
+        if(tokens[i].value.size() > 0){
+            std::cout << ", value: " << tokens[i].value << "]";
+        } else {
+            std::cout << "]";
+        }
         if(i < tokens.size() - 1) std::cout << ", ";
     }
     std::cout << std::endl;
