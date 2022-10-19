@@ -2,7 +2,7 @@
 #include <vector>
 #include <map>
 
-namespace GLexer {
+namespace Glass {
 
     class Token {
         public:
@@ -71,11 +71,16 @@ namespace GLexer {
     class Lexer {
         enum Symbols {
             POINT,
-
+            SPACE,
+            NEWLINE,
+            SEMICOLON,
         };
 
         std::map<Symbols, char> typeSymbol = {
             {POINT, '.'},
+            {SPACE, ' '},
+            {NEWLINE, '\n'},
+            {SEMICOLON, ';'},
         };
        
         public:
@@ -85,9 +90,10 @@ namespace GLexer {
             int GenerateTokens();
         private:
             int isNumber(char c);
-            int GLexer::Lexer::isEmpty(char c);
-            int GLexer::Lexer::isSemicolon(char c);
-            int GLexer::Lexer::isSeparator(char c);
+            int isEmpty(char c);
+            int isSemicolon(char c);
+            int isSeparator(char c);
+            int isEnd(int i);
 
             Token getNumber(int pos, int *next);
 

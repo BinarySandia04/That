@@ -1,52 +1,56 @@
 #include <string>
 #include "lexer.h"
 
-GLexer::Token::Token(TokenType type, std::string value){
+Glass::Token::Token(TokenType type, std::string value){
     this->type = type;
     this->value = value;
 }
 
-GLexer::Token::~Token(){
+Glass::Token::~Token(){
 
 }
 
-GLexer::Lexer::Lexer(std::string code){
+Glass::Lexer::Lexer(std::string code){
     this->code = code;
 }
 
-GLexer::Lexer::~Lexer(){
+Glass::Lexer::~Lexer(){
 }
 
 /*
 De un codi doncs torna tokens!
 */
-std::vector<GLexer::Token>* GLexer::Lexer::GetTokens(){
+std::vector<Glass::Token>* Glass::Lexer::GetTokens(){
     return &tokenList;
 }
 
 
-int GLexer::Lexer::isNumber(char c){
+int Glass::Lexer::isNumber(char c){
     if(c >= 48 && c <= 57) return true;
     return false;
 }
 
-int GLexer::Lexer::isEmpty(char c){
-
+int Glass::Lexer::isEmpty(char c){
+    return c == typeSymbol[Symbols::SPACE] || c == typeSymbol[Symbols::NEWLINE];
 }
 
-int GLexer::Lexer::isSemicolon(char c){
+int Glass::Lexer::isSemicolon(char c){
+    return c == typeSymbol[Symbols::SEMICOLON];
+}
+
+int Glass::Lexer::isSeparator(char c){
     
 }
 
-int GLexer::Lexer::isSeparator(char c){
-    
+int Glass::Lexer::isEnd(int pos){
+    return pos >= code.size();
 }
 
-GLexer::Token GLexer::Lexer::getNumber(int pos, int *next){
+Glass::Token Glass::Lexer::getNumber(int pos, int *next){
     std::string num = "" + code[pos];
     int isRational = 0;
 
-    for(pos += 1; isNumber(code[pos]); pos++){
+    for(; isNumber(code[pos]); pos++){
         num += code[pos];
     }
 
@@ -59,7 +63,7 @@ GLexer::Token GLexer::Lexer::getNumber(int pos, int *next){
     }
 
     *next = pos;
-    if(isEmpty(code[pos]) || isSemicolon(code[pos]) || isSeparator(code[pos])){
+    if(isEmpty(code[pos]) || isSemicolon(code[pos]) || isSeparator(code[pos]) || isEnd(pos)){
         if(isRational) return Token(Token::T_RATIONAL, num);
         else return Token(Token::T_INT, num);
     }
@@ -67,7 +71,7 @@ GLexer::Token GLexer::Lexer::getNumber(int pos, int *next){
     // Error
 }
 
-int GLexer::Lexer::GenerateTokens(){
+int Glass::Lexer::GenerateTokens(){
     for(int i = 0; i < code.size(); i++){
         char c = code[i];
 

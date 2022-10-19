@@ -3,21 +3,22 @@
 
 #include <iostream>
 
-GShell::GShell(){
+Glass::Shell::Shell(){
 
 }
 
-GShell::~GShell(){
+Glass::Shell::~Shell(){
 
 }
 
-GShell GShell::CreateShell(GKernel *kernel){
+Glass::Shell Glass::Shell::CreateShell(Kernel *kernel){
     std::string line;
 
     std::cout << ">> ";
+
     while(getline(std::cin, line)){
 
-        std::cout << line << std::endl;
+        kernel->send(line);
 
         std::cout << ">> ";
     }

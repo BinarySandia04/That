@@ -3,9 +3,11 @@
 #include <iostream>
 #include "kernel.h"
 
-class GShell {
-    public:
-        GShell();
-        ~GShell();
-        static GShell CreateShell(GKernel *kernel);
-};
+namespace Glass {
+    class Shell {
+        public:
+            Shell();
+            ~Shell();
+            static Shell CreateShell(Kernel *kernel);
+    };
+}
