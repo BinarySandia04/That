@@ -14,28 +14,30 @@ namespace Glass {
                 T_STRING,               // string       X
                 T_BOOLEAN,              // bool         X
 
-                S_PLUS,                 // +
-                S_MINUS,                // -
-                S_MULTIPLY,             // *
-                S_DIVIDE,               // /
-                S_INTDIVIDE,            // //
-                S_MODULO,               // %
-                S_INCREMENT,            // ++
-                S_DECREMENT,            // --
+                S_PLUS,                 // +            X
+                S_SUBTRACT,             // -            X
+                S_MULTIPLY,             // *            X
+                S_DIVIDE,               // /            X
+                S_DIVIDES,              // |
+                S_INTDIVIDE,            // //           X
+                S_MODULO,               // %            X
+                S_INCREMENT,            // ++           X
+                S_DECREMENT,            // --           X
+                S_FLIP,                 // !
 
-                C_EQUAL,                // ==
-                C_GREATER_THAN,         // >
-                C_LESSER_THAN,          // <
-                C_GREATER_EQUAL_THAN,   // >=
-                C_LESSER_EQUAL_THAN,    // <=
-                C_NOT_EQUAL,            // !=
+                C_EQUAL,                // ==           X
+                C_GREATER_THAN,         // >            X
+                C_LESSER_THAN,          // <            X
+                C_GREATER_EQUAL_THAN,   // >=           X
+                C_LESSER_EQUAL_THAN,    // <=           X
+                C_NOT_EQUAL,            // !=           X
 
-                A_ASSIGMENT,            // =
-                A_ADD,                  // +=
-                A_SUBTRACT,             // -=
-                A_MULTIPLY,             // *=
-                A_DIVIDE,               // /=
-                A_MODULO,               // %=
+                A_ASSIGMENT,            // =            X
+                A_ADD,                  // +=           X
+                A_SUBTRACT,             // -=           X
+                A_MULTIPLY,             // *=           X
+                A_DIVIDE,               // /=           X
+                A_MODULO,               // %=           X
 
                 COMMA,                  // ,        X
                 PARENTHESIS_OPEN,       // (        X
@@ -44,7 +46,10 @@ namespace Glass {
                 SQUARE_BRACKET_CLOSE,   // ]        X
                 CURLY_BRACKET_OPEN,     // {        X
                 CURLY_BRACKET_CLOSE,    // }        X
+                DOLLAR,                 // $
                 SEMICOLON,              // ;        X
+                TWO_POINTS,             // :        X
+                ARROW,                  // ->
 
                 K_IF,                   //if        X
                 K_ELSE,                 //else      X
@@ -92,7 +97,17 @@ namespace Glass {
             KEY_C,
             CLAUDATOR_O,
             CLAUDATOR_C,
+            DOLLAR,
+            BAR,
+            
             MINUS,
+            PLUS,
+            MULTI,
+            DIVIDE,
+            PERCENT,
+            FISH_O,
+            FISH_C,
+            EXCLAMATION,
         };
 
         enum Keywords {
@@ -111,13 +126,6 @@ namespace Glass {
             TRUE,
             FALSE,
             _NULL,
-        };
-
-        enum Operations {
-            ADD,
-            SUBTRACT,
-            MULTIPLY,
-            DIVIDE,
         };
 
         std::map<std::string, Keywords> typeKeyword = {
@@ -154,14 +162,40 @@ namespace Glass {
             {KEY_C, '}'},
             {CLAUDATOR_O, '['},
             {CLAUDATOR_C, ']'},
-            {MINUS, '-'}
+            {MINUS, '-'},
+            {PLUS, '+'},
+            {MULTI, '*'},
+            {DIVIDE, '/'},
+            {PERCENT, '%'},
+            {FISH_O, '<'},
+            {FISH_C, '>'},
+            {EXCLAMATION, '!'},
+            {DOLLAR, '$'},
+            {BAR, '|'}
         };
 
-        std::map<std::string, Operations> typeOperation = {
-            {"+", ADD},
-            {"-", SUBTRACT},
-            {"*", MULTIPLY},
-            {"/", DIVIDE},
+        std::map<std::string, Token::TokenType> typeOperation = {
+            {"+", Token::S_PLUS},
+            {"-", Token::S_SUBTRACT},
+            {"*", Token::S_MULTIPLY},
+            {"/", Token::S_DIVIDE},
+            {"//", Token::S_INTDIVIDE},
+            {"%", Token::S_MODULO},
+            {"++", Token::S_INCREMENT},
+            {"--", Token::S_DECREMENT},
+            {"=", Token::A_ASSIGMENT},
+            {"==", Token::C_EQUAL},
+            {"+=", Token::A_ADD},
+            {"-=", Token::A_SUBTRACT},
+            {"*=", Token::A_MULTIPLY},
+            {"/=", Token::A_DIVIDE},
+            {"%=", Token::A_MODULO},
+            {">", Token::C_GREATER_THAN},
+            {"<", Token::C_LESSER_THAN},
+            {">=", Token::C_GREATER_EQUAL_THAN},
+            {"<=", Token::C_LESSER_EQUAL_THAN},
+            {"!=", Token::C_NOT_EQUAL},
+            {"->", Token::ARROW}
         };
        
         public:
@@ -194,13 +228,12 @@ namespace Glass {
             int isCKey(char c);
             int isKey(char c);
             int isTwoPoints(char c);
-            int isSign(char c);
 
             void skipComment(int *next);
-            void checkLiterals(int *next);
-            void checkKeywords(int *next);
-            void checkSymbols(int *next);
-            void checkOperations(int *next);
+            int checkLiterals(int *next);
+            int checkKeywords(int *next);
+            int checkSymbols(int *next);
+            int checkOperations(int *next);
 
             void getNumber(int *next);
             void getString(int *next);

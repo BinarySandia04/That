@@ -31,7 +31,7 @@ std::vector<Glass::Token>* Glass::Lexer::GetTokens(){
 
 std::string Glass::Lexer::nextWord(int pos, int* nextPos){
     std::string nWord = "";
-    while(!isEnd(pos)){
+    while(!isEnd(pos) && !isSymbol(code[pos])){
         nWord += code[pos];
         pos++;
         if(isEmpty(code[pos]) || isSymbol(code[pos])) break;
@@ -127,13 +127,14 @@ int Glass::Lexer::isTwoPoints(char c){
     return c == typeSymbol[Symbols::TWO_POINTS];
 }
 
-int Glass::Lexer::isSign(char c){
-    return c == typeSymbol[Symbols::MINUS];
-}
-
 int Glass::Lexer::isSymbol(char c){
-    return isComment(c) || isPoint(c) || isComma(c)
-        || isKey(c) || isParentesis(c) || isClaudator(c);
+    for (auto& it : typeSymbol) {
+        if (it.second == c) {
+            return 1;
+        }
+    }
+
+    return 0;
 }
 
 void Glass::Lexer::addError(){
@@ -161,7 +162,7 @@ void Glass::Lexer::getNumber(int *next){
 
     *next = pos;
     
-    if(isEmpty(code[pos]) || isSymbol(code[pos]) || isSeparator(code[pos]) || isEnd(pos)){
+    if(isEmpty(code[pos]) || !isNumber(code[pos]) || isSeparator(code[pos]) || isEnd(pos)){
         if(isRational) tokenList.push_back(Token(Token::L_REAL, num));
         else tokenList.push_back(Token(Token::L_INT, num));
     } else {
@@ -211,30 +212,62 @@ void Glass::Lexer::skipComment(int *next){
     }
 }
 
-void Glass::Lexer::checkLiterals(int *next){
-    if(isSymbol(code[*next])) return;
-    if(isEnd(*next)) return;
+int Glass::Lexer::checkLiterals(int *next){
+    if(isEnd(*next)) return 1;
+    if(!(isDoubleQuot(code[*next]) || isQuot(code[*next]))) return 1;
 
     char c = code[*next];
-    if(isNumber(c) || isPoint(c) || isSign(c)){
+    if(isNumber(c) || isPoint(c)){
         getNumber(next);
+        return 0;
     }
     else if(isQuot(c) || isDoubleQuot(c)){
         getString(next);
+        return 0;
     }
 
     flush(next);
+    return 1;
 }
 
-void Glass::Lexer::checkOperations(int *next){
-    
+int Glass::Lexer::checkOperations(int *next){
+    if(isEnd(*next)) return 1;
+    if(isEmpty(code[*next])) flush(next);
+
+    int pos = *next;
+    // Bueno pues a comprovar
+    std::string test(1, code[*next]);
+    int i;
+    for(i = 1; i < 2; i++){
+        if(isEnd(pos+i)){
+            break;
+        }
+        test += code[pos+i];
+    }
+
+    bool done = false;
+    for(i--; i >= 0; i--){
+        if(typeOperation.count(test)){
+            tokenList.push_back(Token(typeOperation[test]));
+            pos+=i+1;
+            *next = pos;
+            done = true;
+            break;
+        }
+        test = test.substr(0, i);
+    }
+
+    flush(next);
+    if(done) return 0;
+    return 1;
 }
 
-void Glass::Lexer::checkKeywords(int *next){
+int Glass::Lexer::checkKeywords(int *next){
 
-    if(isEnd(*next)) return;
-    if(isSymbol(code[*next])) return;
-    if(isSign(code[*next])) return;
+    if(isEnd(*next)) return 1;
+    if(isEmpty(*next)) return 1;
+    if(isSymbol(code[*next])) return 1;
+    if(isNumber(code[*next])) return 1;
     
     int pos = *next;
     std::string word;
@@ -294,20 +327,25 @@ void Glass::Lexer::checkKeywords(int *next){
     } else {
         tokenList.push_back(Token(Token::IDENTIFIER, word));    
     }
+
     *next = nextPos;
 
     flush(next);
+    return 0;
     
 }
 
-void Glass::Lexer::checkSymbols(int *next){
-    if(isEnd(*next)) return;
+int Glass::Lexer::checkSymbols(int *next){
+    if(isEnd(*next)) return 0;
     switch(code[*next]){
         case ',':
             tokenList.push_back(Token(Token::COMMA));
             break;
         case ';':
             tokenList.push_back(Token(Token::SEMICOLON));
+            break;
+        case ':':
+            tokenList.push_back(Token(Token::TWO_POINTS));
             break;
         case '(':
             tokenList.push_back(Token(Token::PARENTHESIS_OPEN));
@@ -327,20 +365,31 @@ void Glass::Lexer::checkSymbols(int *next){
         case '}':
             tokenList.push_back(Token(Token::CURLY_BRACKET_CLOSE));
             break;
+        case '$':
+            tokenList.push_back(Token(Token::DOLLAR));
+            break;
+        case '!':
+            tokenList.push_back(Token(Token::S_FLIP));
+            break;
+        case '|':
+            tokenList.push_back(Token(Token::S_DIVIDES));
+            break;
         default:
-            return;
+            return 1;
     }
     *next += 1;
+    flush(next);
+    return 0;
 }
 
 int Glass::Lexer::GenerateTokens(){
     for(int i = 0; i < code.size(); ){
         skipComment(&i);
 
-        checkLiterals(&i);
-        checkOperations(&i);
+        if(checkLiterals(&i))
+        if(checkSymbols(&i))
+        if(checkOperations(&i))
         checkKeywords(&i);
-        checkSymbols(&i);
     }
 
     return 0;

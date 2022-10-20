@@ -1,5 +1,5 @@
 # Es un comentari
 
-func f: (int<64> a, float<64> b) -> float<128> {
+func f: int<64> a, float<64> b -> float<128> {
 
 }
