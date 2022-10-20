@@ -1,5 +1,29 @@
-# Es un comentari
+# Aixo es un comentari
 
-func f: int<64> a, float<64> b -> float<128> {
+# Aquesta funció main és la entrada no pren res i no retorna res
+func main: {
+    int a = 3;
+    
+    print("Aixo es un test de glass! " + a);
+    int b = get("Mira aqui poses algo: "); # Conversió automàtica!
+    
+    if a | b {
+        print("A divideix B");
+    } else {
+        print("A no divideix B");
+    }
 
+    print("Aquesta funció nose que fa: " + multiplicar(a,b));
+    int c = (int) get("Posa ara un nombre c: "); # Es pot fer manual també
+
+    if ((a | b) + (a | c)) * a == 3:
+        # or es suma de booleans, and es multiplicació!
+        print("(A divideix b o a divideix c) i a es igual a 3");
+    return 0;
+}
+
+# Aquesta funció pren dos enters i retorna un valor real (float)
+func multiplicar: (int a, int b) => real {
+    # Aixo multiplica a per b
+    return a * b;
 }

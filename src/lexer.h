@@ -195,7 +195,7 @@ namespace Glass {
             {">=", Token::C_GREATER_EQUAL_THAN},
             {"<=", Token::C_LESSER_EQUAL_THAN},
             {"!=", Token::C_NOT_EQUAL},
-            {"->", Token::ARROW}
+            {"=>", Token::ARROW}
         };
        
         public:
