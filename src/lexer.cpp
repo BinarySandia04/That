@@ -83,8 +83,53 @@ int Glass::Lexer::isDoubleQuot(char c){
     return c == typeSymbol[Symbols::DOUBLE_QUOT];
 }
 
+int Glass::Lexer::isComma(char c){
+    return c == typeSymbol[Symbols::COMMA];
+}
+
+int Glass::Lexer::isOParentesis(char c){
+    return c == typeSymbol[Symbols::PARENTESIS_O];
+}
+
+int Glass::Lexer::isCParentesis(char c){
+    return c == typeSymbol[Symbols::PARENTESIS_C];
+}
+
+int Glass::Lexer::isParentesis(char c){
+    return isOParentesis(c) || isCParentesis(c);
+}
+
+int Glass::Lexer::isOClaudator(char c){
+    return c == typeSymbol[Symbols::CLAUDATOR_O];
+}
+
+int Glass::Lexer::isCClaudator(char c){
+    return c == typeSymbol[Symbols::CLAUDATOR_C];
+}
+
+int Glass::Lexer::isClaudator(char c){
+    return isCClaudator(c) || isOClaudator(c);
+}
+
+int Glass::Lexer::isOKey(char c){
+    return c == typeSymbol[Symbols::KEY_O];
+}
+
+int Glass::Lexer::isCKey(char c){
+    return c == typeSymbol[Symbols::KEY_C];
+}
+
+int Glass::Lexer::isKey(char c){
+    return isOKey(c) || isCKey(c);
+}
+
+int Glass::Lexer::isTwoPoints(char c){
+    return c == typeSymbol[Symbols::TWO_POINTS];
+}
+
 int Glass::Lexer::isSymbol(char c){
-    return isComment(c) || isPoint(c);
+    return isComment(c) || isPoint(c) || isComma(c)
+        || isKey(c) || isParentesis(c) || isClaudator(c);
 }
 
 void Glass::Lexer::addError(){
@@ -112,7 +157,7 @@ void Glass::Lexer::getNumber(int *next){
 
     *next = pos;
     
-    if(isEmpty(code[pos]) || isSemicolon(code[pos]) || isSeparator(code[pos]) || isEnd(pos)){
+    if(isEmpty(code[pos]) || isSymbol(code[pos]) || isSeparator(code[pos]) || isEnd(pos)){
         if(isRational) tokenList.push_back(Token(Token::L_REAL, num));
         else tokenList.push_back(Token(Token::L_INT, num));
     } else {
@@ -126,6 +171,7 @@ void Glass::Lexer::getString(int *next){
     std::string s = "";
 
     char check = code[pos];
+    std::cout << check << std::endl;
     pos++;
     while(code[pos] != check){
         if(code[pos] == '\\'){
@@ -145,7 +191,7 @@ void Glass::Lexer::getString(int *next){
         pos++;
     }
 
-    *next = pos;
+    *next = pos + 1;
     tokenList.push_back(Token(Token::L_STRING, s));
     // Sin error
 
@@ -162,6 +208,7 @@ void Glass::Lexer::skipComment(int *next){
 }
 
 void Glass::Lexer::checkLiterals(int *next){
+    if(isSymbol(code[*next])) return;
     if(isEnd(*next)) return;
 
     char c = code[*next];
@@ -177,8 +224,10 @@ void Glass::Lexer::checkLiterals(int *next){
 
 
 void Glass::Lexer::checkKeywords(int *next){
+
     if(isEnd(*next)) return;
     if(isSymbol(code[*next])) return;
+    
     int pos = *next;
     std::string word;
 
@@ -225,12 +274,46 @@ void Glass::Lexer::checkKeywords(int *next){
     
 }
 
+void Glass::Lexer::checkSymbols(int *next){
+    if(isEnd(*next)) return;
+    switch(code[*next]){
+        case ',':
+            tokenList.push_back(Token(Token::COMMA));
+            break;
+        case ';':
+            tokenList.push_back(Token(Token::SEMICOLON));
+            break;
+        case '(':
+            tokenList.push_back(Token(Token::PARENTHESIS_OPEN));
+            break;
+        case ')':
+            tokenList.push_back(Token(Token::PARENTHESIS_CLOSE));
+            break;
+        case '[':
+            tokenList.push_back(Token(Token::SQUARE_BRACKET_OPEN));
+            break;
+        case ']':
+            tokenList.push_back(Token(Token::SQUARE_BRACKET_CLOSE));
+            break;
+        case '{':
+            tokenList.push_back(Token(Token::CURLY_BRACKET_OPEN));
+            break;
+        case '}':
+            tokenList.push_back(Token(Token::CURLY_BRACKET_CLOSE));
+            break;
+        default:
+            return;
+    }
+    *next += 1;
+}
+
 int Glass::Lexer::GenerateTokens(){
     for(int i = 0; i < code.size(); ){
         skipComment(&i);
 
         checkLiterals(&i);
         checkKeywords(&i);
+        checkSymbols(&i);
     }
 
     return 0;

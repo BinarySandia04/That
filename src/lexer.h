@@ -38,10 +38,13 @@ namespace Glass {
                 A_MODULO,               // %=
 
                 COMMA,                  //,
-                PARENTHESIS,            //()
-                SQUARE_BRACKET,         //[]
-                CURLY_BRACKET,          //{}
-                SEMICOLON,              //;
+                PARENTHESIS_OPEN,       // (
+                PARENTHESIS_CLOSE,      // )
+                SQUARE_BRACKET_OPEN,    // [
+                SQUARE_BRACKET_CLOSE,   // ]
+                CURLY_BRACKET_OPEN,     // {
+                CURLY_BRACKET_CLOSE,    // }
+                SEMICOLON,              // ;
 
                 K_IF,                   //if
                 K_ELSE,                 //else
@@ -79,10 +82,18 @@ namespace Glass {
             SPACE,
             NEWLINE,
             SEMICOLON,
+            TWO_POINTS,
             COMMENT,
             DOUBLE_QUOT,
             QUOT,
             ESCAPE,
+            COMMA,
+            PARENTESIS_O,
+            PARENTESIS_C,
+            KEY_O,
+            KEY_C,
+            CLAUDATOR_O,
+            CLAUDATOR_C
         };
 
         enum Keywords {
@@ -93,7 +104,7 @@ namespace Glass {
             BOOLEAN,
             TRUE,
             FALSE,
-            _NULL
+            _NULL,
         };
 
         std::map<std::string, Keywords> typeKeyword = {
@@ -112,10 +123,18 @@ namespace Glass {
             {SPACE, ' '},
             {NEWLINE, '\n'},
             {SEMICOLON, ';'},
+            {TWO_POINTS, ':'},
             {COMMENT, '#'},
             {DOUBLE_QUOT, '"'},
             {QUOT, '\''},
-            {ESCAPE, '\\'}
+            {ESCAPE, '\\'},
+            {COMMA, ','},
+            {PARENTESIS_O, '('},
+            {PARENTESIS_C, ')'},
+            {KEY_O, '{'},
+            {KEY_C, '}'},
+            {CLAUDATOR_O, '['},
+            {CLAUDATOR_C, ']'}
         };
        
         public:
@@ -137,10 +156,22 @@ namespace Glass {
             int isQuot(char c);
             int isDoubleQuot(char c);
             int isSymbol(char c);
-            
+            int isComma(char c);
+            int isOParentesis(char c);
+            int isCParentesis(char c);
+            int isParentesis(char c);
+            int isOClaudator(char c);
+            int isCClaudator(char c);
+            int isClaudator(char c);
+            int isOKey(char c);
+            int isCKey(char c);
+            int isKey(char c);
+            int isTwoPoints(char c);
+
             void skipComment(int *next);
             void checkLiterals(int *next);
             void checkKeywords(int *next);
+            void checkSymbols(int *next);
 
             void getNumber(int *next);
             void getString(int *next);
