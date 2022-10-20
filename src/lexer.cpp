@@ -127,6 +127,10 @@ int Glass::Lexer::isTwoPoints(char c){
     return c == typeSymbol[Symbols::TWO_POINTS];
 }
 
+int Glass::Lexer::isSign(char c){
+    return c == typeSymbol[Symbols::MINUS];
+}
+
 int Glass::Lexer::isSymbol(char c){
     return isComment(c) || isPoint(c) || isComma(c)
         || isKey(c) || isParentesis(c) || isClaudator(c);
@@ -212,7 +216,7 @@ void Glass::Lexer::checkLiterals(int *next){
     if(isEnd(*next)) return;
 
     char c = code[*next];
-    if(isNumber(c) || isPoint(c)){
+    if(isNumber(c) || isPoint(c) || isSign(c)){
         getNumber(next);
     }
     else if(isQuot(c) || isDoubleQuot(c)){
@@ -222,11 +226,15 @@ void Glass::Lexer::checkLiterals(int *next){
     flush(next);
 }
 
+void Glass::Lexer::checkOperations(int *next){
+    
+}
 
 void Glass::Lexer::checkKeywords(int *next){
 
     if(isEnd(*next)) return;
     if(isSymbol(code[*next])) return;
+    if(isSign(code[*next])) return;
     
     int pos = *next;
     std::string word;
@@ -238,6 +246,24 @@ void Glass::Lexer::checkKeywords(int *next){
             case FUNC:
                 /* code */
                 tokenList.push_back(Token(Token::FUNCTION_DECLARATION));
+                break;
+            case IF:
+                tokenList.push_back(Token(Token::K_IF));
+                break;
+            case ELSE:
+                tokenList.push_back(Token(Token::K_ELSE));
+                break;
+            case WHILE:
+                tokenList.push_back(Token(Token::K_WHILE));
+                break;
+            case RETURN:
+                tokenList.push_back(Token(Token::K_RETURN));
+                break;
+            case BREAK:
+                tokenList.push_back(Token(Token::K_BREAK));
+                break;
+            case CONTINUE:
+                tokenList.push_back(Token(Token::K_CONTINUE));
                 break;
             case REAL:
                 tokenList.push_back(Token(Token::T_REAL));
@@ -312,6 +338,7 @@ int Glass::Lexer::GenerateTokens(){
         skipComment(&i);
 
         checkLiterals(&i);
+        checkOperations(&i);
         checkKeywords(&i);
         checkSymbols(&i);
     }

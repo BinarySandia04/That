@@ -9,10 +9,10 @@ namespace Glass {
             enum TokenType {
                 ERROR,
 
-                T_INT,                  // int
-                T_REAL,                 // real
-                T_STRING,               // string
-                T_BOOLEAN,              // bool
+                T_INT,                  // int          X
+                T_REAL,                 // real         X
+                T_STRING,               // string       X
+                T_BOOLEAN,              // bool         X
 
                 S_PLUS,                 // +
                 S_MINUS,                // -
@@ -37,34 +37,32 @@ namespace Glass {
                 A_DIVIDE,               // /=
                 A_MODULO,               // %=
 
-                COMMA,                  //,
-                PARENTHESIS_OPEN,       // (
-                PARENTHESIS_CLOSE,      // )
-                SQUARE_BRACKET_OPEN,    // [
-                SQUARE_BRACKET_CLOSE,   // ]
-                CURLY_BRACKET_OPEN,     // {
-                CURLY_BRACKET_CLOSE,    // }
-                SEMICOLON,              // ;
+                COMMA,                  // ,        X
+                PARENTHESIS_OPEN,       // (        X
+                PARENTHESIS_CLOSE,      // )        X
+                SQUARE_BRACKET_OPEN,    // [        X
+                SQUARE_BRACKET_CLOSE,   // ]        X
+                CURLY_BRACKET_OPEN,     // {        X
+                CURLY_BRACKET_CLOSE,    // }        X
+                SEMICOLON,              // ;        X
 
-                K_IF,                   //if
-                K_ELSE,                 //else
-                K_WHILE,                //while
-                K_RETURN,               //return
-                K_BREAK,                //break
-                K_CONTINUE,             //continue
+                K_IF,                   //if        X
+                K_ELSE,                 //else      X
+                K_WHILE,                //while     X     
+                K_RETURN,               //return    X
+                K_BREAK,                //stop      X
+                K_CONTINUE,             //skip      X
 
-                L_INT,                  // 3
-                L_REAL,                 // 3.2
-                L_STRING,               // "Hola"
-                L_TRUE,                 // True
-                L_FALSE,                // False
-                L_NULL,                 // Null
+                L_INT,                  // 3        X
+                L_REAL,                 // 3.2      X
+                L_STRING,               // "Hola"   X
+                L_TRUE,                 // True     X
+                L_FALSE,                // False    X
+                L_NULL,                 // Null     X
 
-                ARRAY_INDEXING,         // [3]
-                FUNCTION_CALL,          // Amongus()
-                FUNCTION_DECLARATION,   // func
+                FUNCTION_DECLARATION,   // func     X
 
-                IDENTIFIER              // algo
+                IDENTIFIER              // algo     X
 
             };
 
@@ -93,11 +91,19 @@ namespace Glass {
             KEY_O,
             KEY_C,
             CLAUDATOR_O,
-            CLAUDATOR_C
+            CLAUDATOR_C,
+            MINUS,
         };
 
         enum Keywords {
             FUNC,
+            IF,
+            ELSE,
+            WHILE,
+            RETURN,
+            BREAK,
+            CONTINUE,
+
             INT,
             REAL,
             STRING,
@@ -107,8 +113,21 @@ namespace Glass {
             _NULL,
         };
 
+        enum Operations {
+            ADD,
+            SUBTRACT,
+            MULTIPLY,
+            DIVIDE,
+        };
+
         std::map<std::string, Keywords> typeKeyword = {
             {"func", FUNC},
+            {"if", IF},
+            {"else", ELSE},
+            {"while", WHILE},
+            {"return", RETURN},
+            {"stop", BREAK},
+            {"skip", CONTINUE},
             {"int", INT},
             {"real", REAL},
             {"string", STRING},
@@ -134,7 +153,15 @@ namespace Glass {
             {KEY_O, '{'},
             {KEY_C, '}'},
             {CLAUDATOR_O, '['},
-            {CLAUDATOR_C, ']'}
+            {CLAUDATOR_C, ']'},
+            {MINUS, '-'}
+        };
+
+        std::map<std::string, Operations> typeOperation = {
+            {"+", ADD},
+            {"-", SUBTRACT},
+            {"*", MULTIPLY},
+            {"/", DIVIDE},
         };
        
         public:
@@ -167,11 +194,13 @@ namespace Glass {
             int isCKey(char c);
             int isKey(char c);
             int isTwoPoints(char c);
+            int isSign(char c);
 
             void skipComment(int *next);
             void checkLiterals(int *next);
             void checkKeywords(int *next);
             void checkSymbols(int *next);
+            void checkOperations(int *next);
 
             void getNumber(int *next);
             void getString(int *next);
