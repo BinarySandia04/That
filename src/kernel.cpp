@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 
 #include "kernel.h"
 #include "lexer.h"
@@ -13,6 +14,7 @@ Glass::Kernel::~Kernel() {
 
 void Glass::Kernel::send(std::string code){
     Glass::Lexer lexer(code);
+
     lexer.GenerateTokens();
     std::vector<Glass::Token> tokens = *(lexer.GetTokens());
 
@@ -27,4 +29,14 @@ void Glass::Kernel::send(std::string code){
         if(i < tokens.size() - 1) std::cout << ", ";
     }
     std::cout << std::endl;
+}
+
+void Glass::Kernel::sendScript(char name[]){
+    std::fstream file(name);
+
+    std::string code = "", line;
+    while(std::getline(file, line)){
+        code += line + " \n";
+    }
+    send(code);
 }

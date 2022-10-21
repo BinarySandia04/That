@@ -4,7 +4,7 @@
 #include "kernel.h"
 
 int cli();
-int script();
+int script(char name[]);
 
 int main(int argc, char *argv[]){
 
@@ -12,7 +12,7 @@ int main(int argc, char *argv[]){
         printVersion();
         cli();
     } else {
-        script();
+        script(argv[1]);
     }
 
     return 0;
@@ -25,6 +25,10 @@ int cli(){
     return 0;
 }
 
-int script(){
+int script(char name[]){
+    Glass::Kernel kernel;
+
+    kernel.sendScript(name);
+
     return 0;
 }

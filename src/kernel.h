@@ -8,5 +8,6 @@ namespace Glass {
             Kernel();
             ~Kernel();
             void send(std::string code);
+            void sendScript(char name[]);
     };
 }

@@ -176,7 +176,6 @@ void Glass::Lexer::getString(int *next){
     std::string s = "";
 
     char check = code[pos];
-    std::cout << check << std::endl;
     pos++;
     while(code[pos] != check){
         if(code[pos] == '\\'){
@@ -214,7 +213,6 @@ void Glass::Lexer::skipComment(int *next){
 
 int Glass::Lexer::checkLiterals(int *next){
     if(isEnd(*next)) return 1;
-    if(!(isDoubleQuot(code[*next]) || isQuot(code[*next]))) return 1;
 
     char c = code[*next];
     if(isNumber(c) || isPoint(c)){
@@ -265,7 +263,7 @@ int Glass::Lexer::checkOperations(int *next){
 int Glass::Lexer::checkKeywords(int *next){
 
     if(isEnd(*next)) return 1;
-    if(isEmpty(*next)) return 1;
+    if(isEmpty(code[*next])) return 1;
     if(isSymbol(code[*next])) return 1;
     if(isNumber(code[*next])) return 1;
     
@@ -390,6 +388,8 @@ int Glass::Lexer::GenerateTokens(){
         if(checkSymbols(&i))
         if(checkOperations(&i))
         checkKeywords(&i);
+
+        // std::cout << code[i] << std::endl;
     }
 
     return 0;
