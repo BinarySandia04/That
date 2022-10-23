@@ -3,6 +3,7 @@
 
 #include "kernel.h"
 #include "lexer.h"
+#include "parser.h"
 
 Glass::Kernel::Kernel() {
     /* Constructor */
@@ -18,6 +19,7 @@ void Glass::Kernel::send(std::string code){
     lexer.GenerateTokens();
     std::vector<Glass::Token> tokens = *(lexer.GetTokens());
 
+#ifdef DEBUG
     for(int i = 0; i < tokens.size(); i++){
         std::cout << "[";
         std::cout << "type: " << tokens[i].type;
@@ -29,6 +31,11 @@ void Glass::Kernel::send(std::string code){
         if(i < tokens.size() - 1) std::cout << ", ";
     }
     std::cout << std::endl;
+#endif
+
+    Glass::Parser parser(tokens);
+
+    Glass::Nodes::Node ast = parser.GenerateAST();
 }
 
 void Glass::Kernel::sendScript(char name[]){

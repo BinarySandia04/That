@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#define DEBUG
 
 namespace Glass {
     class Kernel {
