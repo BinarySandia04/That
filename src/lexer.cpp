@@ -46,7 +46,9 @@ int Glass::Lexer::isNumber(char c){
 }
 
 int Glass::Lexer::isEmpty(char c){
-    return c == typeSymbol[Symbols::SPACE] || c == typeSymbol[Symbols::NEWLINE];
+    return c == typeSymbol[Symbols::SPACE] ||
+        c == typeSymbol[Symbols::NEWLINE] ||
+        c == typeSymbol[Symbols::TAB];
 }
 
 void Glass::Lexer::flush(int *next){
@@ -141,7 +143,7 @@ void Glass::Lexer::addError(){
     tokenList.push_back(Token(Token::ERROR, ""));
 }
 
-void Glass::Lexer::getNumber(int *next){
+int Glass::Lexer::getNumber(int *next){
     int pos = *next;
 
     std::string num(1, code[pos]);
@@ -160,14 +162,18 @@ void Glass::Lexer::getNumber(int *next){
         }
     }
 
+    if(num == ".") return 0;
+
     *next = pos;
     
     if(isEmpty(code[pos]) || !isNumber(code[pos]) || isSeparator(code[pos]) || isEnd(pos)){
         if(isRational) tokenList.push_back(Token(Token::L_REAL, num));
         else tokenList.push_back(Token(Token::L_INT, num));
+        return 1;
     } else {
         // Error
         addError();
+        return 0;
     }
 }
 
@@ -216,8 +222,7 @@ int Glass::Lexer::checkLiterals(int *next){
 
     char c = code[*next];
     if(isNumber(c) || isPoint(c)){
-        getNumber(next);
-        return 0;
+        if(getNumber(next)) return 0;
     }
     else if(isQuot(c) || isDoubleQuot(c)){
         getString(next);
@@ -342,6 +347,9 @@ int Glass::Lexer::checkKeywords(int *next){
 int Glass::Lexer::checkSymbols(int *next){
     if(isEnd(*next)) return 0;
     switch(code[*next]){
+        case '.':
+            tokenList.push_back(Token(Token::POINT));
+            break;
         case ',':
             tokenList.push_back(Token(Token::COMMA));
             break;

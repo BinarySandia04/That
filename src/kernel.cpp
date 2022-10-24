@@ -43,7 +43,7 @@ void Glass::Kernel::sendScript(char name[]){
 
     std::string code = "", line;
     while(std::getline(file, line)){
-        code += line + " \n";
+        code += line + "\n";
     }
     send(code);
 }

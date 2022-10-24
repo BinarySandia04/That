@@ -10,7 +10,6 @@ namespace Glass {
     class Parser {
         public:
             Parser(std::vector<Glass::Token> tokens);
-            ~Parser();
 
             Nodes::Node GenerateAST();
         private:

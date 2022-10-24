@@ -42,6 +42,7 @@ namespace Glass {
                 A_MODULO,               // %=           X
 
                 COMMA,                  // ,        X
+                POINT,                  // .        X
                 PARENTHESIS_OPEN,       // (        X
                 PARENTHESIS_CLOSE,      // )        X
                 SQUARE_BRACKET_OPEN,    // [        X
@@ -87,6 +88,7 @@ namespace Glass {
         enum Symbols {
             POINT,
             SPACE,
+            TAB,
             NEWLINE,
             SEMICOLON,
             TWO_POINTS,
@@ -157,6 +159,7 @@ namespace Glass {
         std::map<Symbols, char> typeSymbol = {
             {POINT, '.'},
             {SPACE, ' '},
+            {TAB, '\t'},
             {NEWLINE, '\n'},
             {SEMICOLON, ';'},
             {TWO_POINTS, ':'},
@@ -244,7 +247,7 @@ namespace Glass {
             int checkSymbols(int *next);
             int checkOperations(int *next);
 
-            void getNumber(int *next);
+            int getNumber(int *next);
             void getString(int *next);
 
             void addError();
