@@ -68,6 +68,8 @@ namespace Glass {
                 L_NULL,                 // Null     X
 
                 FUNCTION_DECLARATION,   // func     X
+                MODULE_DECLARATION,     // use      X
+                IMPORT_DECLARATION,     // import   X
 
                 IDENTIFIER              // algo     X
 
@@ -114,6 +116,9 @@ namespace Glass {
 
         enum Keywords {
             FUNC,
+            MODULE,
+            IMPORT,
+
             IF,
             ELSE,
             WHILE,
@@ -132,6 +137,8 @@ namespace Glass {
 
         std::map<std::string, Keywords> typeKeyword = {
             {"func", FUNC},
+            {"use", MODULE},
+            {"import", IMPORT},
             {"if", IF},
             {"else", ELSE},
             {"while", WHILE},

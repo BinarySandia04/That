@@ -11,23 +11,24 @@ namespace Glass {
             public:
                 Node();
                 ~Node();
+                void Execute(); // Això per execució un cop construida la estructura del codi
         };
 
         class Expression : Node {
             public:
                 Expression();
                 ~Expression();
-                void Evaluate();
+                void Evaluate(); // Aquesta funció evalua. S'hauria de cridar al executar-la suposo
         };
 
         class Literal : Expression {
-            enum LiteralType {
-                INT,
-                REAL,
-                STRING,
-                BOOLEAN
-            };
             public:
+                enum LiteralType { // Hauria de tenir suport per llistes o algo
+                    INT,
+                    REAL,
+                    STRING,
+                    BOOLEAN
+                };
                 Literal(std::string value, LiteralType type);
             private:
                 std::string value;
@@ -73,6 +74,33 @@ namespace Glass {
             private:
                 std::string varName;
                 Expression expression;
+        };
+    
+        class If : Node {
+            public:
+                If(Expression condition, std::vector<Node> trueCase, std::vector<Node> elseCase);
+            private:
+                Expression condition;
+                std::vector<Node> trueCase;
+                std::vector<Node> elseCase;
+        };
+
+        class While : Node {
+            public:
+                While(Expression condition, std::vector<Node> whileCase);
+            private:
+                Expression condition;
+                std::vector<Node> whileCase;
+        };
+
+        class Function : Node {
+            public:
+                Function(std::string name, std::vector<Declaration> arguments, std::vector<Node> functionCode, Literal::LiteralType returnType);
+            private:
+                std::string name;
+                std::vector<Declaration> arguments;
+                std::vector<Node> functionCode;
+                Literal::LiteralType returnType;
         };
     }
 }

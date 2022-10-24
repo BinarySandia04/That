@@ -278,6 +278,12 @@ int Glass::Lexer::checkKeywords(int *next){
                 /* code */
                 tokenList.push_back(Token(Token::FUNCTION_DECLARATION));
                 break;
+            case MODULE:
+                tokenList.push_back(Token(Token::MODULE_DECLARATION));
+                break;
+            case IMPORT:
+                tokenList.push_back(Token(Token::IMPORT_DECLARATION));
+                break;
             case IF:
                 tokenList.push_back(Token(Token::K_IF));
                 break;
