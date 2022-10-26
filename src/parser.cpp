@@ -10,4 +10,9 @@ Parser::Parser(std::vector<Token> tokens){
 
 Nodes::Node Parser::GenerateAST(){
     Nodes::Node root;
+
+    int next = 0;
+    while(next < tokens.size()){
+        GetExpression(&root);
+    }
 }

@@ -10,9 +10,12 @@ namespace Glass {
         class Node {
             public:
                 void Execute(); // Això per execució un cop construida la estructura del codi
+                std::vector<Node*> children;
+            private:
+                Node* parent;
         };
 
-        class Expression {
+        class Expression : Node {
             public:
                 void Evaluate(); // Aquesta funció evalua. S'hauria de cridar al executar-la suposo
         };
@@ -74,28 +77,26 @@ namespace Glass {
     
         class If : Node {
             public:
-                If(Expression condition, std::vector<Node> ifChildren, std::vector<Node> elseChildren);
+                If(Expression condition, std::vector<Node*> ifChildren, std::vector<Node*> elseChildren);
             private:
                 Expression condition;
-                std::vector<Node> ifChildren;
-                std::vector<Node> elseChildren;
+                std::vector<Node*> ifChildren;
+                std::vector<Node*> elseChildren;
         };
 
         class While : Node {
             public:
-                While(Expression condition, std::vector<Node> children);
+                While(Expression condition, std::vector<Node*> children);
             private:
                 Expression condition;
-                std::vector<Node> children;
         };
 
         class Function : Node {
             public:
-                Function(std::string name, std::vector<Declaration> arguments, std::vector<Node> children, Literal::LiteralType returnType);
+                Function(std::string name, std::vector<Declaration> arguments, std::vector<Node*> children, Literal::LiteralType returnType);
             private:
                 std::string name;
                 std::vector<Declaration> arguments;
-                std::vector<Node> children;
                 Literal::LiteralType returnType;
         };
     }
