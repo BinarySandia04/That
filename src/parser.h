@@ -14,5 +14,7 @@ namespace Glass {
             Nodes::Node GenerateAST();
         private:
             std::vector<Glass::Token> tokens;
+            
+            Nodes::Expression* GetExpression(int from, int to);
     };
 }

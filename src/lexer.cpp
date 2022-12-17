@@ -15,6 +15,10 @@ Glass::Token::~Token(){
 
 }
 
+bool Glass::Token::IsLiteral(){
+    return this->type >= L_INT && this->type <= L_NULL;
+}
+
 Glass::Lexer::Lexer(std::string code){
     this->code = code;
 }

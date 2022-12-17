@@ -2,53 +2,90 @@
 
 using namespace Glass;
 
-void Nodes::Expression::Evaluate(){
-
+Nodes::Node::Node(NodeType type){
+    this->type = type;
 }
 
-Nodes::Literal::Literal(std::string value, LiteralType type){
+Nodes::NodeType Nodes::Node::GetType(){
+    return this->type;
+}
+
+Nodes::Error::Error(int errorCode) : Node(NodeType::ERROR){
+    this->errorCode = errorCode;
+}
+
+int Nodes::Error::GetErrorCode(){
+    return this->errorCode;
+}
+
+
+Nodes::Expression::Expression(ExpressionType type){
+    this->expType = type;
+}
+
+Nodes::Expression::Expression(){
+    this->expType = ExpressionType::VOID;
+}
+
+Nodes::ExpressionType Nodes::Expression::GetType(){
+    return this->expType;
+}
+
+void Nodes::Expression::Evaluate(){}
+
+Nodes::Literal::Literal(std::string value, LiteralType type) : Expression(ExpressionType::LITERAL){
     this->value = value;
     this->type = type;
 }
 
-Nodes::Binary::Binary(Expression first, Token::TokenType operation, Expression second){
+Nodes::Literal::Literal(){
+    this->type = LiteralType::VOID;
+}
+
+Nodes::Binary::Binary(Expression *first, Token::TokenType operation, Expression *second) : Expression(ExpressionType::BINARY){
     this->first = first;
     this->operation = operation;
     this->second = second;
 }
 
-Nodes::Unary::Unary(Expression expression, Token::TokenType operation){
+void Nodes::Binary::Evaluate(){
+    
+}
+
+void Nodes::Literal::Evaluate(){}
+
+Nodes::Unary::Unary(Expression *expression, Token::TokenType operation) : Expression(ExpressionType::UNARY){
     this->expression = expression;
     this->operation = operation;
 }
 
-Nodes::Call::Call(std::vector<Expression> args, std::string function){
+Nodes::Call::Call(std::vector<Expression*> args, std::string function) : Expression(ExpressionType::CALL){
     this->args = args;
     this->function = function;
 }
 
-Nodes::Declaration::Declaration(Token::TokenType variableType, std::string varName){
+Nodes::Declaration::Declaration(Token::TokenType variableType, std::string varName) : Node(NodeType::DECLARATION){
     this->variableType = variableType;
     this->varName = varName;
 }
 
-Nodes::Assignation::Assignation(std::string varName, Expression expression){
+Nodes::Assignation::Assignation(std::string varName, Expression *expression) : Node(NodeType::ASSIGNATION){
     this->varName = varName;
     this->expression = expression;
 }
 
-Nodes::If::If(Expression condition, std::vector<Node*> ifChildren, std::vector<Node*> elseChildren){
+Nodes::If::If(Expression *condition, std::vector<Node*> ifChildren, std::vector<Node*> elseChildren) : Node(NodeType::IF){
     this->condition = condition;
     this->ifChildren = ifChildren;
     this->elseChildren = elseChildren;
 }
 
-Nodes::While::While(Expression condition, std::vector<Node*> children){
+Nodes::While::While(Expression *condition, std::vector<Node*> children) : Node(NodeType::WHILE){
     this->condition = condition;
     this->children = children;
 }
 
-Nodes::Function::Function(std::string name, std::vector<Declaration> arguments, std::vector<Node*> children, Literal::LiteralType returnType){
+Nodes::Function::Function(std::string name, std::vector<Declaration*> arguments, std::vector<Node*> children, Literal::LiteralType returnType) : Node(NodeType::FUNCTION){
     this->name = name;
     this->arguments = arguments;
     this->children = children;

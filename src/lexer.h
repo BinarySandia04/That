@@ -78,7 +78,10 @@ namespace Glass {
 
             Token(TokenType type, std::string value);
             Token(TokenType type);
+
             ~Token();
+
+            bool IsLiteral();
 
             std::string value;
             TokenType type;
