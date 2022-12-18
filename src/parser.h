@@ -15,6 +15,6 @@ namespace Glass {
         private:
             std::vector<Glass::Token> tokens;
             
-            Nodes::Expression* GetExpression(int from, int to);
+            void GetExpression(Nodes::Expression** parent, int from, int to);
     };
 }

@@ -19,11 +19,10 @@ namespace Glass {
         };
 
         enum ExpressionType {
-            LITERAL,
             BINARY,
             UNARY,
             CALL,
-            VOID,
+            VALUE,
         };
 
         class Node {
@@ -48,19 +47,8 @@ namespace Glass {
             private:
                 int errorCode;
         };
-
-        class Expression {
-            public:
-                Expression();
-                Expression(ExpressionType type);
-
-                ExpressionType GetType();
-                virtual void Evaluate(); // Aquesta funció evalua. S'hauria de cridar al executar-la suposo
-            private:
-                ExpressionType expType;
-        };
-
-        class Literal : Expression {
+        
+        class Literal {
             public:
                 enum LiteralType { // Hauria de tenir suport per llistes o algo
                     INT,
@@ -70,34 +58,51 @@ namespace Glass {
                     VOID
                 };
 
-                void Evaluate();
+                Literal Evaluate();
                 Literal(std::string value, LiteralType type);
                 Literal();
+                std::string GetValue();
+                LiteralType GetLiteralType();
             private:
                 std::string value;
                 LiteralType type;
         };
 
+        class Expression {
+            public:
+                Expression();
+                Expression(ExpressionType type);
+                Expression(Literal value);
+
+                ExpressionType GetType();
+                Expression *first;
+                Literal value;
+                virtual Literal Evaluate(); // Aquesta funció evalua. S'hauria de cridar al executar-la suposo
+            private:
+                ExpressionType expType;
+        };
+
+
         class Binary : Expression {
             public:
-                void Evaluate();
+                Literal Evaluate();
                 Binary(Expression *first, Token::TokenType operation, Expression *second);
             private:
-                Expression *first;
                 Expression *second;
                 Token::TokenType operation;
         };
 
         class Unary : Expression {
             public:
+                Literal Evaluate();
                 Unary(Expression *expression, Token::TokenType operation);
             private:
-                Expression *expression;
                 Token::TokenType operation;
         };
 
         class Call : Expression {
             public:
+                Literal Evaluate();
                 Call(std::vector<Expression*> args, std::string function);
             private:
                 std::vector<Expression*> args;

@@ -1,4 +1,5 @@
 #include "nodes.h"
+#include <iostream>
 
 using namespace Glass;
 
@@ -23,17 +24,20 @@ Nodes::Expression::Expression(ExpressionType type){
     this->expType = type;
 }
 
+Nodes::Expression::Expression(Nodes::Literal value){
+    this->value = value;
+    this->expType = Nodes::ExpressionType::VALUE;
+}
+
 Nodes::Expression::Expression(){
-    this->expType = ExpressionType::VOID;
+    this->expType = ExpressionType::VALUE;
 }
 
 Nodes::ExpressionType Nodes::Expression::GetType(){
     return this->expType;
 }
 
-void Nodes::Expression::Evaluate(){}
-
-Nodes::Literal::Literal(std::string value, LiteralType type) : Expression(ExpressionType::LITERAL){
+Nodes::Literal::Literal(std::string value, LiteralType type){
     this->value = value;
     this->type = type;
 }
@@ -42,20 +46,22 @@ Nodes::Literal::Literal(){
     this->type = LiteralType::VOID;
 }
 
+std::string Nodes::Literal::GetValue(){
+    return value;
+}
+
+Nodes::Literal::LiteralType Nodes::Literal::GetLiteralType(){
+    return type;
+}
+
 Nodes::Binary::Binary(Expression *first, Token::TokenType operation, Expression *second) : Expression(ExpressionType::BINARY){
     this->first = first;
     this->operation = operation;
     this->second = second;
 }
 
-void Nodes::Binary::Evaluate(){
-    
-}
-
-void Nodes::Literal::Evaluate(){}
-
 Nodes::Unary::Unary(Expression *expression, Token::TokenType operation) : Expression(ExpressionType::UNARY){
-    this->expression = expression;
+    this->first = expression;
     this->operation = operation;
 }
 

@@ -26,13 +26,17 @@ Nodes::Node Parser::GenerateAST(){
     }
     current = end + 1;
 
-    Nodes::Expression *nextNode = GetExpression(start, end - 1);
-    nextNode->Evaluate();
+    Nodes::Expression nextNode;
+    GetExpression(&nextNode.first, start, end - 1);
+
+    std::cout << "El tipo es: " << nextNode.GetType() << std::endl;
+
+    std::cout << nextNode.first->Evaluate().GetValue() << std::endl;
 
     return root;
 }
 
-Nodes::Expression* Parser::GetExpression(int from, int to){
+void Parser::GetExpression(Nodes::Expression** parent, int from, int to){
     /* 
         +, -
         *, /, //, %
@@ -56,34 +60,48 @@ Nodes::Expression* Parser::GetExpression(int from, int to){
         // Faltan literales, variables,
         if(token.IsLiteral()){
             std::cout << "Detectado literal " << token.value << std::endl;
+
             if(token.type == Token::L_INT){
-                Nodes::Literal *lit = new Nodes::Literal(token.value, Nodes::Literal::LiteralType::INT);
-                return reinterpret_cast<Nodes::Expression*>(lit);
+                std::cout << "Value: " << token.value << std::endl;
+                Nodes::Literal lit(token.value, Nodes::Literal::LiteralType::INT);
+                Nodes::Expression *par = new Nodes::Expression(lit);
+                *parent = par;
+                return;
             }
 
             if(token.type == Token::L_REAL){
-                Nodes::Literal *lit = new Nodes::Literal(token.value, Nodes::Literal::LiteralType::REAL);
-                return reinterpret_cast<Nodes::Expression*>(lit);
+                Nodes::Literal lit(token.value, Nodes::Literal::LiteralType::REAL);
+                Nodes::Expression *par = new Nodes::Expression(lit);
+                *parent = par;
+                return;
             }
 
             if(token.type == Token::L_STRING){
-                Nodes::Literal *lit = new Nodes::Literal(token.value, Nodes::Literal::LiteralType::STRING);
-                return reinterpret_cast<Nodes::Expression*>(lit);
+                Nodes::Literal lit(token.value, Nodes::Literal::LiteralType::STRING);
+                Nodes::Expression *par = new Nodes::Expression(lit);
+                *parent = par;
+                return;
             }
 
             if(token.type == Token::L_TRUE){
-                Nodes::Literal *lit = new Nodes::Literal("t", Nodes::Literal::LiteralType::BOOLEAN);
-                return reinterpret_cast<Nodes::Expression*>(lit);
+                Nodes::Literal lit("t", Nodes::Literal::LiteralType::BOOLEAN);
+                Nodes::Expression *par = new Nodes::Expression(lit);
+                *parent = par;
+                return;
             }
             
             if(token.type == Token::L_FALSE){
-                Nodes::Literal *lit = new Nodes::Literal("f", Nodes::Literal::LiteralType::BOOLEAN);
-                return reinterpret_cast<Nodes::Expression*>(lit);
+                Nodes::Literal lit("f", Nodes::Literal::LiteralType::BOOLEAN);
+                Nodes::Expression *par = new Nodes::Expression(lit);
+                *parent = par;
+                return;
             }
 
             if(token.type == Token::L_NULL){
-                Nodes::Literal *lit = new Nodes::Literal();
-                return reinterpret_cast<Nodes::Expression*>(lit);
+                Nodes::Literal lit;
+                Nodes::Expression *par = new Nodes::Expression(lit);
+                *parent = par;
+                return;
             }
         }
     }
@@ -104,13 +122,14 @@ Nodes::Expression* Parser::GetExpression(int from, int to){
 
         if(l == 0 && valid){
             // std::cout << "Quitando parentesis" << std::endl;
-            return GetExpression(from + 1, to - 1);
+            GetExpression(parent, from + 1, to - 1);
+            return;
         }
     }
 
     int i;
 
-    // +, -
+    // +, - 
     for(i = from; i <= to; i++){
         Token::TokenType type = this->tokens[i].type;
         if(type == Token::PARENTHESIS_OPEN){
@@ -123,12 +142,17 @@ Nodes::Expression* Parser::GetExpression(int from, int to){
         }
 
         if(type == Token::S_PLUS || type == Token::S_SUBTRACT){
-            Nodes::Binary *bin = new Nodes::Binary(
-                GetExpression(from, i - 1),
-                this->tokens[i].type,
-                GetExpression(i + 1, to));
+            Nodes::Expression *first, *second;
             
-            return reinterpret_cast<Nodes::Expression *>(bin);
+            GetExpression(&first, from, i - 1);
+            GetExpression(&second, i + 1, to);
+            
+            std::cout << "Hola!!" << std::endl;
+
+            Nodes::Binary *bin = new Nodes::Binary(first, this->tokens[i].type, second);
+            *parent = reinterpret_cast<Nodes::Expression*>(bin);
+
+            return;
         }
     }
 
@@ -144,12 +168,14 @@ Nodes::Expression* Parser::GetExpression(int from, int to){
 
         if(type == Token::S_MULTIPLY || type == Token::S_DIVIDE 
         || type == Token::S_INTDIVIDE || type == Token::S_MODULO){
-            Nodes::Binary *bin = new Nodes::Binary(
-                GetExpression(from, i - 1),
-                this->tokens[i].type,
-                GetExpression(i + 1, to));
-            
-            return reinterpret_cast<Nodes::Expression *>(bin);
+            Nodes::Expression *first, *second;
+            GetExpression(&first, from, i - 1);
+            GetExpression(&second, i + 1, to);
+
+            Nodes::Binary *bin = new Nodes::Binary(first, this->tokens[i].type, second);
+            *parent = reinterpret_cast<Nodes::Expression*>(bin);
+
+            return;
         }
     }
 }
