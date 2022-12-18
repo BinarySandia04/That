@@ -57,8 +57,7 @@ namespace Glass {
                     BOOLEAN,
                     VOID
                 };
-
-                Literal Evaluate();
+                
                 Literal(std::string value, LiteralType type);
                 Literal();
                 std::string GetValue();

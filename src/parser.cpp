@@ -37,10 +37,7 @@ Nodes::Node Parser::GenerateAST(){
 }
 
 void Parser::GetExpression(Nodes::Expression** parent, int from, int to){
-    /* 
-        +, -
-        *, /, //, %
-        (),
+  
 
     for(int i = from; i <= to; i++){
         std::cout << "[";
@@ -53,7 +50,6 @@ void Parser::GetExpression(Nodes::Expression** parent, int from, int to){
         if(i < tokens.size() - 1) std::cout << ", ";
     }
     std::cout << std::endl;
-    */
 
     if(from == to){
         Token token = this->tokens[from];
