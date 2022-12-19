@@ -5,15 +5,15 @@
 #include "lexer.h"
 #include "nodes.h"
 
-namespace Glass {
+namespace Rux {
 
     class Parser {
         public:
-            Parser(std::vector<Glass::Token> tokens);
+            Parser(std::vector<Rux::Token> tokens);
 
             Nodes::Node GenerateAST();
         private:
-            std::vector<Glass::Token> tokens;
+            std::vector<Rux::Token> tokens;
             
             void GetExpression(Nodes::Expression** parent, int from, int to);
     };

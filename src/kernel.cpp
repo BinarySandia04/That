@@ -5,19 +5,20 @@
 #include "lexer.h"
 #include "parser.h"
 
-Glass::Kernel::Kernel() {
+Rux::Kernel::Kernel() {
     /* Constructor */
 }
 
-Glass::Kernel::~Kernel() {
+Rux::Kernel::~Kernel() {
     /* Destructor */
 }
 
-void Glass::Kernel::send(std::string code){
-    Glass::Lexer lexer(code);
+void Rux::Kernel::send(std::string code){
+    Rux::Lexer lexer(code);
 
     lexer.GenerateTokens();
-    std::vector<Glass::Token> tokens = *(lexer.GetTokens());
+    std::vector<Rux::Token> tokens = *(lexer.GetTokens());
+
 
 #ifdef DEBUG
     for(int i = 0; i < tokens.size(); i++){
@@ -33,12 +34,13 @@ void Glass::Kernel::send(std::string code){
     std::cout << std::endl;
 #endif
 
-    Glass::Parser parser(tokens);
 
-    Glass::Nodes::Node ast = parser.GenerateAST();
+    Rux::Parser parser(tokens);
+
+    Rux::Nodes::Node ast = parser.GenerateAST();
 }
 
-void Glass::Kernel::sendScript(char name[]){
+void Rux::Kernel::sendScript(char name[]){
     std::fstream file(name);
 
     std::string code = "", line;

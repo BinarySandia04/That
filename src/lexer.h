@@ -4,7 +4,7 @@
 #include <vector>
 #include <map>
 
-namespace Glass {
+namespace Rux {
 
     class Token {
         public:

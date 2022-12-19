@@ -3,7 +3,7 @@
 #include <string>
 #define DEBUG
 
-namespace Glass {
+namespace Rux {
     class Kernel {
         public:
             Kernel();

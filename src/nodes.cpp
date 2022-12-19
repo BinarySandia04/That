@@ -1,7 +1,7 @@
 #include "nodes.h"
 #include <iostream>
 
-using namespace Glass;
+using namespace Rux;
 
 Nodes::Node::Node(NodeType type){
     this->type = type;

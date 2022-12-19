@@ -2,38 +2,38 @@
 #include <iostream>
 #include "lexer.h"
 
-Glass::Token::Token(TokenType type, std::string value){
+Rux::Token::Token(TokenType type, std::string value){
     this->type = type;
     this->value = value;
 }
 
-Glass::Token::Token(TokenType type){
+Rux::Token::Token(TokenType type){
     this->type = type;
 }
 
-Glass::Token::~Token(){
+Rux::Token::~Token(){
 
 }
 
-bool Glass::Token::IsLiteral(){
+bool Rux::Token::IsLiteral(){
     return this->type >= L_INT && this->type <= L_NULL;
 }
 
-Glass::Lexer::Lexer(std::string code){
+Rux::Lexer::Lexer(std::string code){
     this->code = code;
 }
 
-Glass::Lexer::~Lexer(){
+Rux::Lexer::~Lexer(){
 }
 
 /*
 De un codi doncs torna tokens!
 */
-std::vector<Glass::Token>* Glass::Lexer::GetTokens(){
+std::vector<Rux::Token>* Rux::Lexer::GetTokens(){
     return &tokenList;
 }
 
-std::string Glass::Lexer::nextWord(int pos, int* nextPos){
+std::string Rux::Lexer::nextWord(int pos, int* nextPos){
     std::string nWord = "";
     while(!isEnd(pos) && !isSymbol(code[pos])){
         nWord += code[pos];
@@ -44,96 +44,96 @@ std::string Glass::Lexer::nextWord(int pos, int* nextPos){
     return nWord;
 }
 
-int Glass::Lexer::isNumber(char c){
+int Rux::Lexer::isNumber(char c){
     if(c >= 48 && c <= 57) return true;
     return false;
 }
 
-int Glass::Lexer::isEmpty(char c){
+int Rux::Lexer::isEmpty(char c){
     return c == typeSymbol[Symbols::SPACE] ||
         c == typeSymbol[Symbols::NEWLINE] ||
         c == typeSymbol[Symbols::TAB];
 }
 
-void Glass::Lexer::flush(int *next){
+void Rux::Lexer::flush(int *next){
     int pos = *next;
     while(isEmpty(code[pos])) pos++;
     *next = pos;
 }
 
-int Glass::Lexer::isSemicolon(char c){
+int Rux::Lexer::isSemicolon(char c){
     return c == typeSymbol[Symbols::SEMICOLON];
 }
 
-int Glass::Lexer::isSeparator(char c){
+int Rux::Lexer::isSeparator(char c){
     return 0;
 }
 
-int Glass::Lexer::isComment(char c){
+int Rux::Lexer::isComment(char c){
     return c == typeSymbol[Symbols::COMMENT];
 }
 
-int Glass::Lexer::isEnd(int pos){
+int Rux::Lexer::isEnd(int pos){
     return pos >= code.size();
 }
 
-int Glass::Lexer::isPoint(char c){
+int Rux::Lexer::isPoint(char c){
     return c == typeSymbol[Symbols::POINT];
 }
 
-int Glass::Lexer::isQuot(char c){
+int Rux::Lexer::isQuot(char c){
     return c == typeSymbol[Symbols::QUOT];
 }
 
-int Glass::Lexer::isDoubleQuot(char c){
+int Rux::Lexer::isDoubleQuot(char c){
     return c == typeSymbol[Symbols::DOUBLE_QUOT];
 }
 
-int Glass::Lexer::isComma(char c){
+int Rux::Lexer::isComma(char c){
     return c == typeSymbol[Symbols::COMMA];
 }
 
-int Glass::Lexer::isOParentesis(char c){
+int Rux::Lexer::isOParentesis(char c){
     return c == typeSymbol[Symbols::PARENTESIS_O];
 }
 
-int Glass::Lexer::isCParentesis(char c){
+int Rux::Lexer::isCParentesis(char c){
     return c == typeSymbol[Symbols::PARENTESIS_C];
 }
 
-int Glass::Lexer::isParentesis(char c){
+int Rux::Lexer::isParentesis(char c){
     return isOParentesis(c) || isCParentesis(c);
 }
 
-int Glass::Lexer::isOClaudator(char c){
+int Rux::Lexer::isOClaudator(char c){
     return c == typeSymbol[Symbols::CLAUDATOR_O];
 }
 
-int Glass::Lexer::isCClaudator(char c){
+int Rux::Lexer::isCClaudator(char c){
     return c == typeSymbol[Symbols::CLAUDATOR_C];
 }
 
-int Glass::Lexer::isClaudator(char c){
+int Rux::Lexer::isClaudator(char c){
     return isCClaudator(c) || isOClaudator(c);
 }
 
-int Glass::Lexer::isOKey(char c){
+int Rux::Lexer::isOKey(char c){
     return c == typeSymbol[Symbols::KEY_O];
 }
 
-int Glass::Lexer::isCKey(char c){
+int Rux::Lexer::isCKey(char c){
     return c == typeSymbol[Symbols::KEY_C];
 }
 
-int Glass::Lexer::isKey(char c){
+int Rux::Lexer::isKey(char c){
     return isOKey(c) || isCKey(c);
 }
 
-int Glass::Lexer::isTwoPoints(char c){
+int Rux::Lexer::isTwoPoints(char c){
     return c == typeSymbol[Symbols::TWO_POINTS];
 }
 
-int Glass::Lexer::isSymbol(char c){
+int Rux::Lexer::isSymbol(char c){
     for (auto& it : typeSymbol) {
         if (it.second == c) {
             return 1;
@@ -143,11 +143,11 @@ int Glass::Lexer::isSymbol(char c){
     return 0;
 }
 
-void Glass::Lexer::addError(){
+void Rux::Lexer::addError(){
     tokenList.push_back(Token(Token::ERROR, ""));
 }
 
-int Glass::Lexer::getNumber(int *next){
+int Rux::Lexer::getNumber(int *next){
     int pos = *next;
 
     std::string num(1, code[pos]);
@@ -181,7 +181,7 @@ int Glass::Lexer::getNumber(int *next){
     }
 }
 
-void Glass::Lexer::getString(int *next){
+void Rux::Lexer::getString(int *next){
     int pos = *next;
     std::string s = "";
 
@@ -211,7 +211,7 @@ void Glass::Lexer::getString(int *next){
 
 }
 
-void Glass::Lexer::skipComment(int *next){
+void Rux::Lexer::skipComment(int *next){
     if(isComment(code[*next])){
         int pos = *next;
         while(code[pos] != typeSymbol[Symbols::NEWLINE] && !isEnd(pos)){
@@ -221,7 +221,7 @@ void Glass::Lexer::skipComment(int *next){
     }
 }
 
-int Glass::Lexer::checkLiterals(int *next){
+int Rux::Lexer::checkLiterals(int *next){
     if(isEnd(*next)) return 1;
 
     char c = code[*next];
@@ -237,7 +237,7 @@ int Glass::Lexer::checkLiterals(int *next){
     return 1;
 }
 
-int Glass::Lexer::checkOperations(int *next){
+int Rux::Lexer::checkOperations(int *next){
     if(isEnd(*next)) return 1;
     if(isEmpty(code[*next])) flush(next);
 
@@ -269,7 +269,7 @@ int Glass::Lexer::checkOperations(int *next){
     return 1;
 }
 
-int Glass::Lexer::checkKeywords(int *next){
+int Rux::Lexer::checkKeywords(int *next){
 
     if(isEnd(*next)) return 1;
     if(isEmpty(code[*next])) return 1;
@@ -348,7 +348,7 @@ int Glass::Lexer::checkKeywords(int *next){
     
 }
 
-int Glass::Lexer::checkSymbols(int *next){
+int Rux::Lexer::checkSymbols(int *next){
     if(isEnd(*next)) return 0;
     switch(code[*next]){
         case '.':
@@ -398,7 +398,7 @@ int Glass::Lexer::checkSymbols(int *next){
     return 0;
 }
 
-int Glass::Lexer::GenerateTokens(){
+int Rux::Lexer::GenerateTokens(){
     for(int i = 0; i < code.size(); ){
         skipComment(&i);
 

@@ -5,7 +5,7 @@
 
 #include "lexer.h"
 
-namespace Glass {
+namespace Rux {
     namespace Nodes {
 
         enum NodeType {

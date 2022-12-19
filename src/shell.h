@@ -3,7 +3,7 @@
 #include <iostream>
 #include "kernel.h"
 
-namespace Glass {
+namespace Rux {
     class Shell {
         public:
             Shell();

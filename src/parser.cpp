@@ -3,10 +3,10 @@
 #include <iostream>
 #include <vector>
 
-using namespace Glass;
+using namespace Rux;
 
 void test(Nodes::Expression *node){
-    std::cout << "Tipo: " << node->GetType() << std::endl;
+    // std::cout << "Tipo: " << node->GetType() << std::endl;
 }
 
 
@@ -29,7 +29,7 @@ Nodes::Node Parser::GenerateAST(){
     Nodes::Expression nextNode;
     GetExpression(&nextNode.first, start, end - 1);
 
-    std::cout << "El tipo es: " << nextNode.GetType() << std::endl;
+    // std::cout << "El tipo es: " << nextNode.GetType() << std::endl;
 
     std::cout << nextNode.first->Evaluate().GetValue() << std::endl;
 
@@ -38,9 +38,9 @@ Nodes::Node Parser::GenerateAST(){
 
 void Parser::GetExpression(Nodes::Expression** parent, int from, int to){
   
-
+    /*
     for(int i = from; i <= to; i++){
-        std::cout << "[";
+        // std::cout << "[";
         std::cout << "type: " << tokens[i].type;
         if(tokens[i].value.size() > 0){
             std::cout << ", value: " << tokens[i].value << "]";
@@ -50,15 +50,16 @@ void Parser::GetExpression(Nodes::Expression** parent, int from, int to){
         if(i < tokens.size() - 1) std::cout << ", ";
     }
     std::cout << std::endl;
+    */
 
     if(from == to){
         Token token = this->tokens[from];
         // Faltan literales, variables,
         if(token.IsLiteral()){
-            std::cout << "Detectado literal " << token.value << std::endl;
+            // std::cout << "Detectado literal " << token.value << std::endl;
 
             if(token.type == Token::L_INT){
-                std::cout << "Value: " << token.value << std::endl;
+                // std::cout << "Value: " << token.value << std::endl;
                 Nodes::Literal lit(token.value, Nodes::Literal::LiteralType::INT);
                 Nodes::Expression *par = new Nodes::Expression(lit);
                 *parent = par;
@@ -138,12 +139,13 @@ void Parser::GetExpression(Nodes::Expression** parent, int from, int to){
         }
 
         if(type == Token::S_PLUS || type == Token::S_SUBTRACT){
-            Nodes::Expression *first, *second;
+            Nodes::Expression *first = NULL, *second = NULL;
             
             GetExpression(&first, from, i - 1);
             GetExpression(&second, i + 1, to);
             
             std::cout << "Hola!!" << std::endl;
+            std::cout << first << " " << second << std::endl;
 
             Nodes::Binary *bin = new Nodes::Binary(first, this->tokens[i].type, second);
             *parent = reinterpret_cast<Nodes::Expression*>(bin);

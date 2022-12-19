@@ -3,15 +3,15 @@
 
 #include <iostream>
 
-Glass::Shell::Shell(){
+Rux::Shell::Shell(){
 
 }
 
-Glass::Shell::~Shell(){
+Rux::Shell::~Shell(){
 
 }
 
-void Glass::Shell::CreateShell(Kernel *kernel){
+void Rux::Shell::CreateShell(Kernel *kernel){
     std::string line;
 
     std::cout << ">> ";

@@ -1,5 +1,5 @@
 use "test";
-import "glass/math";
+import "Rux/math";
 
 func main: {
     int a = 3;

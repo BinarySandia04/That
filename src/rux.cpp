@@ -19,14 +19,14 @@ int main(int argc, char *argv[]){
 }
 
 int cli(){
-    Glass::Kernel kernel;
-    Glass::Shell::CreateShell(&kernel);
+    Rux::Kernel kernel;
+    Rux::Shell::CreateShell(&kernel);
 
     return 0;
 }
 
 int script(char name[]){
-    Glass::Kernel kernel;
+    Rux::Kernel kernel;
 
     kernel.sendScript(name);
 
