@@ -103,21 +103,22 @@ void Parser::GetExpression(Nodes::Expression** parent, int from, int to){
         }
     }
 
-    if(this->tokens[from].type == Token::PARENTHESIS_OPEN){
+    if(this->tokens[to].type == Token::PARENTHESIS_CLOSE){
+        // std::cout << "Hola" << std::endl;
         int l = 0;
         int valid = 1;
-        for(int j = from; j <= to; j++){
-            if(this->tokens[j].type == Token::PARENTHESIS_OPEN) l++;
-            if(this->tokens[j].type == Token::PARENTHESIS_CLOSE) l--;
+        for(int j = to; j >= from; j--){
+            if(this->tokens[j].type == Token::PARENTHESIS_OPEN) l--;
+            if(this->tokens[j].type == Token::PARENTHESIS_CLOSE) l++;
 
             // std::cout << "l: " << l << " " << this->tokens[j].type << std::endl;
-            if(l < 1 && j != to){
+            if(l < 1 && j != from){
                 valid = 0;
                 break;
             }
         }
 
-        if(l == 0 && valid){
+        if(l == 0 && valid && this->tokens[from].type == Token::PARENTHESIS_OPEN){
             // std::cout << "Quitando parentesis" << std::endl;
             GetExpression(parent, from + 1, to - 1);
             return;
@@ -125,16 +126,16 @@ void Parser::GetExpression(Nodes::Expression** parent, int from, int to){
     }
 
     int i;
-
+    std::cout << "SI funcion" << std::endl;
     // +, - 
-    for(i = from; i <= to; i++){
+    for(i = to; i >= from; i--){
         Token::TokenType type = this->tokens[i].type;
-        if(type == Token::PARENTHESIS_OPEN){
+        if(type == Token::PARENTHESIS_CLOSE){
             // std::cout << "Parentesis " << std::endl;
-            for(; type != Token::PARENTHESIS_CLOSE; i++){
+            for(; type != Token::PARENTHESIS_OPEN; i--){
                 type = this->tokens[i].type;
             }
-            i--;
+            i++;
             continue;
         }
 
@@ -144,8 +145,8 @@ void Parser::GetExpression(Nodes::Expression** parent, int from, int to){
             GetExpression(&first, from, i - 1);
             GetExpression(&second, i + 1, to);
             
-            std::cout << "Hola!!" << std::endl;
-            std::cout << first << " " << second << std::endl;
+            // std::cout << "Hola!!" << std::endl;
+            // std::cout << first << " " << second << std::endl;
 
             Nodes::Binary *bin = new Nodes::Binary(first, this->tokens[i].type, second);
             *parent = reinterpret_cast<Nodes::Expression*>(bin);
@@ -154,21 +155,25 @@ void Parser::GetExpression(Nodes::Expression** parent, int from, int to){
         }
     }
 
-    for(i = from; i <= to; i++){
+    for(i = to; i >= from; i--){
         Token::TokenType type = this->tokens[i].type;
-        if(type == Token::PARENTHESIS_OPEN){
-            for(; type != Token::PARENTHESIS_CLOSE; i++){
+        if(type == Token::PARENTHESIS_CLOSE){
+            for(; type != Token::PARENTHESIS_OPEN; i--){
                 type = this->tokens[i].type;
             }
-            i--;
+            i++;
             continue;
         }
 
         if(type == Token::S_MULTIPLY || type == Token::S_DIVIDE 
         || type == Token::S_INTDIVIDE || type == Token::S_MODULO){
-            Nodes::Expression *first, *second;
+            Nodes::Expression *first = NULL, *second = NULL;
             GetExpression(&first, from, i - 1);
             GetExpression(&second, i + 1, to);
+
+            
+            // std::cout << "AADIOS!!" << std::endl;
+            // std::cout << first << " " << second << std::endl;
 
             Nodes::Binary *bin = new Nodes::Binary(first, this->tokens[i].type, second);
             *parent = reinterpret_cast<Nodes::Expression*>(bin);
