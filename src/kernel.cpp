@@ -1,23 +1,28 @@
 #include <iostream>
 #include <fstream>
+#include <limits>
+#include <cstdint>
 
 #include "kernel.h"
 #include "lexer.h"
 #include "parser.h"
+#include "machine.h"
 
-Rux::Kernel::Kernel() {
+#define BLOCK_SIZE 1024
+
+Radic::Kernel::Kernel() {
     /* Constructor */
 }
 
-Rux::Kernel::~Kernel() {
+Radic::Kernel::~Kernel() {
     /* Destructor */
 }
 
-void Rux::Kernel::send(std::string code){
-    Rux::Lexer lexer(code);
+void Radic::Kernel::compile(std::string code){
+    Radic::Lexer lexer(code);
 
     lexer.GenerateTokens();
-    std::vector<Rux::Token> tokens = *(lexer.GetTokens());
+    std::vector<Radic::Token> tokens = *(lexer.GetTokens());
 
 
 #ifdef DEBUG
@@ -35,17 +40,25 @@ void Rux::Kernel::send(std::string code){
 #endif
 
 
-    Rux::Parser parser(tokens);
+    Radic::Parser parser(tokens);
 
-    Rux::Nodes::Node ast = parser.GenerateAST();
+    Radic::Nodes::Node ast = parser.GenerateAST();
 }
 
-void Rux::Kernel::sendScript(char name[]){
+void Radic::Kernel::send(char filename[]){
+    // Initialize vm
+    
+    VM vm(filename);
+
+    // Ara partim això en coses nose com shorts per exemple
+}
+
+void Radic::Kernel::sendScript(char name[]){
     std::fstream file(name);
 
     std::string code = "", line;
     while(std::getline(file, line)){
         code += line + "\n";
     }
-    send(code);
+    compile(code);
 }

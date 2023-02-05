@@ -3,12 +3,14 @@
 #include <string>
 #define DEBUG
 
-namespace Rux {
+namespace Radic {
     class Kernel {
         public:
             Kernel();
             ~Kernel();
-            void send(std::string code);
+            void compile(std::string code);
+            void send(char filename[]);
             void sendScript(char name[]);
+            void sendByteScript(char name[]);
     };
 }

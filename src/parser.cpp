@@ -3,7 +3,7 @@
 #include <iostream>
 #include <vector>
 
-using namespace Rux;
+using namespace Radic;
 
 void test(Nodes::Expression *node){
     // std::cout << "Tipo: " << node->GetType() << std::endl;
@@ -40,7 +40,7 @@ void Parser::GetExpression(Nodes::Expression** parent, int from, int to){
   
     /*
     for(int i = from; i <= to; i++){
-        // std::cout << "[";
+        std::cout << "[";
         std::cout << "type: " << tokens[i].type;
         if(tokens[i].value.size() > 0){
             std::cout << ", value: " << tokens[i].value << "]";
@@ -123,17 +123,24 @@ void Parser::GetExpression(Nodes::Expression** parent, int from, int to){
             GetExpression(parent, from + 1, to - 1);
             return;
         }
+
+        if(!valid){
+            std::cout << "error?" << std::endl;
+        }
     }
 
-    int i;
-    std::cout << "SI funcion" << std::endl;
+    int i, j;
+    // std::cout << "SI funcion" << std::endl;
     // +, - 
     for(i = to; i >= from; i--){
         Token::TokenType type = this->tokens[i].type;
         if(type == Token::PARENTHESIS_CLOSE){
+            j = 1;
             // std::cout << "Parentesis " << std::endl;
-            for(; type != Token::PARENTHESIS_OPEN; i--){
+            for(i--; j != 0; i--){
                 type = this->tokens[i].type;
+                if(type == Token::TokenType::PARENTHESIS_CLOSE) j++;
+                if(type == Token::TokenType::PARENTHESIS_OPEN) j--;
             }
             i++;
             continue;
@@ -158,8 +165,12 @@ void Parser::GetExpression(Nodes::Expression** parent, int from, int to){
     for(i = to; i >= from; i--){
         Token::TokenType type = this->tokens[i].type;
         if(type == Token::PARENTHESIS_CLOSE){
-            for(; type != Token::PARENTHESIS_OPEN; i--){
+            j = 1;
+            // std::cout << "Parentesis " << std::endl;
+            for(i--; j > 0; i--){
                 type = this->tokens[i].type;
+                if(type == Token::TokenType::PARENTHESIS_CLOSE) j++;
+                if(type == Token::TokenType::PARENTHESIS_OPEN) j--;
             }
             i++;
             continue;

@@ -1,12 +1,11 @@
-use "test";
-import "Rux/math";
+import "Radic/math";
 
-func main: {
+func main: () => int {
     int a = 3;
     
     print("Aixo es un test " + a);
     int b = get("Mira aqui poses algo: ");
-    if a | b {
+    if a == b {
         print("A divideix B");
     } else {
         print("A no divideix B");
@@ -15,7 +14,7 @@ func main: {
     print("Aquesta funció nose que fa: " + multiplicar(a,b));
     int c = get("Posa ara un nombre c: ") => int;
 
-    if ((a | b) + (a | c)) * a == 3 {
+    if ( ((a == b) + (a == c)) * a == 3 {
         print("(A divideix b o a divideix c) i a es igual a 3");
     }
 

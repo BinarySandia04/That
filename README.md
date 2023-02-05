@@ -2,7 +2,7 @@
  <p align="center">
   <img src="logo.png" alt="Logo" width="80" height="80">
 
-  <h1 align="center">Rux</h1>
+  <h1 align="center">Radic</h1>
     <p align="center">
     Un llenguatge de programació programable interpretat molt petit
     <br />

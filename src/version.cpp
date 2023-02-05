@@ -4,6 +4,6 @@
 #include <iostream>
 
 int printVersion(){
-    std::cout << "Rux interpreter version " << VERSION << " --- (c) Aran Roig "<< std::endl;
+    std::cout << "Radic interpreter version " << VERSION << " --- (c) Aran Roig "<< std::endl;
     return 0;
 }

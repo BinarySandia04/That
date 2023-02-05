@@ -5,15 +5,15 @@
 #include "lexer.h"
 #include "nodes.h"
 
-namespace Rux {
+namespace Radic {
 
     class Parser {
         public:
-            Parser(std::vector<Rux::Token> tokens);
+            Parser(std::vector<Radic::Token> tokens);
 
             Nodes::Node GenerateAST();
         private:
-            std::vector<Rux::Token> tokens;
+            std::vector<Radic::Token> tokens;
             
             void GetExpression(Nodes::Expression** parent, int from, int to);
     };

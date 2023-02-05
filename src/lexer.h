@@ -4,7 +4,7 @@
 #include <vector>
 #include <map>
 
-namespace Rux {
+namespace Radic {
 
     class Token {
         public:

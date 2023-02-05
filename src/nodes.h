@@ -5,7 +5,7 @@
 
 #include "lexer.h"
 
-namespace Rux {
+namespace Radic {
     namespace Nodes {
 
         enum NodeType {
@@ -15,7 +15,7 @@ namespace Rux {
             IF,
             WHILE,
             FUNCTION,
-            ERROR
+            NODE_ERROR
         };
 
         enum ExpressionType {
@@ -23,6 +23,7 @@ namespace Rux {
             UNARY,
             CALL,
             VALUE,
+            ERROR,
         };
 
         class Node {
@@ -79,6 +80,12 @@ namespace Rux {
                 virtual Literal Evaluate(); // Aquesta funció evalua. S'hauria de cridar al executar-la suposo
             private:
                 ExpressionType expType;
+        };
+
+        class ExpressionError : Expression {
+            public:
+                ExpressionError(int errorCode);
+            private:
         };
 
 

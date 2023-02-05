@@ -5,6 +5,7 @@
 
 int cli();
 int script(char name[]);
+int byteScript(char name[]);
 
 int main(int argc, char *argv[]){
 
@@ -12,23 +13,31 @@ int main(int argc, char *argv[]){
         printVersion();
         cli();
     } else {
-        script(argv[1]);
+        byteScript(argv[1]);
     }
 
     return 0;
 }
 
 int cli(){
-    Rux::Kernel kernel;
-    Rux::Shell::CreateShell(&kernel);
+    Radic::Kernel kernel;
+    Radic::Shell::CreateShell(&kernel);
 
     return 0;
 }
 
 int script(char name[]){
-    Rux::Kernel kernel;
+    Radic::Kernel kernel;
 
     kernel.sendScript(name);
+
+    return 0;
+}
+
+int byteScript(char name[]){
+    Radic::Kernel kernel;
+
+    kernel.send(name);
 
     return 0;
 }

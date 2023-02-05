@@ -3,7 +3,7 @@
 #include <iostream>
 #include "kernel.h"
 
-namespace Rux {
+namespace Radic {
     class Shell {
         public:
             Shell();

@@ -2,38 +2,38 @@
 #include <iostream>
 #include "lexer.h"
 
-Rux::Token::Token(TokenType type, std::string value){
+Radic::Token::Token(TokenType type, std::string value){
     this->type = type;
     this->value = value;
 }
 
-Rux::Token::Token(TokenType type){
+Radic::Token::Token(TokenType type){
     this->type = type;
 }
 
-Rux::Token::~Token(){
+Radic::Token::~Token(){
 
 }
 
-bool Rux::Token::IsLiteral(){
+bool Radic::Token::IsLiteral(){
     return this->type >= L_INT && this->type <= L_NULL;
 }
 
-Rux::Lexer::Lexer(std::string code){
+Radic::Lexer::Lexer(std::string code){
     this->code = code;
 }
 
-Rux::Lexer::~Lexer(){
+Radic::Lexer::~Lexer(){
 }
 
 /*
 De un codi doncs torna tokens!
 */
-std::vector<Rux::Token>* Rux::Lexer::GetTokens(){
+std::vector<Radic::Token>* Radic::Lexer::GetTokens(){
     return &tokenList;
 }
 
-std::string Rux::Lexer::nextWord(int pos, int* nextPos){
+std::string Radic::Lexer::nextWord(int pos, int* nextPos){
     std::string nWord = "";
     while(!isEnd(pos) && !isSymbol(code[pos])){
         nWord += code[pos];
@@ -44,96 +44,96 @@ std::string Rux::Lexer::nextWord(int pos, int* nextPos){
     return nWord;
 }
 
-int Rux::Lexer::isNumber(char c){
+int Radic::Lexer::isNumber(char c){
     if(c >= 48 && c <= 57) return true;
     return false;
 }
 
-int Rux::Lexer::isEmpty(char c){
+int Radic::Lexer::isEmpty(char c){
     return c == typeSymbol[Symbols::SPACE] ||
         c == typeSymbol[Symbols::NEWLINE] ||
         c == typeSymbol[Symbols::TAB];
 }
 
-void Rux::Lexer::flush(int *next){
+void Radic::Lexer::flush(int *next){
     int pos = *next;
     while(isEmpty(code[pos])) pos++;
     *next = pos;
 }
 
-int Rux::Lexer::isSemicolon(char c){
+int Radic::Lexer::isSemicolon(char c){
     return c == typeSymbol[Symbols::SEMICOLON];
 }
 
-int Rux::Lexer::isSeparator(char c){
+int Radic::Lexer::isSeparator(char c){
     return 0;
 }
 
-int Rux::Lexer::isComment(char c){
+int Radic::Lexer::isComment(char c){
     return c == typeSymbol[Symbols::COMMENT];
 }
 
-int Rux::Lexer::isEnd(int pos){
+int Radic::Lexer::isEnd(int pos){
     return pos >= code.size();
 }
 
-int Rux::Lexer::isPoint(char c){
+int Radic::Lexer::isPoint(char c){
     return c == typeSymbol[Symbols::POINT];
 }
 
-int Rux::Lexer::isQuot(char c){
+int Radic::Lexer::isQuot(char c){
     return c == typeSymbol[Symbols::QUOT];
 }
 
-int Rux::Lexer::isDoubleQuot(char c){
+int Radic::Lexer::isDoubleQuot(char c){
     return c == typeSymbol[Symbols::DOUBLE_QUOT];
 }
 
-int Rux::Lexer::isComma(char c){
+int Radic::Lexer::isComma(char c){
     return c == typeSymbol[Symbols::COMMA];
 }
 
-int Rux::Lexer::isOParentesis(char c){
+int Radic::Lexer::isOParentesis(char c){
     return c == typeSymbol[Symbols::PARENTESIS_O];
 }
 
-int Rux::Lexer::isCParentesis(char c){
+int Radic::Lexer::isCParentesis(char c){
     return c == typeSymbol[Symbols::PARENTESIS_C];
 }
 
-int Rux::Lexer::isParentesis(char c){
+int Radic::Lexer::isParentesis(char c){
     return isOParentesis(c) || isCParentesis(c);
 }
 
-int Rux::Lexer::isOClaudator(char c){
+int Radic::Lexer::isOClaudator(char c){
     return c == typeSymbol[Symbols::CLAUDATOR_O];
 }
 
-int Rux::Lexer::isCClaudator(char c){
+int Radic::Lexer::isCClaudator(char c){
     return c == typeSymbol[Symbols::CLAUDATOR_C];
 }
 
-int Rux::Lexer::isClaudator(char c){
+int Radic::Lexer::isClaudator(char c){
     return isCClaudator(c) || isOClaudator(c);
 }
 
-int Rux::Lexer::isOKey(char c){
+int Radic::Lexer::isOKey(char c){
     return c == typeSymbol[Symbols::KEY_O];
 }
 
-int Rux::Lexer::isCKey(char c){
+int Radic::Lexer::isCKey(char c){
     return c == typeSymbol[Symbols::KEY_C];
 }
 
-int Rux::Lexer::isKey(char c){
+int Radic::Lexer::isKey(char c){
     return isOKey(c) || isCKey(c);
 }
 
-int Rux::Lexer::isTwoPoints(char c){
+int Radic::Lexer::isTwoPoints(char c){
     return c == typeSymbol[Symbols::TWO_POINTS];
 }
 
-int Rux::Lexer::isSymbol(char c){
+int Radic::Lexer::isSymbol(char c){
     for (auto& it : typeSymbol) {
         if (it.second == c) {
             return 1;
@@ -143,11 +143,11 @@ int Rux::Lexer::isSymbol(char c){
     return 0;
 }
 
-void Rux::Lexer::addError(){
+void Radic::Lexer::addError(){
     tokenList.push_back(Token(Token::ERROR, ""));
 }
 
-int Rux::Lexer::getNumber(int *next){
+int Radic::Lexer::getNumber(int *next){
     int pos = *next;
 
     std::string num(1, code[pos]);
@@ -181,7 +181,7 @@ int Rux::Lexer::getNumber(int *next){
     }
 }
 
-void Rux::Lexer::getString(int *next){
+void Radic::Lexer::getString(int *next){
     int pos = *next;
     std::string s = "";
 
@@ -211,7 +211,7 @@ void Rux::Lexer::getString(int *next){
 
 }
 
-void Rux::Lexer::skipComment(int *next){
+void Radic::Lexer::skipComment(int *next){
     if(isComment(code[*next])){
         int pos = *next;
         while(code[pos] != typeSymbol[Symbols::NEWLINE] && !isEnd(pos)){
@@ -221,7 +221,7 @@ void Rux::Lexer::skipComment(int *next){
     }
 }
 
-int Rux::Lexer::checkLiterals(int *next){
+int Radic::Lexer::checkLiterals(int *next){
     if(isEnd(*next)) return 1;
 
     char c = code[*next];
@@ -237,7 +237,7 @@ int Rux::Lexer::checkLiterals(int *next){
     return 1;
 }
 
-int Rux::Lexer::checkOperations(int *next){
+int Radic::Lexer::checkOperations(int *next){
     if(isEnd(*next)) return 1;
     if(isEmpty(code[*next])) flush(next);
 
@@ -269,7 +269,7 @@ int Rux::Lexer::checkOperations(int *next){
     return 1;
 }
 
-int Rux::Lexer::checkKeywords(int *next){
+int Radic::Lexer::checkKeywords(int *next){
 
     if(isEnd(*next)) return 1;
     if(isEmpty(code[*next])) return 1;
@@ -348,7 +348,7 @@ int Rux::Lexer::checkKeywords(int *next){
     
 }
 
-int Rux::Lexer::checkSymbols(int *next){
+int Radic::Lexer::checkSymbols(int *next){
     if(isEnd(*next)) return 0;
     switch(code[*next]){
         case '.':
@@ -398,7 +398,7 @@ int Rux::Lexer::checkSymbols(int *next){
     return 0;
 }
 
-int Rux::Lexer::GenerateTokens(){
+int Radic::Lexer::GenerateTokens(){
     for(int i = 0; i < code.size(); ){
         skipComment(&i);
 

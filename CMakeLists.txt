@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(Rux VERSION 0.1)
+project(Radic VERSION 0.1)
 
 find_package(Git)
 
@@ -23,4 +23,4 @@ ADD_CUSTOM_TARGET(
                      -D DST=${CMAKE_BINARY_DIR}/version-g.h
                      -P ${CMAKE_BINARY_DIR}/version.cmake
 )
-ADD_DEPENDENCIES(Rux version)
+ADD_DEPENDENCIES(Radic version)

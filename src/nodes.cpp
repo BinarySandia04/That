@@ -1,7 +1,7 @@
 #include "nodes.h"
 #include <iostream>
 
-using namespace Rux;
+using namespace Radic;
 
 Nodes::Node::Node(NodeType type){
     this->type = type;
@@ -11,7 +11,7 @@ Nodes::NodeType Nodes::Node::GetType(){
     return this->type;
 }
 
-Nodes::Error::Error(int errorCode) : Node(NodeType::ERROR){
+Nodes::Error::Error(int errorCode) : Node(NodeType::NODE_ERROR){
     this->errorCode = errorCode;
 }
 

@@ -5,7 +5,7 @@
 #include <map>
 #include <tuple>
 
-using namespace Rux;
+using namespace Radic;
 
 // Operands
 Nodes::Literal   PlusOperand(Nodes::Literal first, Nodes::Literal second);
