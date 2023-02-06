@@ -3,7 +3,7 @@
 #include <string>
 #define DEBUG
 
-namespace Radic {
+namespace That {
     class Kernel {
         public:
             Kernel();

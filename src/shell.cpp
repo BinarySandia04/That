@@ -3,15 +3,15 @@
 
 #include <iostream>
 
-Radic::Shell::Shell(){
+That::Shell::Shell(){
 
 }
 
-Radic::Shell::~Shell(){
+That::Shell::~Shell(){
 
 }
 
-void Radic::Shell::CreateShell(Kernel *kernel){
+void That::Shell::CreateShell(Kernel *kernel){
     std::string line;
 
     std::cout << ">> ";

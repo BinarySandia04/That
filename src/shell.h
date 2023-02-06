@@ -3,7 +3,7 @@
 #include <iostream>
 #include "kernel.h"
 
-namespace Radic {
+namespace That {
     class Shell {
         public:
             Shell();

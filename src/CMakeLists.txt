@@ -3,4 +3,4 @@ file(GLOB SOURCES
     *.h
     *.cpp
 )
-add_executable(Radic ${SOURCES})
+add_executable(That ${SOURCES})

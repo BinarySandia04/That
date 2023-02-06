@@ -1,7 +1,7 @@
 #include "nodes.h"
 #include <iostream>
 
-using namespace Radic;
+using namespace That;
 
 Nodes::Node::Node(NodeType type){
     this->type = type;

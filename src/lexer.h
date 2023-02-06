@@ -4,7 +4,7 @@
 #include <vector>
 #include <map>
 
-namespace Radic {
+namespace That {
 
     class Token {
         public:

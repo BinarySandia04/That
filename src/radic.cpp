@@ -20,14 +20,14 @@ int main(int argc, char *argv[]){
 }
 
 int cli(){
-    Radic::Kernel kernel;
-    Radic::Shell::CreateShell(&kernel);
+    That::Kernel kernel;
+    That::Shell::CreateShell(&kernel);
 
     return 0;
 }
 
 int script(char name[]){
-    Radic::Kernel kernel;
+    That::Kernel kernel;
 
     kernel.sendScript(name);
 
@@ -35,7 +35,7 @@ int script(char name[]){
 }
 
 int byteScript(char name[]){
-    Radic::Kernel kernel;
+    That::Kernel kernel;
 
     kernel.send(name);
 

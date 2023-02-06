@@ -3,7 +3,7 @@
 #include <iostream>
 #include <vector>
 
-using namespace Radic;
+using namespace That;
 
 void test(Nodes::Expression *node){
     // std::cout << "Tipo: " << node->GetType() << std::endl;

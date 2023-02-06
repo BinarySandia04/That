@@ -5,7 +5,7 @@
 #include <map>
 #include <tuple>
 
-using namespace Radic;
+using namespace That;
 
 // Operands
 Nodes::Literal   PlusOperand(Nodes::Literal first, Nodes::Literal second);

@@ -5,7 +5,7 @@
 
 #include "lexer.h"
 
-namespace Radic {
+namespace That {
     namespace Nodes {
 
         enum NodeType {

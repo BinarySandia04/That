@@ -1,4 +1,4 @@
-import "Radic/math";
+import "That/math";
 
 func main: () => int {
     int a = 3;

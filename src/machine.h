@@ -1,39 +1,42 @@
 #pragma once
 
 #include <cstdint>
-#include <stack>
+#include <vector>
 
-namespace Radic {
+namespace That {
     class VM {
         typedef struct reg {
             union {
                 uint32_t num;
-                char *str;
-                uint32_t *lnum;
+                uint8_t *lnum;
             };
-            enum {
+            enum type_t {
+                OBJECT,
                 INT,
                 STR,
-                LONG
+                NUMBER,
+                NONE,
             } type;
         } reg_t;
 
-        std::stack<reg_t> regs;
+        std::vector<reg_t> regs;
         
         public:
             VM(char filename[]);
             ~VM();
 
             enum Instruction {
+                PUSH, // Bx
+                POP, // Bx
                 LOADC, // A, Bx
-                MOVE
+                MOVE // A, B
             };
             
         private:
-            int Process(char ins[], uint64_t cons[]);
+            int Process(char ins[], reg_t cons[]);
             uint8_t ReadA(char ins[]);
             uint8_t ReadB(char ins[]);
             uint8_t ReadC(char ins[]);
-            unsigned int ReadBx(char ins[]);
+            uint32_t ReadBx(char ins[]);
     };
 }

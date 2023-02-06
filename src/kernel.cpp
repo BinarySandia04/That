@@ -10,19 +10,19 @@
 
 #define BLOCK_SIZE 1024
 
-Radic::Kernel::Kernel() {
+That::Kernel::Kernel() {
     /* Constructor */
 }
 
-Radic::Kernel::~Kernel() {
+That::Kernel::~Kernel() {
     /* Destructor */
 }
 
-void Radic::Kernel::compile(std::string code){
-    Radic::Lexer lexer(code);
+void That::Kernel::compile(std::string code){
+    That::Lexer lexer(code);
 
     lexer.GenerateTokens();
-    std::vector<Radic::Token> tokens = *(lexer.GetTokens());
+    std::vector<That::Token> tokens = *(lexer.GetTokens());
 
 
 #ifdef DEBUG
@@ -40,12 +40,12 @@ void Radic::Kernel::compile(std::string code){
 #endif
 
 
-    Radic::Parser parser(tokens);
+    That::Parser parser(tokens);
 
-    Radic::Nodes::Node ast = parser.GenerateAST();
+    That::Nodes::Node ast = parser.GenerateAST();
 }
 
-void Radic::Kernel::send(char filename[]){
+void That::Kernel::send(char filename[]){
     // Initialize vm
     
     VM vm(filename);
@@ -53,7 +53,7 @@ void Radic::Kernel::send(char filename[]){
     // Ara partim això en coses nose com shorts per exemple
 }
 
-void Radic::Kernel::sendScript(char name[]){
+void That::Kernel::sendScript(char name[]){
     std::fstream file(name);
 
     std::string code = "", line;
