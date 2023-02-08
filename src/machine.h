@@ -19,24 +19,24 @@ namespace That {
             } type;
         } reg_t;
 
-        std::vector<reg_t> regs;
+        std::vector<reg_t*> regs;
         
         public:
             VM(char filename[]);
             ~VM();
 
             enum Instruction {
-                PUSH, // Bx
-                POP, // Bx
-                LOADC, // A, Bx
-                MOVE // A, B
+                PUSH, // A, Bx
+                MOVE, // A, B
+                POP // Bx
             };
             
         private:
-            int Process(char ins[], reg_t cons[]);
+            int Process(char ins[], reg_t* cons[]);
             uint8_t ReadA(char ins[]);
             uint8_t ReadB(char ins[]);
             uint8_t ReadC(char ins[]);
             uint32_t ReadBx(char ins[]);
+            uint32_t ReadAbx(char ins[]);
     };
 }
