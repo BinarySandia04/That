@@ -50,6 +50,7 @@ namespace That {
             uint8_t ReadC(uint8_t ins[]);
             uint32_t ReadBx(uint8_t ins[]);
             uint32_t ReadAbx(uint8_t ins[]);
+            uint32_t ReadBytes(uint8_t *dir);
             void Call(uint8_t a, uint8_t b, uint8_t c);
     };
 }

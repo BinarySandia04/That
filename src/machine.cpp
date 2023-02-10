@@ -1,15 +1,15 @@
 #include "machine.h"
 
 #include <iostream>
-
+#include "internal.h"
 
 void That::VM::MemDump(uint8_t *data, int size){
     std::cout << "[Dump] Size: " << size << std::endl;
 
     for(int i = 0; i < size; i++){
-        std::cout << (int) *(data + i) << std::endl;
+        std::cout << (int) *(data + i) << " ";
     }
-    std::cout << "Si" << std::endl;
+    std::cout << std::endl;
     return;
 }
 
@@ -54,6 +54,8 @@ That::VM::VM(char filename[]){
         
     }
 
+    std::cout << "Ok ja hem llegit consts" << std::endl;
+
     while(fread(ins, sizeof(uint8_t), 4, f)){
         std::cout << "Leido hasiendo dump" << std::endl;
         MemDump(ins, 4);
@@ -76,15 +78,10 @@ int That::VM::Process(uint8_t ins[], reg_t* regCons[], int offset){
     case Instruction::PUSH: // Push reg
         abx = this->ReadAbx(ins);
         std::cout << "Instruccion push " << abx << std::endl;
-        if(abx == 0){
-            // Push the none
-            reg_t* none = new reg_t;
-            none->type = reg_t::type_t::NONE;
-            regs.push_back(none);
-        } else{
-            std::cout << "Cola " << (uint32_t) abx << std::endl;
-            regs.push_back(regCons[abx]);
-        }
+        
+        std::cout << "Cola " << (uint32_t) abx << std::endl;
+        regs.push_back(regCons[abx]);
+        
         break;
     case Instruction::MOVE: // Move regs
         a = this->ReadA(ins) + offset;
@@ -101,11 +98,18 @@ int That::VM::Process(uint8_t ins[], reg_t* regCons[], int offset){
         Call(a, b, c);
         break;
     case Instruction::ICL: // Internal call
-        a = this->ReadA(ins) + offset;
+        std::cout << "Internal call!" << std::endl;
+        a = this->ReadA(ins);
         b = this->ReadB(ins) + offset;
         c = this->ReadC(ins) + offset;
 
+        std::cout << (int) b << std::endl;
+        std::cout << regs.size() << std::endl;
+
         // Aqui funcions internes o algo
+        if(a == 0){ // Print
+            print(regs[b]->num);
+        }
         break;
     default:
         break;
@@ -117,32 +121,36 @@ void That::VM::Call(uint8_t a, uint8_t b, uint8_t c){
 
     uint8_t *data = regs[a]->data;
 
+    std::cout << "Data de la función " << (int) a << " calleada:" << std::endl;
+    MemDump(regs[a]->data, n);
+
     for(int i = 0; i < c - b; i++){
         regs.push_back(regs[i]);
     }
 
-    void* pdata = &data;
-    uint32_t* cNums = reinterpret_cast<uint32_t*>(pdata);
-    uint32_t cNum = cNums[0];
+    uint32_t cNum = ReadBytes(data); // 0 - 4
 
+    std::cout << "hola " << (unsigned int) cNum << std::endl;
     reg_t* regCons[cNum];
 
-    int j = 0;
+    int j = UINT32_SIZE; // 4
     for(int i = 0; i < cNum; i++){
         // Llegim un uint32_t de size
         reg_t* nReg = new reg_t;
         uint32_t size, typeID; // Es pot cambiar això de tamany?
         
-        uint32_t* vData = reinterpret_cast<uint32_t*>((void*) (data + j + UINT32_SIZE));
-        typeID = *(vData);
+        // uint32_t* vData = reinterpret_cast<uint32_t*>((void*) (data + j + UINT32_SIZE));
+        typeID = ReadBytes(data + j);
+        j += 4;
 
         reg_t::type_t tipus = static_cast<reg_t::type_t>(typeID);
-
-        if(tipus == reg_t::INT){
-            nReg->num = *(vData + 1);
-        } else {
-            nReg->num = *(vData + 1);
-            nReg->data = data + 2 * UINT32_SIZE;
+        
+        nReg->num = ReadBytes(data + j);
+        std::cout << "El num es " << nReg->num << std::endl;
+        j += 4;
+        if(tipus != reg_t::INT){
+            nReg->data = data + j;
+            j += nReg->num;
         }
         
         nReg->type = tipus;
@@ -151,7 +159,8 @@ void That::VM::Call(uint8_t a, uint8_t b, uint8_t c){
 
     int s = regs.size();
 
-    for(int i = 0; i < n - j; i++){
+    for(int i = 0; i < n - j; i += 4){
+        MemDump((regs[a]->data) + j + i, 4);
         Process((regs[a]->data) + j + i, regCons, s);
     }
 
@@ -175,11 +184,15 @@ uint8_t That::VM::ReadC(uint8_t ins[]){
 }
 
 uint32_t That::VM::ReadBx(uint8_t ins[]){
-    return ((uint32_t) ((uint8_t) (ins[2]) << 8) | (uint32_t) ((uint8_t) ins[3]));
+    return ((uint32_t) (ins[2] << 8) | (uint32_t) ins[3]);
 }
 
 uint32_t That::VM::ReadAbx(uint8_t ins[]){
-    return ((uint32_t) ((uint8_t) (ins[1])) | (uint32_t) ((uint8_t) (ins[2]) << 8) | (uint32_t) ((uint8_t) (ins[3]) << 16));
+    return ((uint32_t) (ins[1]) | (uint32_t) (ins[2] << 8) | (uint32_t) (ins[3] << 16));
+}
+
+uint32_t That::VM::ReadBytes(uint8_t *dir){
+    return ((uint32_t) *(dir) | (uint32_t) (*(dir + 1) << 8) | (uint32_t) (*(dir + 2) << 16) | (uint32_t) (*(dir + 3) << 24));
 }
 
 That::VM::~VM(){
