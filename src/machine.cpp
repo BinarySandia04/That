@@ -108,7 +108,7 @@ int That::VM::Process(uint8_t ins[], reg_t* regCons[], int offset){
 
         // Aqui funcions internes o algo
         if(a == 0){ // Print
-            print(regs[b]->num);
+            print(regs[b]);
         }
         break;
     default:

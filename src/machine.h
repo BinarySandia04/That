@@ -7,26 +7,25 @@
 
 namespace That {
     class VM {
-        typedef struct reg {
-            
-            uint32_t num;
-            uint8_t *data;
-
-            enum type_t {
-                OBJECT,
-                INT,
-                STR,
-                NUMBER,
-                FUNCTION,
-                NONE,
-            } type;
-        } reg_t;
-
-        std::vector<reg_t*> regs;
         
         public:
             VM(char filename[]);
             ~VM();
+
+            typedef struct reg {
+            
+                uint32_t num;
+                uint8_t *data;
+
+                enum type_t {
+                    OBJECT,
+                    INT,
+                    STR,
+                    NUMBER,
+                    FUNCTION,
+                    NONE,
+                } type;
+            } reg_t;
 
             enum Instruction {
                 PUSH, // abx
@@ -42,6 +41,9 @@ namespace That {
             };
             
         private:
+            
+            std::vector<reg_t*> regs;
+
             void MemDump(uint8_t *data, int size);
 
             int Process(uint8_t ins[], reg_t* cons[], int offset);
