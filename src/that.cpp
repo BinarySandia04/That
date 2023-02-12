@@ -2,6 +2,7 @@
 #include "version.h"
 #include "shell.h"
 #include "kernel.h"
+#include "headers/debug.hpp"
 
 int cli();
 int script(char name[]);

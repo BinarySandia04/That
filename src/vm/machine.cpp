@@ -1,7 +1,12 @@
-#include "machine.h"
-
 #include <iostream>
+
+#include "machine.h"
 #include "internal.h"
+#include "register.h"
+
+std::map<That::Internal::InternalFunctions, That::reg_t (*)(That::reg_t*, That::reg_t*)> That::VM::FunctionMap = {
+    {That::Internal::PRINT, That::Internal::print}
+};
 
 void That::VM::MemDump(uint8_t *data, int size){
     std::cout << "[Dump] Size: " << size << std::endl;
@@ -60,11 +65,11 @@ That::VM::VM(char filename[]){
         std::cout << "Leido hasiendo dump" << std::endl;
         MemDump(ins, 4);
 
-        Process(ins, regCons, 0);
+        Process(ins, regCons, 0, NULL, NULL);
     }
 }
 
-int That::VM::Process(uint8_t ins[], reg_t* regCons[], int offset){
+int That::VM::Process(uint8_t ins[], reg_t* regCons[], int offset, bool *returnFlag, int *returnVal){
     int8_t instId = ((int8_t) ins[0]);
     std::cout << "instId: " << (unsigned int) instId << std::endl;
     VM::Instruction tipus = static_cast<VM::Instruction>(instId);
@@ -95,7 +100,7 @@ int That::VM::Process(uint8_t ins[], reg_t* regCons[], int offset){
         b = this->ReadB(ins) + offset;
         c = this->ReadC(ins) + offset;
 
-        Call(a, b, c);
+        *(regs[a]) = Call(a, b, c);
         break;
     case Instruction::ICL: // Internal call
         std::cout << "Internal call!" << std::endl;
@@ -103,20 +108,24 @@ int That::VM::Process(uint8_t ins[], reg_t* regCons[], int offset){
         b = this->ReadB(ins) + offset;
         c = this->ReadC(ins) + offset;
 
-        std::cout << (int) b << std::endl;
-        std::cout << regs.size() << std::endl;
+        // std::cout << (int) b << std::endl;
+        // std::cout << regs.size() << std::endl;
 
         // Aqui funcions internes o algo
-        if(a == 0){ // Print
-            print(regs[b]);
-        }
+        *(regs[a]) = FunctionMap[static_cast<Internal::InternalFunctions>(a)](regs[b], regs[c]);
         break;
+    case Instruction::RET:
+        std::cout << "Returneado" << std::endl;
+        a = this->ReadA(ins);
+        *returnFlag = true;
+        *returnVal = a;
+
     default:
         break;
     }
 }
 
-void That::VM::Call(uint8_t a, uint8_t b, uint8_t c){
+That::reg_t That::VM::Call(uint8_t a, uint8_t b, uint8_t c){
     int n = regs[a]->num;
 
     uint8_t *data = regs[a]->data;
@@ -159,9 +168,15 @@ void That::VM::Call(uint8_t a, uint8_t b, uint8_t c){
 
     int s = regs.size();
 
+    bool returnFlag = false;
+    int returnVal = 0;
     for(int i = 0; i < n - j; i += 4){
         MemDump((regs[a]->data) + j + i, 4);
-        Process((regs[a]->data) + j + i, regCons, s);
+        Process((regs[a]->data) + j + i, regCons, s, &returnFlag, &returnVal);
+
+        if(returnFlag){
+            break;
+        }
     }
 
     // Eliminar vars
@@ -169,6 +184,13 @@ void That::VM::Call(uint8_t a, uint8_t b, uint8_t c){
         regs.pop_back();
     }
 
+    if(returnFlag){
+        return *(regs[returnVal]);
+    }
+
+    reg_t nul;
+    nul.type == reg_t::NONE;
+    return nul;
 }
 
 uint8_t That::VM::ReadA(uint8_t ins[]){

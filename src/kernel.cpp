@@ -6,7 +6,7 @@
 #include "kernel.h"
 #include "lexer.h"
 #include "parser.h"
-#include "machine.h"
+#include "vm/machine.h"
 
 #define BLOCK_SIZE 1024
 
