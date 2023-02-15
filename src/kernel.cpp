@@ -10,8 +10,6 @@
 #include "parser.h"
 #include "vm/machine.h"
 
-#define BLOCK_SIZE 1024
-
 That::Kernel::Kernel() {
     /* Constructor */
 }
