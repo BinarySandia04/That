@@ -32,6 +32,7 @@ Nodes::Node Parser::GenerateAST(){
     // std::cout << "El tipo es: " << nextNode.GetType() << std::endl;
 
     nextNode->Debug();
+    std::cout << std::endl;
     // std::cout << nextNode.first->Evaluate().GetValue() << std::endl;
 
     return root;
@@ -145,6 +146,8 @@ void Parser::GetExpression(Nodes::Node** parent, int from, int to){
         if(type == Token::S_PLUS || type == Token::S_SUBTRACT){
             Nodes::Node *bin = new Nodes::Node(Nodes::NodeType::EXP_BINARY);
             Nodes::Node *first = NULL, *second = NULL;
+
+            bin->nd = (int) type -  (int) Token::S_PLUS;
             
             GetExpression(&first, from, i - 1);
             GetExpression(&second, i + 1, to);
@@ -173,9 +176,9 @@ void Parser::GetExpression(Nodes::Node** parent, int from, int to){
             continue;
         }
 
-        if(type >= Token::S_MULTIPLY && type <= Token::S_MODULO){
+        if((int) type >= Token::S_PLUS && type <= Token::S_MODULO){
             Nodes::Node *bin = new Nodes::Node(Nodes::EXP_BINARY);
-            bin->nd = type - Token::S_MULTIPLY;
+            bin->nd = (int) type -  (int) Token::S_PLUS;
 
             Nodes::Node *first = NULL, *second = NULL;
             GetExpression(&first, from, i - 1);

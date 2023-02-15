@@ -16,6 +16,7 @@ namespace That {
                 T_STRING,               // string       X
                 T_BOOLEAN,              // bool         X
 
+                // OP BINARIES
                 S_PLUS,                 // +            X
                 S_SUBTRACT,             // -            X
                 S_MULTIPLY,             // *            X
@@ -23,6 +24,7 @@ namespace That {
                 S_DIVIDES,              // |
                 S_INTDIVIDE,            // //           X
                 S_MODULO,               // %            X
+
                 S_INCREMENT,            // ++           X
                 S_DECREMENT,            // --           X
                 S_FLIP,                 // !

@@ -13,5 +13,13 @@ Nodes::Node::Node(){
 }
 
 void Nodes::Node::Debug(){
-    std::cout << "Hola!" << std::endl;
+    std::cout << "[ ";
+    std::cout << "type: " << this->type << ", ";
+    std::cout << "fills: ";
+    for(int i = 0; i < this->children.size(); i++){
+        this->children[i]->Debug();
+    }
+    std::cout << ", data: " << this->data.integer;
+    std::cout << ", nd: " << this->nd;
+    std::cout << " ]";
 }
