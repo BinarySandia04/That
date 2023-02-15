@@ -3,6 +3,8 @@
 #include <limits>
 #include <cstdint>
 
+#include <gmp.h>
+
 #include "kernel.h"
 #include "lexer.h"
 #include "parser.h"

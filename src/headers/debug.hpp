@@ -17,6 +17,11 @@ namespace Debug
     }
 
     template <typename T>
+    void LogImportant(T t){
+        std::cout << termcolor::yellow << t << termcolor::reset;
+    }
+
+    template <typename T>
     void Print(T t){
         std::cout << termcolor::green << t << termcolor::reset;
     }

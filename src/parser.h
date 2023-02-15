@@ -15,6 +15,6 @@ namespace That {
         private:
             std::vector<That::Token> tokens;
             
-            void GetExpression(Nodes::Expression** parent, int from, int to);
+            void GetExpression(Nodes::Node** parent, int from, int to);
     };
 }

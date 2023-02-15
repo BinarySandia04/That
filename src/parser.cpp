@@ -1,14 +1,11 @@
 #include "parser.h"
 
+#include "headers/debug.hpp"
+
 #include <iostream>
 #include <vector>
 
 using namespace That;
-
-void test(Nodes::Expression *node){
-    // std::cout << "Tipo: " << node->GetType() << std::endl;
-}
-
 
 Parser::Parser(std::vector<Token> tokens){
     this->tokens = tokens;
@@ -26,17 +23,21 @@ Nodes::Node Parser::GenerateAST(){
     }
     current = end + 1;
 
-    Nodes::Expression nextNode;
-    GetExpression(&nextNode.first, start, end - 1);
+    Nodes::Node* nextNode;
+    GetExpression(&nextNode, start, end - 1);
+
+    // I ara aqui que tenim expressions podem generar codi suposo?
+    
 
     // std::cout << "El tipo es: " << nextNode.GetType() << std::endl;
 
-    std::cout << nextNode.first->Evaluate().GetValue() << std::endl;
+    nextNode->Debug();
+    // std::cout << nextNode.first->Evaluate().GetValue() << std::endl;
 
     return root;
 }
 
-void Parser::GetExpression(Nodes::Expression** parent, int from, int to){
+void Parser::GetExpression(Nodes::Node** parent, int from, int to){
   
     /*
     for(int i = from; i <= to; i++){
@@ -57,48 +58,43 @@ void Parser::GetExpression(Nodes::Expression** parent, int from, int to){
         // Faltan literales, variables,
         if(token.IsLiteral()){
             // std::cout << "Detectado literal " << token.value << std::endl;
-
-            if(token.type == Token::L_INT){
-                // std::cout << "Value: " << token.value << std::endl;
-                Nodes::Literal lit(token.value, Nodes::Literal::LiteralType::INT);
-                Nodes::Expression *par = new Nodes::Expression(lit);
-                *parent = par;
-                return;
-            }
-
-            if(token.type == Token::L_REAL){
-                Nodes::Literal lit(token.value, Nodes::Literal::LiteralType::REAL);
-                Nodes::Expression *par = new Nodes::Expression(lit);
-                *parent = par;
-                return;
-            }
-
-            if(token.type == Token::L_STRING){
-                Nodes::Literal lit(token.value, Nodes::Literal::LiteralType::STRING);
-                Nodes::Expression *par = new Nodes::Expression(lit);
-                *parent = par;
-                return;
-            }
-
-            if(token.type == Token::L_TRUE){
-                Nodes::Literal lit("t", Nodes::Literal::LiteralType::BOOLEAN);
-                Nodes::Expression *par = new Nodes::Expression(lit);
-                *parent = par;
-                return;
-            }
-            
-            if(token.type == Token::L_FALSE){
-                Nodes::Literal lit("f", Nodes::Literal::LiteralType::BOOLEAN);
-                Nodes::Expression *par = new Nodes::Expression(lit);
-                *parent = par;
-                return;
-            }
-
-            if(token.type == Token::L_NULL){
-                Nodes::Literal lit;
-                Nodes::Expression *par = new Nodes::Expression(lit);
-                *parent = par;
-                return;
+            Nodes::Node* lit = new Nodes::Node;
+            switch(token.type){
+                case Token::L_INT:
+                    lit->type = Nodes::NodeType::VAL_INT;
+                    lit->data.integer = std::stoi(token.value);
+                    *parent = lit;
+                    return;
+                case Token::L_REAL:
+                    lit->type = Nodes::NodeType::VAL_REAL;
+                    lit->data.real = std::stod(token.value);
+                    *parent = lit;
+                    return;
+                case Token::L_STRING:
+                    lit->type = Nodes::NodeType::VAL_STRING;
+                    lit->nd = token.value.size();
+                    lit->data.bytes = new char[lit->nd];
+                    for(int i = 0; i < lit->nd; i++){
+                        lit->data.bytes[i] = token.value[i];
+                    }
+                    *parent = lit;
+                    return;
+                case Token::L_TRUE:
+                    lit->type = Nodes::NodeType::VAL_BOOLEAN;
+                    lit->data.integer = 1;
+                    *parent = lit;
+                    return;
+                case Token::L_FALSE:
+                    lit->type = Nodes::NodeType::VAL_BOOLEAN;
+                    lit->data.integer = 0;
+                    *parent = lit;
+                    return;
+                case Token::L_NULL:
+                    lit->type == Nodes::NodeType::VAL_NULL;
+                    *parent = lit;
+                    return;
+                default:
+                    break;
             }
         }
     }
@@ -147,16 +143,17 @@ void Parser::GetExpression(Nodes::Expression** parent, int from, int to){
         }
 
         if(type == Token::S_PLUS || type == Token::S_SUBTRACT){
-            Nodes::Expression *first = NULL, *second = NULL;
+            Nodes::Node *bin = new Nodes::Node(Nodes::NodeType::EXP_BINARY);
+            Nodes::Node *first = NULL, *second = NULL;
             
             GetExpression(&first, from, i - 1);
             GetExpression(&second, i + 1, to);
             
             // std::cout << "Hola!!" << std::endl;
             // std::cout << first << " " << second << std::endl;
-
-            Nodes::Binary *bin = new Nodes::Binary(first, this->tokens[i].type, second);
-            *parent = reinterpret_cast<Nodes::Expression*>(bin);
+            bin->children.push_back(first);
+            bin->children.push_back(second);
+            *parent = bin;
 
             return;
         }
@@ -176,18 +173,20 @@ void Parser::GetExpression(Nodes::Expression** parent, int from, int to){
             continue;
         }
 
-        if(type == Token::S_MULTIPLY || type == Token::S_DIVIDE 
-        || type == Token::S_INTDIVIDE || type == Token::S_MODULO){
-            Nodes::Expression *first = NULL, *second = NULL;
+        if(type >= Token::S_MULTIPLY && type <= Token::S_MODULO){
+            Nodes::Node *bin = new Nodes::Node(Nodes::EXP_BINARY);
+            bin->nd = type - Token::S_MULTIPLY;
+
+            Nodes::Node *first = NULL, *second = NULL;
             GetExpression(&first, from, i - 1);
             GetExpression(&second, i + 1, to);
 
             
             // std::cout << "AADIOS!!" << std::endl;
             // std::cout << first << " " << second << std::endl;
-
-            Nodes::Binary *bin = new Nodes::Binary(first, this->tokens[i].type, second);
-            *parent = reinterpret_cast<Nodes::Expression*>(bin);
+            bin->children.push_back(first);
+            bin->children.push_back(second);
+            *parent = bin;
 
             return;
         }
