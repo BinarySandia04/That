@@ -12,11 +12,13 @@ Parser::Parser(std::vector<Token> tokens){
 }
 
 Nodes::Node Parser::GenerateAST(){
-    Nodes::Node root(Nodes::NodeType::NODE);
 
     int current = 0;
     int start;
     int end;
+
+    Nodes::Node root(Nodes::NodeType::NODE);
+
 
     for(start = current, end = current; end < this->tokens.size(); end++){
         if(this->tokens[end].type == Token::SEMICOLON) break;
@@ -32,28 +34,55 @@ Nodes::Node Parser::GenerateAST(){
     // std::cout << "El tipo es: " << nextNode.GetType() << std::endl;
 
     nextNode->Debug();
+
     std::cout << std::endl;
     // std::cout << nextNode.first->Evaluate().GetValue() << std::endl;
 
     return root;
 }
 
-void Parser::GetExpression(Nodes::Node** parent, int from, int to){
-  
-    /*
-    for(int i = from; i <= to; i++){
-        std::cout << "[";
-        std::cout << "type: " << tokens[i].type;
-        if(tokens[i].value.size() > 0){
-            std::cout << ", value: " << tokens[i].value << "]";
-        } else {
-            std::cout << "]";
-        }
-        if(i < tokens.size() - 1) std::cout << ", ";
+void Parser::Eat(Token tok, Token comp, int *from){
+    if(tok.type == comp.type){
+        *from++;
+    } else {
+        // Call error, unexcepted identifier
+        std::cout << "ERROR HOY NO HE COMIDO!!!" << std::endl;
     }
-    std::cout << std::endl;
-    */
+}
 
+int Parser::EatParentesis(int from){
+    Token::TokenType type = this->tokens[from].type;
+    if(type != Token::TokenType::PARENTHESIS_OPEN) return from;
+    int j = 1;
+
+    from++;
+    while(j > 0){
+        Token::TokenType type = this->tokens[from].type;
+        if(type == Token::TokenType::PARENTHESIS_CLOSE) j++;
+        if(type == Token::TokenType::PARENTHESIS_OPEN) j--;
+        from++;
+    }
+    return from;
+}
+
+void Parser::GetArguments(int from, int to, std::vector<Nodes::Node *>* parent){
+    // std::cout << from << " " << to << std::endl;
+    if(from == to) return;
+    for(int a = from; from <= to; from++){
+        if(this->tokens[from].type == Token::TokenType::COMMA || from >= to){
+            from = EatParentesis(from);
+
+            Nodes::Node *arg;
+            // std::cout << "a: " << a << " from: " << from << std::endl;
+            GetExpression(&arg, a, from-1);
+            parent->push_back(arg);
+            a = from+1;
+        }
+    }
+}
+
+void Parser::GetExpression(Nodes::Node** parent, int from, int to){
+    // std::cout << "Expression from to: " << from << " " << to << std::endl;
     if(from == to){
         Token token = this->tokens[from];
         // Faltan literales, variables,
@@ -98,6 +127,53 @@ void Parser::GetExpression(Nodes::Node** parent, int from, int to){
                     break;
             }
         }
+        // Vale comprovem s es una call
+        
+    }
+
+    // Comprovem si es una call
+    if(this->tokens[from].IsIdentifier()){
+        // Veure si es funció
+        if(from == to){
+            Nodes::Node *id = new Nodes::Node(Nodes::NodeType::REFERENCE);
+            id->SetDataString(this->tokens[from].value);
+            *parent = id;
+            return;
+        } else {
+            int ffrom = from + 1;
+
+            Token::TokenType type = this->tokens[ffrom].type;
+            int j = 0;
+            if(type == Token::PARENTHESIS_OPEN){
+                j = 1;
+                // std::cout << "Hola si???";
+                // std::cout << "Parentesis " << std::endl;
+                for(ffrom++; ffrom <= to; ffrom++){
+                    type = this->tokens[ffrom].type;
+                    if(type == Token::TokenType::PARENTHESIS_OPEN) j++;
+                    if(type == Token::TokenType::PARENTHESIS_CLOSE) j--;
+
+                    if(j == 0){
+                        if(ffrom == to){
+                            // Hacer cosas
+                            Nodes::Node *call = new Nodes::Node(Nodes::NodeType::EXP_CALL);
+                            call->SetDataString(this->tokens[from].value);
+                            *parent = call;
+                            ffrom = from + 1;
+
+                            // Aqui hay que pillar argumentos
+                            std::cout << ffrom + 1 << " " << to - 1 << std::endl;
+                            GetArguments(ffrom + 1, to, &(call->children));
+                            return;
+                        }
+                        break;
+                    }
+                }
+
+                
+            }
+        }
+        
     }
 
     if(this->tokens[to].type == Token::PARENTHESIS_CLOSE){

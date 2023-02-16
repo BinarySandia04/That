@@ -16,5 +16,8 @@ namespace That {
             std::vector<That::Token> tokens;
             
             void GetExpression(Nodes::Node** parent, int from, int to);
+            void Eat(Token tok, Token comp, int *from);
+            int EatParentesis(int from);
+            void GetArguments(int from, int to, std::vector<Nodes::Node *>* parent);
     };
 }

@@ -13,6 +13,7 @@ namespace That {
             ERROR,
             DECLARATION,
             ASSIGNATION,
+            REFERENCE,
             IF,
             WHILE,
             FUNCTION,
@@ -53,6 +54,7 @@ namespace That {
                 } data;
 
                 void Debug();
+                void SetDataString(std::string s);
         };
     }
 }

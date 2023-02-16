@@ -84,6 +84,7 @@ namespace That {
             ~Token();
 
             bool IsLiteral();
+            bool IsIdentifier();
 
             std::string value;
             TokenType type;

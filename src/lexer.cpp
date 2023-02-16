@@ -19,6 +19,12 @@ bool That::Token::IsLiteral(){
     return this->type >= L_INT && this->type <= L_NULL;
 }
 
+bool That::Token::IsIdentifier(){
+    return this->type == IDENTIFIER;
+}
+
+// ---------------------------------------------------------------------------
+
 That::Lexer::Lexer(std::string code){
     this->code = code;
 }

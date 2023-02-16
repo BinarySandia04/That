@@ -1,5 +1,7 @@
 #include "nodes.h"
+
 #include <iostream>
+#include <map>
 
 using namespace That;
 
@@ -13,8 +15,28 @@ Nodes::Node::Node(){
 }
 
 void Nodes::Node::Debug(){
+    std::map<NodeType, std::string> trans = {
+        {NODE, "NODE"},
+        {ERROR, "ERROR"},
+        {DECLARATION, "DECLARATION"},
+        {ASSIGNATION, "ASSIGNATION"},
+        {REFERENCE, "REFERENCE"},
+        {IF, "IF"},
+        {WHILE, "WHILE"},
+        {FUNCTION, "FUNCTION"},
+        {NODE_ERROR, "NODE_ERROR"},
+        {EXP_BINARY, "EXP_BINARY"},
+        {EXP_UNARY, "EXP_UNARY"},
+        {EXP_CALL, "EXP_CALL"},
+        {VAL_INT, "VAL_INT"},
+        {VAL_REAL, "VAL_REAL"},
+        {VAL_STRING, "VAL_STRING"},
+        {VAL_BOOLEAN, "VAL_BOOLEAN"},
+        {VAL_NULL, "VAL_NULL"}
+    }; 
+
     std::cout << "[ ";
-    std::cout << "type: " << this->type << ", ";
+    std::cout << "type: " << trans[this->type] << ", ";
     std::cout << "fills: ";
     for(int i = 0; i < this->children.size(); i++){
         this->children[i]->Debug();
@@ -22,4 +44,10 @@ void Nodes::Node::Debug(){
     std::cout << ", data: " << this->data.integer;
     std::cout << ", nd: " << this->nd;
     std::cout << " ]";
+}
+
+void Nodes::Node::SetDataString(std::string s){
+    this->nd = s.size();
+    this->data.bytes = new char[this->nd];
+    for(int i = 0; i < s.size(); i++) this->data.bytes[i] = s[i];
 }
