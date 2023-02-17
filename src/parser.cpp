@@ -62,6 +62,7 @@ int Parser::EatParentesis(int from){
         if(type == Token::TokenType::PARENTHESIS_OPEN) j--;
         from++;
     }
+    std::cout << from << std::endl;
     return from;
 }
 
@@ -69,8 +70,8 @@ void Parser::GetArguments(int from, int to, std::vector<Nodes::Node *>* parent){
     // std::cout << from << " " << to << std::endl;
     if(from == to) return;
     for(int a = from; from <= to; from++){
+        from = EatParentesis(from);
         if(this->tokens[from].type == Token::TokenType::COMMA || from >= to){
-            from = EatParentesis(from);
 
             Nodes::Node *arg;
             // std::cout << "a: " << a << " from: " << from << std::endl;
