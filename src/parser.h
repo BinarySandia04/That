@@ -19,5 +19,8 @@ namespace That {
             void Eat(Token tok, Token comp, int *from);
             int EatParentesis(int from);
             void GetArguments(int from, int to, std::vector<Nodes::Node *>* parent);
+            bool DigestName(Token::TokenType expected, Token *dir, int *index);
+
+            bool IsType(Token::TokenType type);
     };
 }

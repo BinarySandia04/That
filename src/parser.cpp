@@ -13,27 +13,51 @@ Parser::Parser(std::vector<Token> tokens){
 
 Nodes::Node Parser::GenerateAST(){
 
-    int current = 0;
-    int start;
-    int end;
+    int currentEnd = 0;
+    int currentStart = 0;
+    int end = this->tokens.size();
 
     Nodes::Node root(Nodes::NodeType::NODE);
 
-
-    for(start = current, end = current; end < this->tokens.size(); end++){
-        if(this->tokens[end].type == Token::SEMICOLON) break;
-    }
-    current = end + 1;
-
     Nodes::Node* nextNode;
-    GetExpression(&nextNode, start, end - 1);
+    while(currentStart < end){
+        
+        // Calculem currentEnd
+        for(currentEnd = currentStart; currentEnd < end && this->tokens[currentEnd].type != Token::SEMICOLON; currentEnd++);
+        // Buscar expression
+        // Podem veure a veure si es una declaració de funció
+        if(IsType(this->tokens[currentStart].type)){
+            // Vale ok podem ara llegir el nom de la variable i tal
+            currentStart++;
+            nextNode = new Nodes::Node(Nodes::NodeType::DECLARATION);
+
+            Nodes::Node* expression;
+            
+            Token tok;
+            if(!DigestName(Token::TokenType::IDENTIFIER, &tok, &currentStart)) break;
+            nextNode->SetDataString(tok.value);
+            if(!DigestName(Token::TokenType::A_ASSIGMENT, &tok, &currentStart)) break;
+
+            // Calculem currentEnd
+            for(currentEnd = currentStart; currentEnd < end && this->tokens[currentEnd].type != Token::SEMICOLON; currentEnd++);
+            // Buscar expression
+            GetExpression(&expression, currentStart, currentEnd - 1);
+            nextNode->children.push_back(expression);
+        } else {
+            GetExpression(&nextNode, currentStart, currentEnd - 1);
+        } 
+
+        nextNode->Debug();
+        // << std::endl << "Hola " << currentEnd << std::endl;
+        root.children.push_back(nextNode);
+        currentStart = currentEnd + 1;
+    }
 
     // I ara aqui que tenim expressions podem generar codi suposo?
     
 
     // std::cout << "El tipo es: " << nextNode.GetType() << std::endl;
 
-    nextNode->Debug();
 
     std::cout << std::endl;
     // std::cout << nextNode.first->Evaluate().GetValue() << std::endl;
@@ -46,40 +70,48 @@ void Parser::Eat(Token tok, Token comp, int *from){
         *from++;
     } else {
         // Call error, unexcepted identifier
-        std::cout << "ERROR HOY NO HE COMIDO!!!" << std::endl;
+        std::cout << "ERROR UNEXPECTED IDENTIFIER!!!" << std::endl;
     }
 }
 
 int Parser::EatParentesis(int from){
     Token::TokenType type = this->tokens[from].type;
     if(type != Token::TokenType::PARENTHESIS_OPEN) return from;
+    // std::cout << "EIII" << std::endl;
     int j = 1;
 
     from++;
     while(j > 0){
         Token::TokenType type = this->tokens[from].type;
-        if(type == Token::TokenType::PARENTHESIS_CLOSE) j++;
-        if(type == Token::TokenType::PARENTHESIS_OPEN) j--;
+        if(type == Token::TokenType::PARENTHESIS_CLOSE) j--;
+        if(type == Token::TokenType::PARENTHESIS_OPEN) j++;
         from++;
     }
-    std::cout << from << std::endl;
-    return from;
+    // std::cout << from << std::endl;
+    return from-1;
 }
 
 void Parser::GetArguments(int from, int to, std::vector<Nodes::Node *>* parent){
     // std::cout << from << " " << to << std::endl;
-    if(from == to) return;
-    for(int a = from; from <= to; from++){
-        from = EatParentesis(from);
-        if(this->tokens[from].type == Token::TokenType::COMMA || from >= to){
+    if(from > to) return;
+    int a;
+    Nodes::Node *arg;
+    
+    for(a = from; from <= to; from++){
 
-            Nodes::Node *arg;
+        from = EatParentesis(from);
+        if(this->tokens[from].type == Token::TokenType::COMMA){
+
             // std::cout << "a: " << a << " from: " << from << std::endl;
             GetExpression(&arg, a, from-1);
             parent->push_back(arg);
-            a = from+1;
+            a = from + 1;
         }
     }
+    // std::cout << a << " " << from << std::endl;
+    GetExpression(&arg, a, from-1);
+    parent->push_back(arg);
+
 }
 
 void Parser::GetExpression(Nodes::Node** parent, int from, int to){
@@ -155,16 +187,17 @@ void Parser::GetExpression(Nodes::Node** parent, int from, int to){
                     if(type == Token::TokenType::PARENTHESIS_CLOSE) j--;
 
                     if(j == 0){
+                        // std::cout << "Aqui hem arribat" << std::endl;
                         if(ffrom == to){
                             // Hacer cosas
                             Nodes::Node *call = new Nodes::Node(Nodes::NodeType::EXP_CALL);
                             call->SetDataString(this->tokens[from].value);
                             *parent = call;
-                            ffrom = from + 1;
-
+                            ffrom = from + 2;
+                            // std::cout << "ffrom: " << ffrom << " to: " << to - 1 << std::endl;
                             // Aqui hay que pillar argumentos
-                            std::cout << ffrom + 1 << " " << to - 1 << std::endl;
-                            GetArguments(ffrom + 1, to, &(call->children));
+                            // std::cout << ffrom + 1 << " " << to - 1 << std::endl;
+                            GetArguments(ffrom, to - 1, &(call->children));
                             return;
                         }
                         break;
@@ -271,4 +304,20 @@ void Parser::GetExpression(Nodes::Node** parent, int from, int to){
             return;
         }
     }
+}
+
+bool Parser::IsType(Token::TokenType type){
+    return (
+    type == Token::TokenType::T_INT || 
+    type == Token::TokenType::T_REAL || 
+    type == Token::TokenType::T_BOOLEAN || 
+    type == Token::TokenType::T_STRING);
+}
+
+bool Parser::DigestName(Token::TokenType expected, Token *dir, int *index){
+    if(this->tokens[*index ].type == expected){
+        *dir = this->tokens[*index];
+        *index = *index + 1;
+        return true;
+    } else return false;
 }

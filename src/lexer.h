@@ -21,8 +21,6 @@ namespace That {
                 S_SUBTRACT,             // -            X
                 S_MULTIPLY,             // *            X
                 S_DIVIDE,               // /            X
-                S_DIVIDES,              // |
-                S_INTDIVIDE,            // //           X
                 S_MODULO,               // %            X
 
                 S_INCREMENT,            // ++           X
@@ -81,6 +79,7 @@ namespace That {
             Token(TokenType type, std::string value);
             Token(TokenType type);
 
+            Token();
             ~Token();
 
             bool IsLiteral();
@@ -197,7 +196,6 @@ namespace That {
             {"-", Token::S_SUBTRACT},
             {"*", Token::S_MULTIPLY},
             {"/", Token::S_DIVIDE},
-            {"//", Token::S_INTDIVIDE},
             {"%", Token::S_MODULO},
             {"++", Token::S_INCREMENT},
             {"--", Token::S_DECREMENT},

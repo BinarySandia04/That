@@ -11,6 +11,10 @@ That::Token::Token(TokenType type){
     this->type = type;
 }
 
+That::Token::Token(){
+    this->type = TokenType::ERROR;
+}
+
 That::Token::~Token(){
 
 }
@@ -392,9 +396,6 @@ int That::Lexer::checkSymbols(int *next){
             break;
         case '!':
             tokenList.push_back(Token(Token::S_FLIP));
-            break;
-        case '|':
-            tokenList.push_back(Token(Token::S_DIVIDES));
             break;
         default:
             return 1;
