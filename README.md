@@ -9,7 +9,7 @@
     <a href="https://git.aranroig.com/BinarySandia04/that/issues">Informa d'un error</a>
 </p>
 <p align="center">
-  <a href="https://https://git.aranroig.com/BinarySandia04/that">Pàgina web del repositori</a>
+  <a href="https://git.aranroig.com/BinarySandia04/that">Pàgina web del repositori</a>
 </p>
 
 ## Coses
