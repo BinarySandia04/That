@@ -15,10 +15,16 @@ namespace That {
         private:
             std::vector<That::Token> tokens;
             
-            void GetExpression(Nodes::Node** parent, int from, int to);
+            void GetExpression(int from, int to, Nodes::Node** writeNode);
             void Eat(Token tok, Token comp, int *from);
-            int EatParentesis(int from);
+
+            int GetNext(int from, int lim, Token::TokenType type);
+
             void GetArguments(int from, int to, std::vector<Nodes::Node *>* parent);
+
+            void GetAssignation(int from, int to, Nodes::Node** writeNode);
+            void GetAssignations(int from, int to, std::vector<Nodes::Node *> *container);
+
             bool DigestName(Token::TokenType expected, Token *dir, int *index);
 
             bool IsType(Token::TokenType type);

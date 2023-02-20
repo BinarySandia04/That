@@ -11,6 +11,7 @@ Parser::Parser(std::vector<Token> tokens){
     this->tokens = tokens;
 }
 
+
 Nodes::Node Parser::GenerateAST(){
 
     int currentEnd = 0;
@@ -23,12 +24,17 @@ Nodes::Node Parser::GenerateAST(){
     while(currentStart < end){
         
         // Calculem currentEnd
-        for(currentEnd = currentStart; currentEnd < end && this->tokens[currentEnd].type != Token::SEMICOLON; currentEnd++);
+        // for(currentEnd = currentStart; currentEnd < end && this->tokens[currentEnd].type != Token::SEMICOLON; currentEnd++);
+        currentEnd = GetNext(currentStart, end, Token::SEMICOLON);
+        
         // Buscar expression
         // Podem veure a veure si es una declaració de funció
         if(IsType(this->tokens[currentStart].type)){
             // Vale ok podem ara llegir el nom de la variable i tal
             currentStart++;
+
+            // AQUI CAL FER UNA AMABLE LLISTA DE EXPRESSIONS I MODIFICAR-LES SEGONS EL TIPUS
+            std::cout << "Vale: " << currentStart << " " << currentEnd << std::endl;
             nextNode = new Nodes::Node(Nodes::NodeType::DECLARATION);
 
             Nodes::Node* expression;
@@ -41,10 +47,10 @@ Nodes::Node Parser::GenerateAST(){
             // Calculem currentEnd
             for(currentEnd = currentStart; currentEnd < end && this->tokens[currentEnd].type != Token::SEMICOLON; currentEnd++);
             // Buscar expression
-            GetExpression(&expression, currentStart, currentEnd - 1);
+            GetExpression(currentStart, currentEnd - 1, &expression);
             nextNode->children.push_back(expression);
         } else {
-            GetExpression(&nextNode, currentStart, currentEnd - 1);
+            GetExpression(currentStart, currentEnd - 1, &nextNode);
         } 
 
         nextNode->Debug();
@@ -65,6 +71,52 @@ Nodes::Node Parser::GenerateAST(){
     return root;
 }
 
+
+void Parser::GetAssignation(int from, int to, Nodes::Node** writeNode){
+    // En principi from es l'identifier, despres va un igual, i després una expressió fins a to
+    std::string id = this->tokens[from].value;
+    from++;
+    if(this->tokens[from].type != Token::TokenType::A_ASSIGMENT){
+        // Throw exception
+        Debug::LogError("Exception\n");
+    }
+    from++;
+    Nodes::Node *exp;
+    GetExpression(from, to, &exp);
+
+    // Ara tenim a exp l'expressió, falta ara construir l'assignació final
+
+    Nodes::Node *assignation = new Nodes::Node(Nodes::ASSIGNATION);
+    assignation->SetDataString(id);
+    assignation->children.push_back(exp);
+
+    *writeNode = assignation;
+}
+
+void Parser::GetAssignations(int from, int to, std::vector<Nodes::Node *> *container){
+    /*
+    Tenim uns tokens de la forma
+    a = 3, b = 5, c = "Hola que tal", d = f(2,3) + c, e = 4
+    Volem separar les assignacions per comes i anar cridant GetAssignation
+    */
+    if(from > to) return;
+
+    Nodes::Node *next;
+    int tA = from;
+
+    do {
+        tA = GetNext(from, to+1, Token::TokenType::COMMA);
+        // Val llavors tenim que:
+        // a = 3 + 5, b = 
+        // | f      | tA
+        GetAssignation(from, tA-1, &next);
+        container->push_back(next);
+
+        // Ara desplaçem from
+        from = tA+1;
+    } while(from < to || tA < to);
+}
+
 void Parser::Eat(Token tok, Token comp, int *from){
     if(tok.type == comp.type){
         *from++;
@@ -74,47 +126,56 @@ void Parser::Eat(Token tok, Token comp, int *from){
     }
 }
 
-int Parser::EatParentesis(int from){
-    Token::TokenType type = this->tokens[from].type;
-    if(type != Token::TokenType::PARENTHESIS_OPEN) return from;
-    // std::cout << "EIII" << std::endl;
-    int j = 1;
+int Parser::GetNext(int from, int lim, Token::TokenType type){
+    // Trobem el proxim type respectant la jerarquia de parèntesis
+    int j = 0;
+    Token::TokenType t = this->tokens[from].type;
+    while(from < this->tokens.size() && t != type){
+        do {
+            if(type == Token::TokenType::PARENTHESIS_CLOSE) j--;
+            if(type == Token::TokenType::PARENTHESIS_OPEN) j++;
 
-    from++;
-    while(j > 0){
-        Token::TokenType type = this->tokens[from].type;
-        if(type == Token::TokenType::PARENTHESIS_CLOSE) j--;
-        if(type == Token::TokenType::PARENTHESIS_OPEN) j++;
-        from++;
+            if(type == Token::TokenType::CURLY_BRACKET_CLOSE) j--;
+            if(type == Token::TokenType::CURLY_BRACKET_OPEN) j++;
+
+            if(type == Token::TokenType::SQUARE_BRACKET_CLOSE) j--;
+            if(type == Token::TokenType::SQUARE_BRACKET_OPEN) j++;
+            
+            from++;
+            t = this->tokens[from].type;
+
+            // Es podrien agafar excepcions si j < 0
+        } while(j > 0);
     }
-    // std::cout << from << std::endl;
-    return from-1;
+    if(from < lim) return from;
+    else return lim;
 }
 
 void Parser::GetArguments(int from, int to, std::vector<Nodes::Node *>* parent){
-    // std::cout << from << " " << to << std::endl;
+    // Tenim expressions separades per comes, ex:
+    // 2, 3, hola(), f() + 45
+    // Volem passar-les a una llista guardada dins de parent
+
+    // Cas aillat en cas que from > to
     if(from > to) return;
-    int a;
-    Nodes::Node *arg;
-    
-    for(a = from; from <= to; from++){
 
-        from = EatParentesis(from);
-        if(this->tokens[from].type == Token::TokenType::COMMA){
+    Nodes::Node *next;
+    int tA = from;
 
-            // std::cout << "a: " << a << " from: " << from << std::endl;
-            GetExpression(&arg, a, from-1);
-            parent->push_back(arg);
-            a = from + 1;
-        }
-    }
-    // std::cout << a << " " << from << std::endl;
-    GetExpression(&arg, a, from-1);
-    parent->push_back(arg);
+    do {
+        tA = GetNext(from, to+1, Token::TokenType::COMMA);
+        // Val llavors tenim que:
+        // 3 + 5, f()
+        // | f      | tA
+        GetExpression(from, tA-1, &next);
+        parent->push_back(next);
 
+        // Ara desplaçem from
+        from = tA+1;
+    } while(from < to || tA < to);
 }
 
-void Parser::GetExpression(Nodes::Node** parent, int from, int to){
+void Parser::GetExpression(int from, int to, Nodes::Node** writeNode){
     // std::cout << "Expression from to: " << from << " " << to << std::endl;
     if(from == to){
         Token token = this->tokens[from];
@@ -126,12 +187,12 @@ void Parser::GetExpression(Nodes::Node** parent, int from, int to){
                 case Token::L_INT:
                     lit->type = Nodes::NodeType::VAL_INT;
                     lit->data.integer = std::stoi(token.value);
-                    *parent = lit;
+                    *writeNode = lit;
                     return;
                 case Token::L_REAL:
                     lit->type = Nodes::NodeType::VAL_REAL;
                     lit->data.real = std::stod(token.value);
-                    *parent = lit;
+                    *writeNode = lit;
                     return;
                 case Token::L_STRING:
                     lit->type = Nodes::NodeType::VAL_STRING;
@@ -140,21 +201,21 @@ void Parser::GetExpression(Nodes::Node** parent, int from, int to){
                     for(int i = 0; i < lit->nd; i++){
                         lit->data.bytes[i] = token.value[i];
                     }
-                    *parent = lit;
+                    *writeNode = lit;
                     return;
                 case Token::L_TRUE:
                     lit->type = Nodes::NodeType::VAL_BOOLEAN;
                     lit->data.integer = 1;
-                    *parent = lit;
+                    *writeNode = lit;
                     return;
                 case Token::L_FALSE:
                     lit->type = Nodes::NodeType::VAL_BOOLEAN;
                     lit->data.integer = 0;
-                    *parent = lit;
+                    *writeNode = lit;
                     return;
                 case Token::L_NULL:
                     lit->type == Nodes::NodeType::VAL_NULL;
-                    *parent = lit;
+                    *writeNode = lit;
                     return;
                 default:
                     break;
@@ -170,7 +231,7 @@ void Parser::GetExpression(Nodes::Node** parent, int from, int to){
         if(from == to){
             Nodes::Node *id = new Nodes::Node(Nodes::NodeType::REFERENCE);
             id->SetDataString(this->tokens[from].value);
-            *parent = id;
+            *writeNode = id;
             return;
         } else {
             int ffrom = from + 1;
@@ -192,12 +253,14 @@ void Parser::GetExpression(Nodes::Node** parent, int from, int to){
                             // Hacer cosas
                             Nodes::Node *call = new Nodes::Node(Nodes::NodeType::EXP_CALL);
                             call->SetDataString(this->tokens[from].value);
-                            *parent = call;
+                            *writeNode = call;
                             ffrom = from + 2;
                             // std::cout << "ffrom: " << ffrom << " to: " << to - 1 << std::endl;
                             // Aqui hay que pillar argumentos
                             // std::cout << ffrom + 1 << " " << to - 1 << std::endl;
                             GetArguments(ffrom, to - 1, &(call->children));
+
+                            std::cout << "GETARGUMENTS: " << ffrom << " " << to - 1 << std::endl;
                             return;
                         }
                         break;
@@ -227,7 +290,7 @@ void Parser::GetExpression(Nodes::Node** parent, int from, int to){
 
         if(l == 0 && valid && this->tokens[from].type == Token::PARENTHESIS_OPEN){
             // std::cout << "Quitando parentesis" << std::endl;
-            GetExpression(parent, from + 1, to - 1);
+            GetExpression(from + 1, to - 1, writeNode);
             return;
         }
 
@@ -259,14 +322,14 @@ void Parser::GetExpression(Nodes::Node** parent, int from, int to){
 
             bin->nd = (int) type -  (int) Token::S_PLUS;
             
-            GetExpression(&first, from, i - 1);
-            GetExpression(&second, i + 1, to);
+            GetExpression(from, i - 1, &first);
+            GetExpression(i + 1, to, &second);
             
             // std::cout << "Hola!!" << std::endl;
             // std::cout << first << " " << second << std::endl;
             bin->children.push_back(first);
             bin->children.push_back(second);
-            *parent = bin;
+            *writeNode = bin;
 
             return;
         }
@@ -291,15 +354,15 @@ void Parser::GetExpression(Nodes::Node** parent, int from, int to){
             bin->nd = (int) type -  (int) Token::S_PLUS;
 
             Nodes::Node *first = NULL, *second = NULL;
-            GetExpression(&first, from, i - 1);
-            GetExpression(&second, i + 1, to);
+            GetExpression(from, i - 1, &first);
+            GetExpression(i + 1, to, &second);
 
             
             // std::cout << "AADIOS!!" << std::endl;
             // std::cout << first << " " << second << std::endl;
             bin->children.push_back(first);
             bin->children.push_back(second);
-            *parent = bin;
+            *writeNode = bin;
 
             return;
         }
