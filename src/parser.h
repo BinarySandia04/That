@@ -15,6 +15,9 @@ namespace That {
         private:
             std::vector<That::Token> tokens;
             
+            void GetCodeFunction(Nodes::Node *root, int from);
+            void GetCodeLine(Nodes::Node *root, int from, int to);
+
             void GetExpression(int from, int to, Nodes::Node** writeNode);
             void Eat(Token tok, Token comp, int *from);
 

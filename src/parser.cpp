@@ -21,56 +21,73 @@ Nodes::Node Parser::GenerateAST(){
     Nodes::Node root(Nodes::NodeType::NODE);
 
     while(currentStart < end){
-        
-        // Calculem currentEnd
-        // for(currentEnd = currentStart; currentEnd < end && this->tokens[currentEnd].type != Token::SEMICOLON; currentEnd++);
+
+        // Val aqui anem a fer check de una funció!
+        GetCodeFunction(&root, currentStart);
+
         currentEnd = GetNext(currentStart, end, Token::SEMICOLON);
-        
-        Nodes::Node* nextNode;
-        // Buscar expression
-        // Podem veure a veure si es una declaració de funció
-        if(IsType(this->tokens[currentStart].type)){
-            // Aqui podriem optimitzar memòria
-            Nodes::Node *typeNode = new Nodes::Node(Nodes::NodeType::TYPE);
-            typeNode->nd = (int) this->tokens[currentStart].type; // Hauriem de tenir una taula amb tipus més endavant?
-
-            // Vale ok podem ara llegir el nom de la variable i tal
-            currentStart++;
-
-            // AQUI CAL FER UNA AMABLE LLISTA DE EXPRESSIONS I MODIFICAR-LES SEGONS EL TIPUS
-            std::vector<Nodes::Node *> assignations;
-            GetAssignations(currentStart, currentEnd - 1, &assignations);
-
-            // Modifiquem les assignacions per tal de fer declaracions
-            for(int i = 0; i < assignations.size(); i++){
-                
-                assignations[i]->type = Nodes::NodeType::DECLARATION;
-                assignations[i]->children.push_back(typeNode);
-                
-                // Posem les declaracions a dins!
-                root.children.push_back(assignations[i]);
-            }
-        } else {
-            GetExpression(currentStart, currentEnd - 1, &nextNode);
-            root.children.push_back(nextNode);
-        } 
-
-        // std::cout << "Hola" << std::endl;
-        // << std::endl << "Hola " << currentEnd << std::endl;
-        currentStart = currentEnd + 1;
-    }
-
-    // I ara aqui que tenim expressions podem generar codi suposo?
+        GetCodeLine(&root, currentStart, currentEnd);
     
+        currentStart = currentEnd + 1;
 
-    // std::cout << "El tipo es: " << nextNode.GetType() << std::endl;
+    }
     root.Debug();
     std::cout << std::endl;
-    // std::cout << nextNode.first->Evaluate().GetValue() << std::endl;
 
     return root;
 }
 
+// Tenim alguna cosa de la forma
+/*
+func <def> : (<type def1, ..., type defn>) => type {
+    <AST>
+} 
+*/
+void Parser::GetCodeFunction(Nodes::Node *root, int from){
+
+}
+
+// Aconseguim una linea de codi de la forma
+// <tipus> <var> = exp
+// On var es opcional, pero si es posa cal el "="
+// i tipus és opcional en cas que l'expressió sigui <var> = exp
+void Parser::GetCodeLine(Nodes::Node *root, int from, int to){
+
+    if(IsType(this->tokens[from].type)){
+        // Aqui podriem optimitzar memòria
+        Nodes::Node *typeNode = new Nodes::Node(Nodes::NodeType::TYPE);
+        typeNode->nd = (int) this->tokens[from].type; // Hauriem de tenir una taula amb tipus més endavant?
+
+        // Vale ok podem ara llegir el nom de la variable i tal
+        from++;
+
+        // AQUI CAL FER UNA AMABLE LLISTA DE EXPRESSIONS I MODIFICAR-LES SEGONS EL TIPUS
+        std::vector<Nodes::Node *> assignations;
+        GetAssignations(from, to - 1, &assignations);
+
+        // Modifiquem les assignacions per tal de fer declaracions
+        for(int i = 0; i < assignations.size(); i++){
+            
+            assignations[i]->type = Nodes::NodeType::DECLARATION;
+            assignations[i]->children.push_back(typeNode);
+            
+            // Posem les declaracions a dins!
+            root->children.push_back(assignations[i]);
+        }
+    } else if(this->tokens[from].type == Token::IDENTIFIER && this->tokens[from + 1].type == Token::A_ASSIGMENT) {
+        // Només assignations, res a veure
+        std::vector<Nodes::Node *> assignations;
+        GetAssignations(from, to-1, &assignations);
+        for(int i = 0; i < assignations.size(); i++){
+            root->children.push_back(assignations[i]);
+        }
+    } else {
+        // És una expressió, la afegim simplement
+        Nodes::Node* nextNode;
+        GetExpression(from, to-1, &nextNode);
+        root->children.push_back(nextNode);
+    }
+}
 
 void Parser::GetAssignation(int from, int to, Nodes::Node** writeNode){
     // En principi from es l'identifier, despres va un igual, i després una expressió fins a to

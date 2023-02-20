@@ -25,6 +25,7 @@ Aquesta llista pot canviar en un futur
   - [ ] Aconseguir transformar AST a bytecode
   - [ ] Acabar la màquina virtual
   - [ ] Aconseguir fer variables amb GML
+  - [ ] Tapar memory leaks (amb loctite)
 - [ ] Fer un README
 - [ ] Fer una llibreria estandard per That
 - [ ] Fer un logo
