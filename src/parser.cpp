@@ -393,11 +393,3 @@ bool Parser::IsType(Token::TokenType type){
     type == Token::TokenType::T_BOOLEAN || 
     type == Token::TokenType::T_STRING);
 }
-
-bool Parser::DigestName(Token::TokenType expected, Token *dir, int *index){
-    if(this->tokens[*index ].type == expected){
-        *dir = this->tokens[*index];
-        *index = *index + 1;
-        return true;
-    } else return false;
-}

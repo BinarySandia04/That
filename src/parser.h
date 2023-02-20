@@ -28,8 +28,6 @@ namespace That {
             void GetAssignation(int from, int to, Nodes::Node** writeNode);
             void GetAssignations(int from, int to, std::vector<Nodes::Node *> *container);
 
-            bool DigestName(Token::TokenType expected, Token *dir, int *index);
-
             bool IsType(Token::TokenType type);
     };
 }
