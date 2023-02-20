@@ -20,42 +20,43 @@ Nodes::Node Parser::GenerateAST(){
 
     Nodes::Node root(Nodes::NodeType::NODE);
 
-    Nodes::Node* nextNode;
     while(currentStart < end){
         
         // Calculem currentEnd
         // for(currentEnd = currentStart; currentEnd < end && this->tokens[currentEnd].type != Token::SEMICOLON; currentEnd++);
         currentEnd = GetNext(currentStart, end, Token::SEMICOLON);
         
+        Nodes::Node* nextNode;
         // Buscar expression
         // Podem veure a veure si es una declaració de funció
         if(IsType(this->tokens[currentStart].type)){
+            // Aqui podriem optimitzar memòria
+            Nodes::Node *typeNode = new Nodes::Node(Nodes::NodeType::TYPE);
+            typeNode->nd = (int) this->tokens[currentStart].type; // Hauriem de tenir una taula amb tipus més endavant?
+
             // Vale ok podem ara llegir el nom de la variable i tal
             currentStart++;
 
             // AQUI CAL FER UNA AMABLE LLISTA DE EXPRESSIONS I MODIFICAR-LES SEGONS EL TIPUS
-            std::cout << "Vale: " << currentStart << " " << currentEnd << std::endl;
-            nextNode = new Nodes::Node(Nodes::NodeType::DECLARATION);
+            std::vector<Nodes::Node *> assignations;
+            GetAssignations(currentStart, currentEnd - 1, &assignations);
 
-            Nodes::Node* expression;
-            
-            Token tok;
-            if(!DigestName(Token::TokenType::IDENTIFIER, &tok, &currentStart)) break;
-            nextNode->SetDataString(tok.value);
-            if(!DigestName(Token::TokenType::A_ASSIGMENT, &tok, &currentStart)) break;
-
-            // Calculem currentEnd
-            for(currentEnd = currentStart; currentEnd < end && this->tokens[currentEnd].type != Token::SEMICOLON; currentEnd++);
-            // Buscar expression
-            GetExpression(currentStart, currentEnd - 1, &expression);
-            nextNode->children.push_back(expression);
+            // Modifiquem les assignacions per tal de fer declaracions
+            for(int i = 0; i < assignations.size(); i++){
+                
+                assignations[i]->type = Nodes::NodeType::DECLARATION;
+                assignations[i]->children.push_back(typeNode);
+                
+                // Posem les declaracions a dins!
+                root.children.push_back(assignations[i]);
+            }
         } else {
             GetExpression(currentStart, currentEnd - 1, &nextNode);
+            root.children.push_back(nextNode);
         } 
 
-        nextNode->Debug();
+        // std::cout << "Hola" << std::endl;
         // << std::endl << "Hola " << currentEnd << std::endl;
-        root.children.push_back(nextNode);
         currentStart = currentEnd + 1;
     }
 
@@ -63,8 +64,7 @@ Nodes::Node Parser::GenerateAST(){
     
 
     // std::cout << "El tipo es: " << nextNode.GetType() << std::endl;
-
-
+    root.Debug();
     std::cout << std::endl;
     // std::cout << nextNode.first->Evaluate().GetValue() << std::endl;
 
@@ -132,14 +132,14 @@ int Parser::GetNext(int from, int lim, Token::TokenType type){
     Token::TokenType t = this->tokens[from].type;
     while(from < this->tokens.size() && t != type){
         do {
-            if(type == Token::TokenType::PARENTHESIS_CLOSE) j--;
-            if(type == Token::TokenType::PARENTHESIS_OPEN) j++;
+            if(t == Token::TokenType::PARENTHESIS_CLOSE) j--;
+            if(t == Token::TokenType::PARENTHESIS_OPEN) j++;
 
-            if(type == Token::TokenType::CURLY_BRACKET_CLOSE) j--;
-            if(type == Token::TokenType::CURLY_BRACKET_OPEN) j++;
+            if(t == Token::TokenType::CURLY_BRACKET_CLOSE) j--;
+            if(t == Token::TokenType::CURLY_BRACKET_OPEN) j++;
 
-            if(type == Token::TokenType::SQUARE_BRACKET_CLOSE) j--;
-            if(type == Token::TokenType::SQUARE_BRACKET_OPEN) j++;
+            if(t == Token::TokenType::SQUARE_BRACKET_CLOSE) j--;
+            if(t == Token::TokenType::SQUARE_BRACKET_OPEN) j++;
             
             from++;
             t = this->tokens[from].type;
@@ -260,7 +260,7 @@ void Parser::GetExpression(int from, int to, Nodes::Node** writeNode){
                             // std::cout << ffrom + 1 << " " << to - 1 << std::endl;
                             GetArguments(ffrom, to - 1, &(call->children));
 
-                            std::cout << "GETARGUMENTS: " << ffrom << " " << to - 1 << std::endl;
+                            // std::cout << "GETARGUMENTS: " << ffrom << " " << to - 1 << std::endl;
                             return;
                         }
                         break;

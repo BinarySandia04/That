@@ -20,10 +20,22 @@ Això encara està en obres. Acabaré el README quan tingui temps. Com m'agrada 
 Aquesta llista pot canviar en un futur
 
 - [ ] Fer una versió estable del llenguatge
-  - [ ] Poder crear variables
+  - [X] Poder crear variables
   - [ ] Poder assignar variables a operacions
   - [ ] Aconseguir transformar AST a bytecode
   - [ ] Acabar la màquina virtual
+  - [ ] Aconseguir fer variables amb GML
 - [ ] Fer un README
 - [ ] Fer una llibreria estandard per That
 - [ ] Fer un logo
+
+## Coses que That farà
+
+En un futur m'agradaria que That tingui les següents "features" (molt guais):
+
+- That serà un llenguatge amb precisió numèrica pràcticament infinita utilitzant GML per defecte. El programador podrà inserir la precisió (en bytes) que necessita de coma flotant. Això és útil per a aplicacions matemàtiques i de no haver de fer estructures més complicades o l'ús de llibreries externes per tal de poder emmagatzemar nombres massa grans. Això pot ser útil per exemple, poder calcular el nombre pi amb una precisió de 300 xifres decimals, per exemple.
+- That serà un llenguatge de programació més inclinat cap a programació orientada a objectes.
+- That també tindrà un gestor de paquets invisible. La idea principal és que amb una línia (per exemple, `import "algo/algunacosa"`) el programa ja instal·li automàticament els paquets necessaris per funcionar en temps d'execució. A part també vindrà amb una utilitat de terminal per tal de poder gestionar de forma usual els paquets instal·lats.
+- That disposarà d'una gran llibreria estàndard per tal de ser molt ràpid a l'hora de crear aplicacions multimèdia visuals lo més ràpid possible, similar a Processing. En principi vull implementar ImGui i Vulkan en un futur molt llunyà
+- A part a la llibreria estàndard haurien d'haver-hi funcions modernes com poder fer peticions HTTP, escriure en fitxers, processament d'arxius JSON, manipulació d'imatges, entre d'altres
+- A part, That ha de ser un llenguatge bastant fàcil d'incorporar en altres entorns fora de l'execució autònoma.

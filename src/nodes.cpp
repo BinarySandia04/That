@@ -21,6 +21,7 @@ void Nodes::Node::Debug(){
         {DECLARATION, "DECLARATION"},
         {ASSIGNATION, "ASSIGNATION"},
         {REFERENCE, "REFERENCE"},
+        {TYPE, "TYPE"},
         {IF, "IF"},
         {WHILE, "WHILE"},
         {FUNCTION, "FUNCTION"},
@@ -50,4 +51,10 @@ void Nodes::Node::SetDataString(std::string s){
     this->nd = s.size();
     this->data.bytes = new char[this->nd];
     for(int i = 0; i < s.size(); i++) this->data.bytes[i] = s[i];
+}
+
+std::string Nodes::Node::GetDataString(){
+    std::string s = "";
+    for(int i = 0; i < this->nd; i++) s += this->data.bytes[i];
+    return s;
 }
