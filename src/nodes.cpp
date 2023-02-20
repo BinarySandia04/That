@@ -21,6 +21,7 @@ void Nodes::Node::Debug(){
         {DECLARATION, "DECLARATION"},
         {ASSIGNATION, "ASSIGNATION"},
         {REFERENCE, "REFERENCE"},
+        {PARAMETER, "PARAMETER"},
         {TYPE, "TYPE"},
         {IF, "IF"},
         {WHILE, "WHILE"},

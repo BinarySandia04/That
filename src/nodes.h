@@ -14,6 +14,7 @@ namespace That {
             DECLARATION,
             ASSIGNATION,
             REFERENCE,
+            PARAMETER,
             TYPE,
             IF,
             WHILE,

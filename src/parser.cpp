@@ -13,28 +13,30 @@ Parser::Parser(std::vector<Token> tokens){
 
 
 Nodes::Node Parser::GenerateAST(){
-
-    int currentEnd = 0;
-    int currentStart = 0;
-    int end = this->tokens.size();
-
     Nodes::Node root(Nodes::NodeType::NODE);
 
-    while(currentStart < end){
+    GenerateCode(0, this->tokens.size(), &root);
 
-        // Val aqui anem a fer check de una funció!
-        GetCodeFunction(&root, currentStart);
-
-        currentEnd = GetNext(currentStart, end, Token::SEMICOLON);
-        GetCodeLine(&root, currentStart, currentEnd);
-    
-        currentStart = currentEnd + 1;
-
-    }
     root.Debug();
     std::cout << std::endl;
 
     return root;
+}
+
+void Parser::GenerateCode(int from, int to, Nodes::Node *parent){
+    Nodes::Node *next;
+    int currentEnd;
+    while(from < to){
+        // Val aqui anem a fer check de una funció!
+        int nF = from;
+        GetCodeFunction(&next, from, &nF);
+
+        currentEnd = GetNext(from, to, Token::SEMICOLON);
+        GetCodeLine(parent, from, currentEnd);
+    
+        from = currentEnd + 1;
+
+    }
 }
 
 // Tenim alguna cosa de la forma
@@ -43,8 +45,50 @@ func <def> : (<type def1, ..., type defn>) => type {
     <AST>
 } 
 */
-void Parser::GetCodeFunction(Nodes::Node *root, int from){
+void Parser::GetCodeFunction(Nodes::Node **root, int from, int *end){
+    if(!Eat(this->tokens[from].type, Token::TokenType::FUNCTION_DECLARATION, &from)) return;
+    if(!Eat(this->tokens[from].type, Token::TokenType::IDENTIFIER, &from)) return;
+    from--;
+    std::string funcIdentifier = this->tokens[from].value;
+    from++;
+    if(!Eat(this->tokens[from].type, Token::TokenType::TWO_POINTS, &from)) return;
+    if(!Eat(this->tokens[from].type, Token::TokenType::PARENTHESIS_OPEN, &from)) return;
+    // Val ara estem apuntant al primer parèntesis i ara agafarem les coses!
+    std::vector<Nodes::Node*> parameters;
 
+    int to = GetNext(from, -1, Token::TokenType::PARENTHESIS_CLOSE);
+    GetFunctionParameters(from, to-1, &parameters); // Lo de dins sense parèntesis
+
+
+
+}
+
+// int a, string b, real c
+void Parser::GetFunctionParameters(int from, int to, std::vector<Nodes::Node *>* container){
+    if(from > to) return;
+
+    Nodes::Node *next;
+    int tA = from;
+
+    do {
+        tA = GetNext(from, to+1, Token::TokenType::COMMA);
+
+        GetFunctionParameter(from, tA-1, &next);
+        container->push_back(next);
+
+        from = tA+1;
+    } while(from < to || tA < to);
+}
+
+// int a
+void Parser::GetFunctionParameter(int from, int to, Nodes::Node **writeNode){
+    // En principi to - from = 1
+    Nodes::Node *param = new Nodes::Node(Nodes::NodeType::PARAMETER), *typeNode = new Nodes::Node(Nodes::NodeType::TYPE);
+    param->SetDataString(this->tokens[to].value);
+    typeNode->nd = (int) this->tokens[from].type;
+    param->children.push_back(typeNode);
+
+    *writeNode = param;
 }
 
 // Aconseguim una linea de codi de la forma
@@ -134,12 +178,13 @@ void Parser::GetAssignations(int from, int to, std::vector<Nodes::Node *> *conta
     } while(from < to || tA < to);
 }
 
-void Parser::Eat(Token tok, Token comp, int *from){
-    if(tok.type == comp.type){
+bool Parser::Eat(Token::TokenType tok, Token::TokenType comp, int *from){
+    if(tok == comp){
         *from++;
+        return true;
     } else {
         // Call error, unexcepted identifier
-        std::cout << "ERROR UNEXPECTED IDENTIFIER!!!" << std::endl;
+        return false;
     }
 }
 
@@ -164,7 +209,7 @@ int Parser::GetNext(int from, int lim, Token::TokenType type){
             // Es podrien agafar excepcions si j < 0
         } while(j > 0);
     }
-    if(from < lim) return from;
+    if(from < lim || lim == -1) return from;
     else return lim;
 }
 
