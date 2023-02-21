@@ -56,7 +56,8 @@ En un futur m'agradaria que That tingui les següents "features" (molt guais):
 
 ##
 Això és un comentari llarg
-- Pero molt llarg
+que no es veu bonic perque al markdown
+no he posat syntax highlight.
 ##
 
 func main { # Aquest programa fa print de 3 + 4
