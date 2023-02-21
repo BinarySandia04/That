@@ -1,5 +1,17 @@
-func main {
+# That programming language test.
+
+# Això és un comentari
+
+##
+Això és un comentari llarg
+- Pero molt llarg
+##
+
+func main { # Aquest programa fa print de 3 + 4
     int a = 3 + 4;
     print(a);
-    return 0;
+    if a == 7 {
+        print("Hello from that!");
+    }
 }
+

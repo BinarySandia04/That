@@ -15,13 +15,19 @@
 ## Coses
 Això encara està en obres. Acabaré el README quan tingui temps. Com m'agrada fer amb tots els projectes que mai acabo, aqui poso una llista amb coses per fer:
 
-## Coses per fer
+## Coses per fer en concret
+
+- [ ] Fer ifs i elses encadenats infinits
+- [ ] Fer un bucle while
+- [ ] Parchejar una cosa de que no pillava bé les operacions o una cosa així
+
+## Coses per fer en total
 
 Aquesta llista pot canviar en un futur
 
 - [ ] Fer una versió estable del llenguatge
   - [X] Poder crear variables
-  - [ ] Poder assignar variablwes a operacions
+  - [X] Poder assignar variables a operacions
   - [ ] Aconseguir transformar AST a bytecode
   - [ ] Acabar la màquina virtual
   - [ ] Aconseguir fer variables amb GML
@@ -30,7 +36,7 @@ Aquesta llista pot canviar en un futur
 - [ ] Fer una llibreria estandard per That
 - [ ] Fer un logo
 
-## Coses que That farà
+## Coses que That farà (roadmap)
 
 En un futur m'agradaria que That tingui les següents "features" (molt guais):
 
@@ -40,3 +46,24 @@ En un futur m'agradaria que That tingui les següents "features" (molt guais):
 - That disposarà d'una gran llibreria estàndard per tal de ser molt ràpid a l'hora de crear aplicacions multimèdia visuals lo més ràpid possible, similar a Processing. En principi vull implementar ImGui i Vulkan en un futur molt llunyà
 - A part a la llibreria estàndard haurien d'haver-hi funcions modernes com poder fer peticions HTTP, escriure en fitxers, processament d'arxius JSON, manipulació d'imatges, entre d'altres
 - A part, That ha de ser un llenguatge bastant fàcil d'incorporar en altres entorns fora de l'execució autònoma.
+
+## Exemple de programa amb That
+
+```
+# That programming language test.
+
+# Això és un comentari
+
+##
+Això és un comentari llarg
+- Pero molt llarg
+##
+
+func main { # Aquest programa fa print de 3 + 4
+    int a = 3 + 4;
+    print(a);
+    if a == 7 {
+        print("Hello from that!");
+    }
+}
+```

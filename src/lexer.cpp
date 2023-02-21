@@ -224,9 +224,15 @@ void That::Lexer::getString(int *next){
 void That::Lexer::skipComment(int *next){
     if(isComment(code[*next])){
         int pos = *next;
-        while(code[pos] != typeSymbol[Symbols::NEWLINE] && !isEnd(pos)){
-            pos++;
+        if(!isEnd(pos + 1)){
+            if(isComment(code[pos + 1])){
+                pos += 2;
+                while(!(code[pos] == typeSymbol[Symbols::COMMENT] && 
+                    code[pos+1] == typeSymbol[Symbols::COMMENT]) && 
+                    !isEnd(pos+1)) pos++;
+            } else while(code[pos] != typeSymbol[Symbols::NEWLINE] && !isEnd(pos)) pos++;
         }
+        
         *next = pos + 1;
     }
 }

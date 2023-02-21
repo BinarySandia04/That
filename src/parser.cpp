@@ -33,6 +33,9 @@ void Parser::GenerateCode(int from, int to, Nodes::Node *parent){
         GetCodeFunction(&next, from, &nF);
         if(nF != from) { parent->children.push_back(next); from = nF; continue; }
 
+        GetCodeConditional(&next, from, &nF);
+        if(nF != from) { parent->children.push_back(next); from = nF; continue; }
+
         currentEnd = GetNext(from, to, Token::SEMICOLON);
         GetCodeLine(parent, from, currentEnd);
     
@@ -41,7 +44,39 @@ void Parser::GenerateCode(int from, int to, Nodes::Node *parent){
     }
 }
 
-// Tenim alguna cosa de la forma
+/*
+if(<condició>){
+    // Codi
+} else if(<condició>) {
+    // Codi
+} else {
+    // Codi
+}
+*/
+void Parser::GetCodeConditional(Nodes::Node **root, int from, int *end){
+    if(!Eat(this->tokens[from].type, Token::TokenType::K_IF, &from)) return;
+
+    std::cout << "Aixo es un if" << std::endl;
+    Nodes::Node *theIf = new Nodes::Node(Nodes::NodeType::IF), *expression, *content = new Nodes::Node(Nodes::NodeType::NODE);
+
+    // Aconseguim la condició
+    int to = GetNext(from, -1, Token::TokenType::CURLY_BRACKET_OPEN);
+
+    GetExpression(from, to-1, &expression);
+
+    // I el contingut del if
+    from = to + 1;
+    to = GetNext(from, -1, Token::TokenType::CURLY_BRACKET_CLOSE);
+    
+    GenerateCode(from, to-1, content);
+
+    theIf->children.push_back(expression);
+    theIf->children.push_back(content);
+    
+    *root = theIf;
+    *end = to+1;
+}
+
 /*
 Volem un node de la forma
 func nd: nombre de params
@@ -50,20 +85,24 @@ func nd: nombre de params
 3: Codi de dins
 4 <-> 4+nd: Paràmetres que rep
 
+-1-
 func <def> : (<type def1, ..., type defn>) => type {
     <AST>
 } 
 
 Val estaria guai fer que es pugui escriure també de forma
 
+-2-
 func <def> { // Sense arguments i no retorna res
     <AST>
 }
 
+-3-
 func <def> : (<type def1, ..., type defn>) { // Amb arguments i no retorna res
     <AST>
 }
 
+-4-
 func <def> => type { // Sense arguments retorna el tipus
     <AST>
 }
@@ -83,45 +122,49 @@ void Parser::GetCodeFunction(Nodes::Node **root, int from, int *end){
     
     std::cout << "id: " << funcIdentifier << std::endl;
     
-    if(!Eat(this->tokens[from].type, Token::TokenType::TWO_POINTS, &from)) return;
-    if(!Eat(this->tokens[from].type, Token::TokenType::PARENTHESIS_OPEN, &from)) return;
-    // Val ara estem apuntant al primer parèntesis i ara agafarem les coses
-
     std::vector<Nodes::Node*> parameters;
-    function->nd = parameters.size();
-
-    int to = GetNext(from, -1, Token::TokenType::PARENTHESIS_CLOSE);
-    GetFunctionParameters(from, to-1, &parameters); // Lo de dins sense parèntesis
-    
-
-    from = to+1;
-    if(!Eat(this->tokens[from].type, Token::TokenType::ARROW, &from)) return;
-    // Ok ara return type està al from
-    
-    if(!IsType(this->tokens[from].type)) return;
-    int typeId = (int) this->tokens[from].type;
-    std::cout << "typeID: " << typeId << std::endl;
-
     Nodes::Node *code = new Nodes::Node(), 
                 *type = new Nodes::Node(Nodes::NodeType::TYPE),
                 *identifier = new Nodes::Node(Nodes::NodeType::REFERENCE);
-    type->nd = typeId;
 
+    int to;
+    if(Eat(this->tokens[from].type, Token::TokenType::TWO_POINTS, &from)){
+        // Tipus 1, 3 - Tenim paràmetres! Ara falta veure si hi ha return type
+        if(!Eat(this->tokens[from].type, Token::TokenType::PARENTHESIS_OPEN, &from)) return;
+        // Val ara estem apuntant al primer parèntesis i ara agafarem les coses
 
+        function->nd = parameters.size();
+
+        to = GetNext(from, -1, Token::TokenType::PARENTHESIS_CLOSE);
+        GetFunctionParameters(from, to-1, &parameters); // Lo de dins sense parèntesis
+        
+        from = to+1;
+    }
+
+    if(Eat(this->tokens[from].type, Token::TokenType::ARROW, &from)){
+        // Ara tenim return type! Anem a llegir-lo!
+        if(!IsType(this->tokens[from].type)) return;
+        int typeId = (int) this->tokens[from].type;
+        std::cout << "typeID: " << typeId << std::endl;
+        
+        type->nd = typeId;
+        from++;
+    } else {
+        type->nd = -1; // Suposo que això és void
+    }
+
+    
+    if(!Eat(this->tokens[from].type, Token::TokenType::CURLY_BRACKET_OPEN, &from)) return; // Aqui si es error. No ha posat { el senyor
+
+    to = GetNext(from, -1, Token::TokenType::CURLY_BRACKET_CLOSE);
+
+    // Empenyem info bàsica
     identifier->SetDataString(funcIdentifier);
     function->children.push_back(identifier);
     function->children.push_back(type);
     
-
-    // I ara falta el codi
-    from++;
-    if(!Eat(this->tokens[from].type, Token::TokenType::CURLY_BRACKET_OPEN, &from)) return;
-    
-
-    to = GetNext(from, -1, Token::TokenType::CURLY_BRACKET_CLOSE);
-    // From apunta a '{', to apunta a '}'
+    // From apunta a '{', to apunta a '}', generem el codi
     GenerateCode(from, to-1, code);
-
 
     // L'afegim
     function->children.push_back(code);

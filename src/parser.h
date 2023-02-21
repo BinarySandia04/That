@@ -19,6 +19,7 @@ namespace That {
 
             void GetCodeFunction(Nodes::Node **root, int from, int *end);
             void GetCodeLine(Nodes::Node *root, int from, int to);
+            void GetCodeConditional(Nodes::Node **root, int from, int *end);
 
             void GetExpression(int from, int to, Nodes::Node** writeNode);
             bool Eat(Token::TokenType tok, Token::TokenType comp, int *from);

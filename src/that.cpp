@@ -14,7 +14,8 @@ int main(int argc, char *argv[]){
         printVersion();
         cli();
     } else {
-        byteScript(argv[1]);
+        script(argv[1]);
+        // byteScript(argv[1]);
     }
 
     return 0;
