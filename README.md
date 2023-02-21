@@ -70,5 +70,3 @@ func main { # Aquest programa fa print de 3 + 4
 ```
 
 ## Dependències
-
-- <a href="https://github.com/ikalnytskyi/termcolor">Termcolor</a> de ikalnytskyi
