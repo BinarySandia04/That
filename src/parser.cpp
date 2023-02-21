@@ -29,7 +29,9 @@ void Parser::GenerateCode(int from, int to, Nodes::Node *parent){
     while(from < to){
         // Val aqui anem a fer check de una funció!
         int nF = from;
+
         GetCodeFunction(&next, from, &nF);
+        if(nF != from) { parent->children.push_back(next); from = nF; continue; }
 
         currentEnd = GetNext(from, to, Token::SEMICOLON);
         GetCodeLine(parent, from, currentEnd);
@@ -41,26 +43,96 @@ void Parser::GenerateCode(int from, int to, Nodes::Node *parent){
 
 // Tenim alguna cosa de la forma
 /*
+Volem un node de la forma
+func nd: nombre de params
+1: Identificador de la funció
+2: Tipus que retorna la funció
+3: Codi de dins
+4 <-> 4+nd: Paràmetres que rep
+
 func <def> : (<type def1, ..., type defn>) => type {
     <AST>
 } 
+
+Val estaria guai fer que es pugui escriure també de forma
+
+func <def> { // Sense arguments i no retorna res
+    <AST>
+}
+
+func <def> : (<type def1, ..., type defn>) { // Amb arguments i no retorna res
+    <AST>
+}
+
+func <def> => type { // Sense arguments retorna el tipus
+    <AST>
+}
 */
 void Parser::GetCodeFunction(Nodes::Node **root, int from, int *end){
+    
     if(!Eat(this->tokens[from].type, Token::TokenType::FUNCTION_DECLARATION, &from)) return;
+
+    Nodes::Node* function = new Nodes::Node(Nodes::NodeType::FUNCTION);
+
+    // A partir d'aqui són excepcions
     if(!Eat(this->tokens[from].type, Token::TokenType::IDENTIFIER, &from)) return;
+    
     from--;
     std::string funcIdentifier = this->tokens[from].value;
     from++;
+    
+    std::cout << "id: " << funcIdentifier << std::endl;
+    
     if(!Eat(this->tokens[from].type, Token::TokenType::TWO_POINTS, &from)) return;
     if(!Eat(this->tokens[from].type, Token::TokenType::PARENTHESIS_OPEN, &from)) return;
-    // Val ara estem apuntant al primer parèntesis i ara agafarem les coses!
+    // Val ara estem apuntant al primer parèntesis i ara agafarem les coses
+
     std::vector<Nodes::Node*> parameters;
+    function->nd = parameters.size();
 
     int to = GetNext(from, -1, Token::TokenType::PARENTHESIS_CLOSE);
     GetFunctionParameters(from, to-1, &parameters); // Lo de dins sense parèntesis
+    
+
+    from = to+1;
+    if(!Eat(this->tokens[from].type, Token::TokenType::ARROW, &from)) return;
+    // Ok ara return type està al from
+    
+    if(!IsType(this->tokens[from].type)) return;
+    int typeId = (int) this->tokens[from].type;
+    std::cout << "typeID: " << typeId << std::endl;
+
+    Nodes::Node *code = new Nodes::Node(), 
+                *type = new Nodes::Node(Nodes::NodeType::TYPE),
+                *identifier = new Nodes::Node(Nodes::NodeType::REFERENCE);
+    type->nd = typeId;
 
 
+    identifier->SetDataString(funcIdentifier);
+    function->children.push_back(identifier);
+    function->children.push_back(type);
+    
 
+    // I ara falta el codi
+    from++;
+    if(!Eat(this->tokens[from].type, Token::TokenType::CURLY_BRACKET_OPEN, &from)) return;
+    
+
+    to = GetNext(from, -1, Token::TokenType::CURLY_BRACKET_CLOSE);
+    // From apunta a '{', to apunta a '}'
+    GenerateCode(from, to-1, code);
+
+
+    // L'afegim
+    function->children.push_back(code);
+
+    // I els parametres
+    for(int i = 0; i < parameters.size(); i++){
+        function->children.push_back(parameters[i]);
+    }
+
+    *root = function;
+    *end = to+1;
 }
 
 // int a, string b, real c
@@ -180,7 +252,7 @@ void Parser::GetAssignations(int from, int to, std::vector<Nodes::Node *> *conta
 
 bool Parser::Eat(Token::TokenType tok, Token::TokenType comp, int *from){
     if(tok == comp){
-        *from++;
+        *from += 1;
         return true;
     } else {
         // Call error, unexcepted identifier

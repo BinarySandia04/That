@@ -1,4 +1,4 @@
-func main: () => int {
+func main {
     int a = 3 + 4;
     print(a);
     return 0;

@@ -21,7 +21,7 @@ Aquesta llista pot canviar en un futur
 
 - [ ] Fer una versió estable del llenguatge
   - [X] Poder crear variables
-  - [ ] Poder assignar variables a operacions
+  - [ ] Poder assignar variablwes a operacions
   - [ ] Aconseguir transformar AST a bytecode
   - [ ] Acabar la màquina virtual
   - [ ] Aconseguir fer variables amb GML
