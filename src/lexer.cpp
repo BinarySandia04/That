@@ -401,7 +401,7 @@ int That::Lexer::checkSymbols(int *next){
             tokenList.push_back(Token(Token::DOLLAR));
             break;
         case '!':
-            tokenList.push_back(Token(Token::S_FLIP));
+            tokenList.push_back(Token(Token::S_NOT));
             break;
         default:
             return 1;

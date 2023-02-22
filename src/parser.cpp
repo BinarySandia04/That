@@ -36,6 +36,9 @@ void Parser::GenerateCode(int from, int to, Nodes::Node *parent){
         GetCodeConditional(&next, from, &nF);
         if(nF != from) { parent->children.push_back(next); from = nF; continue; }
 
+        GetCodeWhile(&next, from, &nF);
+        if(nF != from) { parent->children.push_back(next); from = nF; continue; }
+
         currentEnd = GetNext(from, to, Token::SEMICOLON);
         GetCodeLine(parent, from, currentEnd);
     
@@ -84,6 +87,22 @@ void Parser::GetCodeConditional(Nodes::Node **root, int from, int *end){
     *root = theIf;
     *end = from;
 }
+
+// Simplement es
+/*
+while (expressió) {
+    // codi
+}
+*/
+void Parser::GetCodeWhile(Nodes::Node **root, int from, int *end){
+    if(!Eat(this->tokens[from].type, Token::TokenType::K_WHILE, &from)) return;
+
+    Nodes::Node *bucle = new Nodes::Node(Nodes::NodeType::WHILE);
+    GetConditional(from, end, bucle);
+
+    *root = bucle;
+}
+
 /*
 Aconsegueix parsejar una cosa de la forma
 (expressió) {
@@ -392,196 +411,141 @@ void Parser::GetArguments(int from, int to, std::vector<Nodes::Node *>* parent){
     } while(from < to || tA < to);
 }
 
-void Parser::GetExpression(int from, int to, Nodes::Node** writeNode){
-    // std::cout << "Expression from to: " << from << " " << to << std::endl;
-    if(from == to){
-        Token token = this->tokens[from];
-        // Faltan literales, variables,
-        if(token.IsLiteral()){
-            // std::cout << "Detectado literal " << token.value << std::endl;
-            Nodes::Node* lit = new Nodes::Node;
-            switch(token.type){
-                case Token::L_INT:
-                    lit->type = Nodes::NodeType::VAL_INT;
-                    lit->data.integer = std::stoi(token.value);
-                    *writeNode = lit;
-                    return;
-                case Token::L_REAL:
-                    lit->type = Nodes::NodeType::VAL_REAL;
-                    lit->data.real = std::stod(token.value);
-                    *writeNode = lit;
-                    return;
-                case Token::L_STRING:
-                    lit->type = Nodes::NodeType::VAL_STRING;
-                    lit->nd = token.value.size();
-                    lit->data.bytes = new char[lit->nd];
-                    for(int i = 0; i < lit->nd; i++){
-                        lit->data.bytes[i] = token.value[i];
-                    }
-                    *writeNode = lit;
-                    return;
-                case Token::L_TRUE:
-                    lit->type = Nodes::NodeType::VAL_BOOLEAN;
-                    lit->data.integer = 1;
-                    *writeNode = lit;
-                    return;
-                case Token::L_FALSE:
-                    lit->type = Nodes::NodeType::VAL_BOOLEAN;
-                    lit->data.integer = 0;
-                    *writeNode = lit;
-                    return;
-                case Token::L_NULL:
-                    lit->type == Nodes::NodeType::VAL_NULL;
-                    *writeNode = lit;
-                    return;
-                default:
-                    break;
+void Parser::GetLiteral(int index, Nodes::Node** writeNode){
+    Token token = this->tokens[index];
+    Nodes::Node* lit = new Nodes::Node;
+    switch(token.type){
+        case Token::L_INT:
+            lit->type = Nodes::NodeType::VAL_INT;
+            lit->data.integer = std::stoi(token.value);
+            *writeNode = lit;
+            return;
+        case Token::L_REAL:
+            lit->type = Nodes::NodeType::VAL_REAL;
+            lit->data.real = std::stod(token.value);
+            *writeNode = lit;
+            return;
+        case Token::L_STRING:
+            lit->type = Nodes::NodeType::VAL_STRING;
+            lit->nd = token.value.size();
+            lit->data.bytes = new char[lit->nd];
+            for(int i = 0; i < lit->nd; i++){
+                lit->data.bytes[i] = token.value[i];
             }
-        }
-        // Vale comprovem s es una call
-        
+            *writeNode = lit;
+            return;
+        case Token::L_TRUE:
+            lit->type = Nodes::NodeType::VAL_BOOLEAN;
+            lit->data.integer = 1;
+            *writeNode = lit;
+            return;
+        case Token::L_FALSE:
+            lit->type = Nodes::NodeType::VAL_BOOLEAN;
+            lit->data.integer = 0;
+            *writeNode = lit;
+            return;
+        case Token::L_NULL:
+            lit->type == Nodes::NodeType::VAL_NULL;
+            *writeNode = lit;
+            return;
+        default:
+            break;
     }
+}
 
-    // Comprovem si es una call
-    if(this->tokens[from].IsIdentifier()){
-        // Veure si es funció
-        if(from == to){
+void Parser::GetExpression(int from, int to, Nodes::Node** writeNode){
+
+    if(from == to){
+        // En cas que la longitud sigui 1
+        if(this->tokens[from].IsLiteral()){
+            GetLiteral(from, writeNode);
+        }
+
+        if(this->tokens[from].IsIdentifier()){
             Nodes::Node *id = new Nodes::Node(Nodes::NodeType::REFERENCE);
             id->SetDataString(this->tokens[from].value);
             *writeNode = id;
-            return;
-        } else {
-            int ffrom = from + 1;
+        }
 
-            Token::TokenType type = this->tokens[ffrom].type;
-            int j = 0;
-            if(type == Token::PARENTHESIS_OPEN){
-                j = 1;
-                // std::cout << "Hola si???";
-                // std::cout << "Parentesis " << std::endl;
-                for(ffrom++; ffrom <= to; ffrom++){
-                    type = this->tokens[ffrom].type;
-                    if(type == Token::TokenType::PARENTHESIS_OPEN) j++;
-                    if(type == Token::TokenType::PARENTHESIS_CLOSE) j--;
+        return;
+    }
 
-                    if(j == 0){
-                        // std::cout << "Aqui hem arribat" << std::endl;
-                        if(ffrom == to){
-                            // Hacer cosas
-                            Nodes::Node *call = new Nodes::Node(Nodes::NodeType::EXP_CALL);
-                            call->SetDataString(this->tokens[from].value);
-                            *writeNode = call;
-                            ffrom = from + 2;
-                            // std::cout << "ffrom: " << ffrom << " to: " << to - 1 << std::endl;
-                            // Aqui hay que pillar argumentos
-                            // std::cout << ffrom + 1 << " " << to - 1 << std::endl;
-                            GetArguments(ffrom, to - 1, &(call->children));
+    // Comprovem primer ara si això es una call
+    if(this->tokens[from].IsIdentifier()){
+        if(this->tokens[to].type == Token::PARENTHESIS_CLOSE){
+            
+            std::string value = this->tokens[from].value;
+            
+            from++;
+            if (Eat(this->tokens[from].type, Token::PARENTHESIS_OPEN, &from)){
+                Nodes::Node *call = new Nodes::Node(Nodes::NodeType::EXP_CALL);
+                call->SetDataString(value);
 
-                            // std::cout << "GETARGUMENTS: " << ffrom << " " << to - 1 << std::endl;
-                            return;
-                        }
-                        break;
-                    }
-                }
+                GetArguments(from, to - 1, &(call->children));
+                *writeNode = call;
 
+                return;
+            }
+        }
+    }
+
+    // Cas que els parèntesis siguin buits
+    if(this->tokens[from].type == Token::PARENTHESIS_OPEN){
+        if(this->tokens[to].type == Token::PARENTHESIS_CLOSE){
+            int f = from+1;
+            f = GetNext(f, -1, Token::PARENTHESIS_CLOSE);
+            if(f == to){
+                GetExpression(from + 1, to - 1, writeNode);
+                return;
+            }
+        }
+    }
+
+
+    int i, k;
+
+    for(i = opOrder.size() - 1; i >= 0; i--){
+        for(k = 0; k < opOrder[i].size(); k++){
+            int n = GetNext(from, to, opOrder[i][k]);
+            // Val estem en la forma exp (simbol) exp, hem de trobar el simbol, estem al final doncs
+            // iterem fins a trobar algun simbol potser
+            if(n == from){
+                // Ei és una operació unaria!
+                Nodes::Node *unary = new Nodes::Node(Nodes::NodeType::EXP_UNARY);
+                Nodes::Node *exp;
+
+                unary->nd = (int) opOrder[i][k];
+
+                GetExpression(from+1, to, &exp);
+                unary->children.push_back(exp);
+                *writeNode = unary;
+                return;
+            }
+        }
+    }
+    
+    
+    for(i = opOrder.size() - 1; i >= 0; i--){
+        for(k = 0; k < opOrder[i].size(); k++){
+            int n = GetNext(from, to, opOrder[i][k]);
+            if(n != to){ // L'hem trobat
+                // from --- n simbol n --- to
+
+                Nodes::Node *bin = new Nodes::Node(Nodes::NodeType::EXP_BINARY);
+                Nodes::Node *first, *second;
+
+                // Aqui suposo que s'haura de passar per algun map
+                bin->nd = (int) opOrder[i][k];
                 
+                GetExpression(from, n - 1, &first);
+                GetExpression(n + 1, to, &second);
+
+                bin->children.push_back(first);
+                bin->children.push_back(second);
+                *writeNode = bin;
+
+                return;
             }
-        }
-        
-    }
-
-    if(this->tokens[to].type == Token::PARENTHESIS_CLOSE){
-        // std::cout << "Hola" << std::endl;
-        int l = 0;
-        int valid = 1;
-        for(int j = to; j >= from; j--){
-            if(this->tokens[j].type == Token::PARENTHESIS_OPEN) l--;
-            if(this->tokens[j].type == Token::PARENTHESIS_CLOSE) l++;
-
-            // std::cout << "l: " << l << " " << this->tokens[j].type << std::endl;
-            if(l < 1 && j != from){
-                valid = 0;
-                break;
-            }
-        }
-
-        if(l == 0 && valid && this->tokens[from].type == Token::PARENTHESIS_OPEN){
-            // std::cout << "Quitando parentesis" << std::endl;
-            GetExpression(from + 1, to - 1, writeNode);
-            return;
-        }
-
-        if(!valid){
-            std::cout << "error?" << std::endl;
-        }
-    }
-
-    int i, j;
-    // std::cout << "SI funcion" << std::endl;
-    // +, - 
-    for(i = to; i >= from; i--){
-        Token::TokenType type = this->tokens[i].type;
-        if(type == Token::PARENTHESIS_CLOSE){
-            j = 1;
-            // std::cout << "Parentesis " << std::endl;
-            for(i--; j != 0; i--){
-                type = this->tokens[i].type;
-                if(type == Token::TokenType::PARENTHESIS_CLOSE) j++;
-                if(type == Token::TokenType::PARENTHESIS_OPEN) j--;
-            }
-            i++;
-            continue;
-        }
-
-        if(type == Token::S_PLUS || type == Token::S_SUBTRACT){
-            Nodes::Node *bin = new Nodes::Node(Nodes::NodeType::EXP_BINARY);
-            Nodes::Node *first = NULL, *second = NULL;
-
-            bin->nd = (int) type -  (int) Token::S_PLUS;
-            
-            GetExpression(from, i - 1, &first);
-            GetExpression(i + 1, to, &second);
-            
-            // std::cout << "Hola!!" << std::endl;
-            // std::cout << first << " " << second << std::endl;
-            bin->children.push_back(first);
-            bin->children.push_back(second);
-            *writeNode = bin;
-
-            return;
-        }
-    }
-
-    for(i = to; i >= from; i--){
-        Token::TokenType type = this->tokens[i].type;
-        if(type == Token::PARENTHESIS_CLOSE){
-            j = 1;
-            // std::cout << "Parentesis " << std::endl;
-            for(i--; j > 0; i--){
-                type = this->tokens[i].type;
-                if(type == Token::TokenType::PARENTHESIS_CLOSE) j++;
-                if(type == Token::TokenType::PARENTHESIS_OPEN) j--;
-            }
-            i++;
-            continue;
-        }
-
-        if((int) type >= Token::S_PLUS && type <= Token::S_MODULO){
-            Nodes::Node *bin = new Nodes::Node(Nodes::EXP_BINARY);
-            bin->nd = (int) type -  (int) Token::S_PLUS;
-
-            Nodes::Node *first = NULL, *second = NULL;
-            GetExpression(from, i - 1, &first);
-            GetExpression(i + 1, to, &second);
-
-            
-            // std::cout << "AADIOS!!" << std::endl;
-            // std::cout << first << " " << second << std::endl;
-            bin->children.push_back(first);
-            bin->children.push_back(second);
-            *writeNode = bin;
-
-            return;
         }
     }
 }

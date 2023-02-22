@@ -18,9 +18,9 @@ Això encara està en obres. Acabaré el README quan tingui temps. Com m'agrada 
 ## Coses per fer en concret
 
 - [X] Fer ifs i elses encadenats infinits
-- [ ] Arreglar l'ordre d'operacions i fer-ho més abstracte
+- [X] Arreglar l'ordre d'operacions i fer-ho més abstracte
 - [ ] Fer un bucle while
-- [ ] Parchejar una cosa de que no pillava bé les operacions o una cosa així
+- [X] Parchejar una cosa de que no pillava bé les operacions o una cosa així
 
 ## Coses per fer en total
 
@@ -54,12 +54,6 @@ En un futur m'agradaria que That tingui les següents "features" (molt guais):
 # That programming language test.
 
 # Això és un comentari
-
-##
-Això és un comentari llarg
-que no es veu bonic perque al markdown
-no he posat syntax highlight.
-##
 
 func main { # Aquest programa fa print de 3 + 4
     int a = 3 + 4;

@@ -23,9 +23,12 @@ namespace That {
                 S_DIVIDE,               // /            X
                 S_MODULO,               // %            X
 
+                S_AND,                  // &&
+                S_OR,                   // ||
+                S_NOT,                  // !
+
                 S_INCREMENT,            // ++           X
-                S_DECREMENT,            // --           X
-                S_FLIP,                 // !
+                S_DECREMENT,            // --
 
                 C_EQUAL,                // ==           X
                 C_GREATER_THAN,         // >            X
@@ -197,6 +200,8 @@ namespace That {
             {"*", Token::S_MULTIPLY},
             {"/", Token::S_DIVIDE},
             {"%", Token::S_MODULO},
+            {"&&", Token::S_AND},
+            {"||", Token::S_OR},
             {"++", Token::S_INCREMENT},
             {"--", Token::S_DECREMENT},
             {"=", Token::A_ASSIGMENT},

@@ -41,7 +41,10 @@ void That::Kernel::compile(std::string code){
 
         {Token::TokenType::S_INCREMENT, "S_INCREMENT"},            // ++           X
         {Token::TokenType::S_DECREMENT, "S_DECREMENT"},            // --           X
-        {Token::TokenType::S_FLIP, "S_FLIP"},                 // !
+        {Token::TokenType::S_NOT, "S_NOT"},                 // !
+
+        {Token::TokenType::S_AND, "S_AND"},
+        {Token::TokenType::S_OR, "S_OR"},
 
         {Token::TokenType::C_EQUAL, "C_EQUAL"},                // ==           X
         {Token::TokenType::C_GREATER_THAN, "C_GREATER_THAN"},         // >            X
