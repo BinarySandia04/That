@@ -19,8 +19,9 @@ Això encara està en obres. Acabaré el README quan tingui temps. Com m'agrada 
 
 - [X] Fer ifs i elses encadenats infinits
 - [X] Arreglar l'ordre d'operacions i fer-ho més abstracte
-- [ ] Fer un bucle while
+- [X] Fer un bucle while
 - [X] Parchejar una cosa de que no pillava bé les operacions o una cosa així
+- [ ] Fer que funcionin els operadors d'assignament
 
 ## Coses per fer en total
 
