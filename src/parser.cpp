@@ -39,6 +39,8 @@ void Parser::GenerateCode(int from, int to, Nodes::Node *parent){
         GetCodeWhile(&next, from, &nF);
         if(nF != from) { parent->children.push_back(next); from = nF; continue; }
 
+        // TODO: Aqui fer un for
+
         currentEnd = GetNext(from, to, Token::SEMICOLON);
         GetCodeLine(parent, from, currentEnd);
     
@@ -290,8 +292,12 @@ void Parser::GetCodeLine(Nodes::Node *root, int from, int to){
             // Posem les declaracions a dins!
             root->children.push_back(assignations[i]);
         }
+        
+        // TODO: Cal fer que detecti tots els assigments possibles
     } else if(this->tokens[from].type == Token::IDENTIFIER && this->tokens[from + 1].type == Token::A_ASSIGMENT) {
         // Només assignations, res a veure
+        
+
         std::vector<Nodes::Node *> assignations;
         GetAssignations(from, to-1, &assignations);
         for(int i = 0; i < assignations.size(); i++){
@@ -306,6 +312,8 @@ void Parser::GetCodeLine(Nodes::Node *root, int from, int to){
 }
 
 void Parser::GetAssignation(int from, int to, Nodes::Node** writeNode){
+    // TODO: Donar suport a totes les assignations
+
     // En principi from es l'identifier, despres va un igual, i després una expressió fins a to
     std::string id = this->tokens[from].value;
     from++;
@@ -411,6 +419,8 @@ void Parser::GetArguments(int from, int to, std::vector<Nodes::Node *>* parent){
     } while(from < to || tA < to);
 }
 
+
+// TODO: Plantejar si això necessita un for (de fet si per futurs tipus)
 void Parser::GetLiteral(int index, Nodes::Node** writeNode){
     Token token = this->tokens[index];
     Nodes::Node* lit = new Nodes::Node;
@@ -502,6 +512,8 @@ void Parser::GetExpression(int from, int to, Nodes::Node** writeNode){
     }
 
 
+
+    // TODO: Estaria bé no repetir aquest proces dos cops
     int i, k;
 
     for(i = opOrder.size() - 1; i >= 0; i--){
@@ -550,6 +562,7 @@ void Parser::GetExpression(int from, int to, Nodes::Node** writeNode){
     }
 }
 
+// TODO: De fet, arreglar això també per a un futur
 bool Parser::IsType(Token::TokenType type){
     return (
     type == Token::TokenType::T_INT || 

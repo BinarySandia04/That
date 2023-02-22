@@ -5,5 +5,4 @@ cmake ../
 cmake --build .
 cd ..
 
-echo "--------------------------------------------------------------------------------"
 build/src/That examples/test.that

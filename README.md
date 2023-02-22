@@ -15,28 +15,14 @@
 ## Coses
 Això encara està en obres. Acabaré el README quan tingui temps. Com m'agrada fer amb tots els projectes que mai acabo, aqui poso una llista amb coses per fer:
 
-## Coses per fer en concret
-
-- [X] Fer ifs i elses encadenats infinits
-- [X] Arreglar l'ordre d'operacions i fer-ho més abstracte
-- [X] Fer un bucle while
-- [X] Parchejar una cosa de que no pillava bé les operacions o una cosa així
-- [ ] Fer que funcionin els operadors d'assignament
-
 ## Coses per fer en total
 
 Aquesta llista pot canviar en un futur
 
 - [ ] Fer una versió estable del llenguatge
-  - [X] Poder crear variables
-  - [X] Poder assignar variables a operacions
-  - [ ] Aconseguir transformar AST a bytecode
-  - [ ] Acabar la màquina virtual
-  - [ ] Aconseguir fer variables amb GML
-  - [ ] Tapar memory leaks (amb loctite)
 - [ ] Fer un README
-- [ ] Fer una llibreria estandard per That
 - [ ] Fer un logo
+- [ ] Fer una llibreria estandard per That
 
 ## Coses que That farà (roadmap)
 
