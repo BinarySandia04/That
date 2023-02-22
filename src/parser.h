@@ -31,6 +31,7 @@ namespace That {
             void GetFunctionParameter(int from, int to, Nodes::Node** writeNode);
             void GetAssignation(int from, int to, Nodes::Node** writeNode);
             void GetAssignations(int from, int to, std::vector<Nodes::Node *> *container);
+            void GetConditional(int from, int* to, Nodes::Node* pushNode);
 
             bool IsType(Token::TokenType type);
     };

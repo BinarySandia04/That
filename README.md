@@ -17,7 +17,8 @@ Això encara està en obres. Acabaré el README quan tingui temps. Com m'agrada 
 
 ## Coses per fer en concret
 
-- [ ] Fer ifs i elses encadenats infinits
+- [X] Fer ifs i elses encadenats infinits
+- [ ] Arreglar l'ordre d'operacions i fer-ho més abstracte
 - [ ] Fer un bucle while
 - [ ] Parchejar una cosa de que no pillava bé les operacions o una cosa així
 

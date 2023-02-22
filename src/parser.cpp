@@ -56,13 +56,52 @@ if(<condició>){
 void Parser::GetCodeConditional(Nodes::Node **root, int from, int *end){
     if(!Eat(this->tokens[from].type, Token::TokenType::K_IF, &from)) return;
 
-    std::cout << "Aixo es un if" << std::endl;
-    Nodes::Node *theIf = new Nodes::Node(Nodes::NodeType::IF), *expression, *content = new Nodes::Node(Nodes::NodeType::NODE);
+    Nodes::Node *theIf = new Nodes::Node(Nodes::NodeType::IF);
 
+    GetConditional(from, &from, theIf);
+    // Val aixo ens deixa allà
+    // std::cout << "F: " << from << std::endl;
+    // theIf->Debug();
+
+    while(Eat(this->tokens[from].type, Token::TokenType::K_ELSE, &from)){
+        if(Eat(this->tokens[from].type, Token::TokenType::K_IF, &from)){
+            GetConditional(from, &from, theIf);
+            theIf->nd += 1;
+            continue;
+        } else if(Eat(this->tokens[from].type, Token::TokenType::CURLY_BRACKET_OPEN, &from)) {
+            // Estem al else, llegim codi i fem push!!!
+            
+            int to = GetNext(from, -1, Token::TokenType::CURLY_BRACKET_CLOSE);
+            Nodes::Node *elseCode = new Nodes::Node(Nodes::NodeType::NODE);
+            GenerateCode(from, to-1, elseCode);
+            theIf->children.push_back(elseCode);
+            from = to + 1;
+        }
+        break;
+    }
+
+    
+    *root = theIf;
+    *end = from;
+}
+/*
+Aconsegueix parsejar una cosa de la forma
+(expressió) {
+    // Codi
+}
+*/
+void Parser::GetConditional(int from, int* end, Nodes::Node* pushNode){
     // Aconseguim la condició
+    Nodes::Node *content = new Nodes::Node(Nodes::NodeType::NODE);
+
     int to = GetNext(from, -1, Token::TokenType::CURLY_BRACKET_OPEN);
 
+    // std::cout << "EXP: " << from << " " << to - 1 << std::endl;
+    
+    Nodes::Node *expression;
     GetExpression(from, to-1, &expression);
+
+    // std::cout << expression->type << std::endl;
 
     // I el contingut del if
     from = to + 1;
@@ -70,11 +109,10 @@ void Parser::GetCodeConditional(Nodes::Node **root, int from, int *end){
     
     GenerateCode(from, to-1, content);
 
-    theIf->children.push_back(expression);
-    theIf->children.push_back(content);
-    
-    *root = theIf;
-    *end = to+1;
+    pushNode->children.push_back(expression);
+    pushNode->children.push_back(content);
+
+    *end = to + 1;
 }
 
 /*
@@ -294,6 +332,8 @@ void Parser::GetAssignations(int from, int to, std::vector<Nodes::Node *> *conta
 }
 
 bool Parser::Eat(Token::TokenType tok, Token::TokenType comp, int *from){
+    if(*from >= this->tokens.size()) return false;
+
     if(tok == comp){
         *from += 1;
         return true;

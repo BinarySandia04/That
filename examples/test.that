@@ -7,6 +7,7 @@ Això és un comentari llarg
 - Pero molt llarg
 ##
 
+##
 func main { # Aquest programa fa print de 3 + 4
     int a = 3 + 4;
     print(a);
@@ -14,4 +15,16 @@ func main { # Aquest programa fa print de 3 + 4
         print("Hello from that!");
     }
 }
+##
 
+if a - 1 {
+    if b - 2 {
+        print("SI");
+    } else {
+        print("NO!!!");
+    }
+} else if a - 3 {
+    print(2);
+} else if a - 4 {
+    print(3);
+}
