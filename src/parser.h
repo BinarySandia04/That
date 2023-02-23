@@ -23,6 +23,19 @@ namespace That {
                 {Token::S_MULTIPLY, Token::S_DIVIDE},
                 {Token::S_PLUS, Token::S_SUBTRACT}
             };
+
+            std::vector<That::Token::TokenType> types = {
+                Token::T_INT, Token::T_BOOLEAN, Token::T_REAL, Token::T_STRING
+            };
+
+            std::vector<That::Token::TokenType> assignations = {
+                Token::A_ASSIGMENT,
+                Token::A_ADD,
+                Token::A_SUBTRACT,
+                Token::A_MULTIPLY,
+                Token::A_DIVIDE,
+                Token::A_MODULO
+            };
             
             void GenerateCode(int from, int to, Nodes::Node *parent);
 
@@ -45,6 +58,6 @@ namespace That {
             void GetExpression(int from, int to, Nodes::Node** writeNode);
             void GetLiteral(int index, Nodes::Node** writeNode);
 
-            bool IsType(Token::TokenType type);
+            bool IsOf( std::vector<Token::TokenType> list, Token::TokenType type);
     };
 }

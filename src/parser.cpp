@@ -202,7 +202,7 @@ void Parser::GetCodeFunction(Nodes::Node **root, int from, int *end){
 
     if(Eat(this->tokens[from].type, Token::TokenType::ARROW, &from)){
         // Ara tenim return type! Anem a llegir-lo!
-        if(!IsType(this->tokens[from].type)) return;
+        if(!IsOf(types, this->tokens[from].type)) return;
         int typeId = (int) this->tokens[from].type;
         std::cout << "typeID: " << typeId << std::endl;
         
@@ -271,7 +271,7 @@ void Parser::GetFunctionParameter(int from, int to, Nodes::Node **writeNode){
 // i tipus és opcional en cas que l'expressió sigui <var> = exp
 void Parser::GetCodeLine(Nodes::Node *root, int from, int to){
 
-    if(IsType(this->tokens[from].type)){
+    if(IsOf(types, this->tokens[from].type)){
         // Aqui podriem optimitzar memòria
         Nodes::Node *typeNode = new Nodes::Node(Nodes::NodeType::TYPE);
         typeNode->nd = (int) this->tokens[from].type; // Hauriem de tenir una taula amb tipus més endavant?
@@ -521,52 +521,49 @@ void Parser::GetExpression(int from, int to, Nodes::Node** writeNode){
             int n = GetNext(from, to, opOrder[i][k]);
             // Val estem en la forma exp (simbol) exp, hem de trobar el simbol, estem al final doncs
             // iterem fins a trobar algun simbol potser
+            Nodes::Node *op, *first, *second;
             if(n == from){
                 // Ei és una operació unaria!
-                Nodes::Node *unary = new Nodes::Node(Nodes::NodeType::EXP_UNARY);
-                Nodes::Node *exp;
+                op = new Nodes::Node(Nodes::NodeType::EXP_UNARY);
 
-                unary->nd = (int) opOrder[i][k];
+                op->nd = (int) opOrder[i][k];
 
-                GetExpression(from+1, to, &exp);
-                unary->children.push_back(exp);
-                *writeNode = unary;
+                GetExpression(from+1, to, &first);
+                op->children.push_back(first);
+                *writeNode = op;
                 return;
             }
-        }
-    }
-    
-    
-    for(i = opOrder.size() - 1; i >= 0; i--){
-        for(k = 0; k < opOrder[i].size(); k++){
-            int n = GetNext(from, to, opOrder[i][k]);
+
             if(n != to){ // L'hem trobat
                 // from --- n simbol n --- to
 
-                Nodes::Node *bin = new Nodes::Node(Nodes::NodeType::EXP_BINARY);
-                Nodes::Node *first, *second;
+                op = new Nodes::Node(Nodes::NodeType::EXP_BINARY);
 
                 // Aqui suposo que s'haura de passar per algun map
-                bin->nd = (int) opOrder[i][k];
+                op->nd = (int) opOrder[i][k];
                 
                 GetExpression(from, n - 1, &first);
                 GetExpression(n + 1, to, &second);
 
-                bin->children.push_back(first);
-                bin->children.push_back(second);
-                *writeNode = bin;
+                op->children.push_back(first);
+                op->children.push_back(second);
+                *writeNode = op;
 
                 return;
             }
         }
     }
+    
+    /*
+    for(i = opOrder.size() - 1; i >= 0; i--){
+        for(k = 0; k < opOrder[i].size(); k++){
+            
+        }
+    }
+    */
 }
 
-// TODO: De fet, arreglar això també per a un futur
-bool Parser::IsType(Token::TokenType type){
-    return (
-    type == Token::TokenType::T_INT || 
-    type == Token::TokenType::T_REAL || 
-    type == Token::TokenType::T_BOOLEAN || 
-    type == Token::TokenType::T_STRING);
+bool Parser::IsOf(std::vector<Token::TokenType> list, Token::TokenType type){
+    for(int i = 0; i < list.size(); i++) if(type == list[i]) return true;
+    return false;
 }
