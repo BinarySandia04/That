@@ -37,6 +37,14 @@ namespace That {
                 Token::A_MODULO
             };
             
+            std::map<That::Token::TokenType, That::Token::TokenType> opMap = {
+                {Token::A_ADD, Token::S_PLUS},
+                {Token::A_SUBTRACT, Token::S_SUBTRACT},
+                {Token::A_DIVIDE, Token::S_DIVIDE},
+                {Token::A_MULTIPLY, Token::S_MULTIPLY},
+                {Token::A_MODULO, Token::S_MODULO}                
+            };
+
             void GenerateCode(int from, int to, Nodes::Node *parent);
 
             void GetCodeFunction(Nodes::Node **root, int from, int *end);

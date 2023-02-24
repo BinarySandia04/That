@@ -1,6 +1,6 @@
 #include "parser.h"
 
-#include "headers/debug.hpp"
+#include "../headers/debug.hpp"
 
 #include <iostream>
 #include <vector>
@@ -179,8 +179,6 @@ void Parser::GetCodeFunction(Nodes::Node **root, int from, int *end){
     std::string funcIdentifier = this->tokens[from].value;
     from++;
     
-    std::cout << "id: " << funcIdentifier << std::endl;
-    
     std::vector<Nodes::Node*> parameters;
     Nodes::Node *code = new Nodes::Node(), 
                 *type = new Nodes::Node(Nodes::NodeType::TYPE),
@@ -204,7 +202,6 @@ void Parser::GetCodeFunction(Nodes::Node **root, int from, int *end){
         // Ara tenim return type! Anem a llegir-lo!
         if(!IsOf(types, this->tokens[from].type)) return;
         int typeId = (int) this->tokens[from].type;
-        std::cout << "typeID: " << typeId << std::endl;
         
         type->nd = typeId;
         from++;
@@ -294,7 +291,7 @@ void Parser::GetCodeLine(Nodes::Node *root, int from, int to){
         }
         
         // TODO: Cal fer que detecti tots els assigments possibles
-    } else if(this->tokens[from].type == Token::IDENTIFIER && this->tokens[from + 1].type == Token::A_ASSIGMENT) {
+    } else if(this->tokens[from].type == Token::IDENTIFIER && IsOf(assignations, this->tokens[from + 1].type)) {
         // Només assignations, res a veure
         
 
@@ -312,24 +309,45 @@ void Parser::GetCodeLine(Nodes::Node *root, int from, int to){
 }
 
 void Parser::GetAssignation(int from, int to, Nodes::Node** writeNode){
-    // TODO: Donar suport a totes les assignations
-
     // En principi from es l'identifier, despres va un igual, i després una expressió fins a to
     std::string id = this->tokens[from].value;
+    Nodes::Node *exp;
+
+    if(from == to){
+        Nodes::Node *assignation = new Nodes::Node(Nodes::ASSIGNATION);
+        assignation->SetDataString(id);
+
+        *writeNode = assignation;
+        return;
+    }
+
     from++;
-    if(this->tokens[from].type != Token::TokenType::A_ASSIGMENT){
+    if(!IsOf(assignations, this->tokens[from].type)){
         // Throw exception
         Debug::LogError("Exception\n");
     }
-    from++;
-    Nodes::Node *exp;
-    GetExpression(from, to, &exp);
 
-    // Ara tenim a exp l'expressió, falta ara construir l'assignació final
+    from++;
+
+    GetExpression(from, to, &exp);
 
     Nodes::Node *assignation = new Nodes::Node(Nodes::ASSIGNATION);
     assignation->SetDataString(id);
-    assignation->children.push_back(exp);
+
+    if(this->tokens[from-1].type != Token::TokenType::A_ASSIGMENT){
+        // Es una operació cal operar ara mateix!!!
+        Nodes::Node *op = new Nodes::Node(Nodes::NodeType::EXP_BINARY);
+        Nodes::Node *ref = new Nodes::Node(Nodes::NodeType::REFERENCE);
+        
+        ref->SetDataString(id);
+        op->nd = (int) opMap[this->tokens[from-1].type];
+
+        op->children.push_back(ref);
+        op->children.push_back(exp);
+
+        assignation->children.push_back(op);
+    } else assignation->children.push_back(exp);
+    // Ara tenim a exp l'expressió, falta ara construir l'assignació final
 
     *writeNode = assignation;
 }
@@ -337,12 +355,20 @@ void Parser::GetAssignation(int from, int to, Nodes::Node** writeNode){
 void Parser::GetAssignations(int from, int to, std::vector<Nodes::Node *> *container){
     /*
     Tenim uns tokens de la forma
-    a = 3, b = 5, c = "Hola que tal", d = f(2,3) + c, e = 4
+    a = 3, b += 5, c = "Hola que tal", d = f(2,3) + c, e = 4
     Volem separar les assignacions per comes i anar cridant GetAssignation
     */
     if(from > to) return;
+    
 
     Nodes::Node *next;
+
+    if(from == to){
+        // Empty assignation
+        GetAssignation(from, to, &next);
+        container->push_back(next);
+    }
+
     int tA = from;
 
     do {

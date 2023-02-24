@@ -4,11 +4,13 @@
 #include "internal.h"
 #include "register.h"
 
-std::map<That::Internal::InternalFunctions, That::reg_t (*)(That::reg_t*, That::reg_t*)> That::VM::FunctionMap = {
+using namespace That;
+
+std::map<Internal::InternalFunctions, reg_t (*)(reg_t*, reg_t*)> VM::FunctionMap = {
     {That::Internal::PRINT, That::Internal::print}
 };
 
-void That::VM::MemDump(uint8_t *data, int size){
+void VM::MemDump(uint8_t *data, int size){
     std::cout << "[Dump] Size: " << size << std::endl;
 
     for(int i = 0; i < size; i++){
@@ -18,7 +20,7 @@ void That::VM::MemDump(uint8_t *data, int size){
     return;
 }
 
-That::VM::VM(char filename[]){
+VM::VM(char filename[]){
 
     FILE* f = fopen(filename, "r");
     
@@ -69,10 +71,10 @@ That::VM::VM(char filename[]){
     }
 }
 
-int That::VM::Process(uint8_t ins[], reg_t* regCons[], int offset, bool *returnFlag, int *returnVal){
+int VM::Process(uint8_t ins[], reg_t* regCons[], int offset, bool *returnFlag, int *returnVal){
     int8_t instId = ((int8_t) ins[0]);
     std::cout << "instId: " << (unsigned int) instId << std::endl;
-    VM::Instruction tipus = static_cast<VM::Instruction>(instId);
+    VM::Instructions tipus = static_cast<VM::Instructions>(instId);
 
     int8_t b, c;
     uint8_t a;
@@ -80,7 +82,7 @@ int That::VM::Process(uint8_t ins[], reg_t* regCons[], int offset, bool *returnF
 
     switch (tipus)
     {
-    case Instruction::PUSH: // Push reg
+    case Instructions::PUSH: // Push reg
         abx = this->ReadAbx(ins);
         std::cout << "Instruccion push " << abx << std::endl;
         
@@ -88,12 +90,12 @@ int That::VM::Process(uint8_t ins[], reg_t* regCons[], int offset, bool *returnF
         regs.push_back(regCons[abx]);
         
         break;
-    case Instruction::MOVE: // Move regs
+    case Instructions::MOVE: // Move regs
         a = this->ReadA(ins) + offset;
         b = this->ReadB(ins) + offset;
         regs[b] = regs[a];
         break;
-    case Instruction::CALL: // User call
+    case Instructions::CALL: // User call
         std::cout << "Vale caleado esta" << std::endl;
 
         a = this->ReadA(ins) + offset;
@@ -102,7 +104,7 @@ int That::VM::Process(uint8_t ins[], reg_t* regCons[], int offset, bool *returnF
 
         *(regs[a]) = Call(a, b, c);
         break;
-    case Instruction::ICL: // Internal call
+    case Instructions::ICL: // Internal call
         std::cout << "Internal call!" << std::endl;
         a = this->ReadA(ins);
         b = this->ReadB(ins) + offset;
@@ -114,7 +116,7 @@ int That::VM::Process(uint8_t ins[], reg_t* regCons[], int offset, bool *returnF
         // Aqui funcions internes o algo
         *(regs[a]) = FunctionMap[static_cast<Internal::InternalFunctions>(a)](regs[b], regs[c]);
         break;
-    case Instruction::RET:
+    case Instructions::RET:
         std::cout << "Returneado" << std::endl;
         a = this->ReadA(ins);
         *returnFlag = true;
@@ -125,7 +127,7 @@ int That::VM::Process(uint8_t ins[], reg_t* regCons[], int offset, bool *returnF
     }
 }
 
-That::reg_t That::VM::Call(uint8_t a, uint8_t b, uint8_t c){
+That::reg_t VM::Call(uint8_t a, uint8_t b, uint8_t c){
     int n = regs[a]->num;
 
     uint8_t *data = regs[a]->data;
@@ -193,30 +195,30 @@ That::reg_t That::VM::Call(uint8_t a, uint8_t b, uint8_t c){
     return nul;
 }
 
-uint8_t That::VM::ReadA(uint8_t ins[]){
+uint8_t VM::ReadA(uint8_t ins[]){
     return ((uint8_t) ins[1]);
 }
 
-uint8_t That::VM::ReadB(uint8_t ins[]){
+uint8_t VM::ReadB(uint8_t ins[]){
     return ((uint8_t) ins[2]);
 }
 
-uint8_t That::VM::ReadC(uint8_t ins[]){
+uint8_t VM::ReadC(uint8_t ins[]){
     return ((uint8_t) ins[3]);
 }
 
-uint32_t That::VM::ReadBx(uint8_t ins[]){
+uint32_t VM::ReadBx(uint8_t ins[]){
     return ((uint32_t) (ins[2] << 8) | (uint32_t) ins[3]);
 }
 
-uint32_t That::VM::ReadAbx(uint8_t ins[]){
+uint32_t VM::ReadAbx(uint8_t ins[]){
     return ((uint32_t) (ins[1]) | (uint32_t) (ins[2] << 8) | (uint32_t) (ins[3] << 16));
 }
 
-uint32_t That::VM::ReadBytes(uint8_t *dir){
+uint32_t VM::ReadBytes(uint8_t *dir){
     return ((uint32_t) *(dir) | (uint32_t) (*(dir + 1) << 8) | (uint32_t) (*(dir + 2) << 16) | (uint32_t) (*(dir + 3) << 24));
 }
 
-That::VM::~VM(){
+VM::~VM(){
     std::cout << "Destroyed vm" << std::endl;
 }

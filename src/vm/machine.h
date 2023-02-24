@@ -15,7 +15,7 @@ namespace That {
             VM(char filename[]);
             ~VM();
 
-            enum Instruction {
+            enum Instructions {
                 PUSH, // abx
                 MOVE, // A, B
 

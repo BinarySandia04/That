@@ -6,8 +6,9 @@
 #include <gmp.h>
 
 #include "kernel.h"
-#include "lexer.h"
-#include "parser.h"
+#include "compiler/lexer.h"
+#include "compiler/parser.h"
+#include "compiler/assembler.h"
 #include "vm/machine.h"
 
 That::Kernel::Kernel() {
@@ -108,10 +109,13 @@ void That::Kernel::compile(std::string code){
     std::cout << std::endl;
 #endif
 
-
     That::Parser parser(tokens);
 
     That::Nodes::Node ast = parser.GenerateAST();
+
+    That::Assembler assembler;
+    assembler.Assemble(&ast);
+
 }
 
 void That::Kernel::send(char filename[]){
