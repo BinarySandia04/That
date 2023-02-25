@@ -31,11 +31,11 @@ namespace That {
                 S_DECREMENT,            // --
 
                 C_EQUAL,                // ==           X
+                C_NOT_EQUAL,            // !=           X
                 C_GREATER_THAN,         // >            X
                 C_LESSER_THAN,          // <            X
                 C_GREATER_EQUAL_THAN,   // >=           X
                 C_LESSER_EQUAL_THAN,    // <=           X
-                C_NOT_EQUAL,            // !=           X
 
                 A_ASSIGMENT,            // =            X
                 A_ADD,                  // +=           X
@@ -59,7 +59,8 @@ namespace That {
 
                 K_IF,                   //if        X
                 K_ELSE,                 //else      X
-                K_WHILE,                //while     X     
+                K_WHILE,                //while     X
+                K_FOR,                  //for     
                 K_RETURN,               //return    X
                 K_BREAK,                //stop      X
                 K_CONTINUE,             //skip      X
@@ -135,6 +136,7 @@ namespace That {
             RETURN,
             BREAK,
             CONTINUE,
+            FOR,
 
             INT,
             REAL,
@@ -152,8 +154,9 @@ namespace That {
             {"if", IF},
             {"else", ELSE},
             {"while", WHILE},
+            {"for", FOR},
             {"return", RETURN},
-            {"stop", BREAK},
+            {"break", BREAK},
             {"skip", CONTINUE},
             {"int", INT},
             {"real", REAL},
@@ -200,6 +203,7 @@ namespace That {
             {"*", Token::S_MULTIPLY},
             {"/", Token::S_DIVIDE},
             {"%", Token::S_MODULO},
+            {"!", Token::S_NOT},
             {"&&", Token::S_AND},
             {"||", Token::S_OR},
             {"++", Token::S_INCREMENT},

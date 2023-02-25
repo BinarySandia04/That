@@ -82,6 +82,7 @@ void Kernel::compile(std::string code){
         {Token::TokenType::K_RETURN, "RETURN"},               //return    X
         {Token::TokenType::K_BREAK, "BREAK"},                //stop      X
         {Token::TokenType::K_CONTINUE, "CONTINUE"},             //skip      X
+        {Token::TokenType::K_FOR, "FOR"},
 
         {Token::TokenType::L_INT, "L_INT"},                  // 3        X
         {Token::TokenType::L_REAL, "L_REAL"},                 // 3.2      X

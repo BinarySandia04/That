@@ -30,6 +30,7 @@ void Parser::GenerateCode(int from, int to, Nodes::Node *parent){
         // Val aqui anem a fer check de una funció!
         int nF = from;
 
+        // No hi ha manera de treure això ja que son funcions estàtiques
         GetCodeFunction(&next, from, &nF);
         if(nF != from) { parent->children.push_back(next); from = nF; continue; }
 
@@ -41,8 +42,15 @@ void Parser::GenerateCode(int from, int to, Nodes::Node *parent){
 
         GetCodeReturn(&next, from, &nF);
         if(nF != from) { parent->children.push_back(next); from = nF; continue; }
+        
+        GetCodeFor(&next, from, &nF);
+        if(nF != from) { parent->children.push_back(next); from = nF; continue; }
 
+        GetCodeBreak(&next, from, &nF);
+        if(nF != from) { parent->children.push_back(next); from = nF; continue; }
 
+        GetCodeSkip(&next, from, &nF);
+        if(nF != from) { parent->children.push_back(next); from = nF; continue; }
         // TODO: Aqui fer un for
 
         currentEnd = GetNext(from, to, Token::SEMICOLON);
@@ -53,15 +61,70 @@ void Parser::GenerateCode(int from, int to, Nodes::Node *parent){
     }
 }
 
-/*
-if(<condició>){
-    // Codi
-} else if(<condició>) {
-    // Codi
-} else {
-    // Codi
+void Parser::GetCodeBreak(Nodes::Node **root, int from, int *end){
+    if(!Eat(this->tokens[from].type, Token::TokenType::K_BREAK, &from)) return;
+
+    Nodes::Node *brek = new Nodes::Node(Nodes::NodeType::BREAK);
+
+    *end = from + 1;
+    *root = brek;
 }
-*/
+
+void Parser::GetCodeSkip(Nodes::Node **root, int from, int *end){
+    if(!Eat(this->tokens[from].type, Token::TokenType::K_CONTINUE, &from)) return;
+
+    Nodes::Node *skip = new Nodes::Node(Nodes::NodeType::SKIP);
+
+    *end = from + 1;
+    *root = skip;
+}
+
+void Parser::GetCodeFor(Nodes::Node **root, int from, int *end){ 
+    if(!Eat(this->tokens[from].type, Token::TokenType::K_FOR, &from)) return;
+
+    int to = GetNext(from, -1, Token::TokenType::CURLY_BRACKET_OPEN);
+    // Suport per : ? 
+
+    // Ara aconseguim les 3 expressions que hi ha a dins de to!
+
+    Nodes::Node *fo = new Nodes::Node(Nodes::NodeType::FOR);
+    Nodes::Node *exp, *code = new Nodes::Node();
+    // for <a> ; <b> ; <c> {}
+
+    int tempTo;
+    // a - Es una code line
+    tempTo = GetNext(from, -1, Token::TokenType::SEMICOLON);
+    exp = new Nodes::Node();
+    GetCodeLine(exp, from, tempTo);
+    fo->children.push_back(exp);
+    
+    from = tempTo + 1;
+    // b, una expression
+    tempTo = GetNext(from, -1, Token::TokenType::SEMICOLON);
+    
+    GetExpression(from, tempTo-1, &exp);
+    fo->children.push_back(exp);
+
+    // c, una altra codeline
+    from = tempTo + 1;
+
+    exp = new Nodes::Node();
+    GetCodeLine(exp, from, to);
+    fo->children.push_back(exp);
+
+    from = to + 1;
+    to = GetNext(from, -1, Token::TokenType::CURLY_BRACKET_CLOSE);
+
+    GenerateCode(from, to-1, code);
+
+    fo->children.push_back(code);
+    
+    *end = to + 1;
+    *root = fo;
+    // Val aqui hem de fer tres coses, primer veure on es tenquen els parèntesis
+    // despres, tenim tres expressions que hem de guardar i tal, i finalment un codi
+
+}
 
 void Parser::GetCodeReturn(Nodes::Node **root, int from, int *end){
     if(!Eat(this->tokens[from].type, Token::TokenType::K_RETURN, &from)) return;
@@ -79,6 +142,15 @@ void Parser::GetCodeReturn(Nodes::Node **root, int from, int *end){
     *root = ret;
     *end = to+1;
 }
+/*
+if(<condició>){
+    // Codi
+} else if(<condició>) {
+    // Codi
+} else {
+    // Codi
+}
+*/
 
 void Parser::GetCodeConditional(Nodes::Node **root, int from, int *end){
     if(!Eat(this->tokens[from].type, Token::TokenType::K_IF, &from)) return;
@@ -114,7 +186,7 @@ void Parser::GetCodeConditional(Nodes::Node **root, int from, int *end){
 
 // Simplement es
 /*
-while (expressió) {
+while expressió {
     // codi
 }
 */
@@ -179,7 +251,7 @@ func <def> { // Sense arguments i no retorna res
 }
 
 -3-
-func <def> : (<type def1, ..., type defn>) { // Amb arguments i no retorna res
+func <def> : <type def1, ..., type defn> { // Amb arguments i no retorna res
     <AST>
 }
 
@@ -209,15 +281,21 @@ void Parser::GetCodeFunction(Nodes::Node **root, int from, int *end){
     int to;
     if(Eat(this->tokens[from].type, Token::TokenType::TWO_POINTS, &from)){
         // Tipus 1, 3 - Tenim paràmetres! Ara falta veure si hi ha return type
-        if(!Eat(this->tokens[from].type, Token::TokenType::PARENTHESIS_OPEN, &from)) return;
+        // if(!Eat(this->tokens[from].type, Token::TokenType::PARENTHESIS_OPEN, &from)) return;
         // Val ara estem apuntant al primer parèntesis i ara agafarem les coses
 
         function->nd = parameters.size();
 
-        to = GetNext(from, -1, Token::TokenType::PARENTHESIS_CLOSE);
-        GetFunctionParameters(from, to-1, &parameters); // Lo de dins sense parèntesis
+        int finTo = GetNext(from, -1, Token::TokenType::CURLY_BRACKET_OPEN);
+        to = GetNext(from, finTo, Token::TokenType::ARROW);
         
-        from = to+1;
+        
+        GetFunctionParameters(from, to-1, &parameters); // Lo de dins sense parèntesis
+
+        from = to;
+        
+        
+        // from = to+1;
     }
 
     if(Eat(this->tokens[from].type, Token::TokenType::ARROW, &from)){
@@ -290,6 +368,7 @@ void Parser::GetFunctionParameter(int from, int to, Nodes::Node **writeNode){
 // i tipus és opcional en cas que l'expressió sigui <var> = exp
 void Parser::GetCodeLine(Nodes::Node *root, int from, int to){
 
+    //std::cout << "GetCodeLine " << from << " " << to << std::endl;
     if(IsOf(types, this->tokens[from].type)){
         // Aqui podriem optimitzar memòria
         Nodes::Node *typeNode = new Nodes::Node(Nodes::NodeType::TYPE);
@@ -315,7 +394,6 @@ void Parser::GetCodeLine(Nodes::Node *root, int from, int to){
         // TODO: Cal fer que detecti tots els assigments possibles
     } else if(this->tokens[from].type == Token::IDENTIFIER && IsOf(assignations, this->tokens[from + 1].type)) {
         // Només assignations, res a veure
-        
 
         std::vector<Nodes::Node *> assignations;
         GetAssignations(from, to-1, &assignations);

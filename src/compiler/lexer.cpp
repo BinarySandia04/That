@@ -300,6 +300,7 @@ int Lexer::checkKeywords(int *next){
     int nextPos = pos;
     word = nextWord(pos, &nextPos);
     if(typeKeyword.count(word)){
+        // Aixo es podria agilitzar amb un bonic map
         switch (typeKeyword[word]){
             case FUNC:
                 /* code */
@@ -319,6 +320,9 @@ int Lexer::checkKeywords(int *next){
                 break;
             case WHILE:
                 tokenList.push_back(Token(Token::K_WHILE));
+                break;
+            case FOR:
+                tokenList.push_back(Token(Token::K_FOR));
                 break;
             case RETURN:
                 tokenList.push_back(Token(Token::K_RETURN));
@@ -402,9 +406,9 @@ int Lexer::checkSymbols(int *next){
         case '$':
             tokenList.push_back(Token(Token::DOLLAR));
             break;
-        case '!':
+        /* case '!':
             tokenList.push_back(Token(Token::S_NOT));
-            break;
+            break; */
         default:
             return 1;
     }

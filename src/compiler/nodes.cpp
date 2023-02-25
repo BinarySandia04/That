@@ -1,4 +1,5 @@
 #include "nodes.h"
+#include "../headers/termcolor.hpp"
 
 #include <iostream>
 #include <map>
@@ -27,6 +28,9 @@ void Nodes::Node::Debug(){
         {WHILE, "WHILE"},
         {FUNCTION, "FUNCTION"},
         {RETURN, "RETURN"},
+        {FOR, "FOR"},
+        {BREAK, "BREAK"},
+        {SKIP, "SKIP"},
         {NODE_ERROR, "NODE_ERROR"},
         {EXP_BINARY, "EXP_BINARY"},
         {EXP_UNARY, "EXP_UNARY"},
@@ -39,7 +43,7 @@ void Nodes::Node::Debug(){
     }; 
 
     std::cout << "[ ";
-    std::cout << "type: " << trans[this->type] << ", ";
+    std::cout << "type: " << termcolor::green << trans[this->type] << termcolor::reset << ", ";
     std::cout << "fills: ";
     for(int i = 0; i < this->children.size(); i++){
         this->children[i]->Debug();

@@ -16,8 +16,8 @@ namespace That {
             std::vector<That::Token> tokens;
 
             std::vector<std::vector<That::Token::TokenType>> opOrder = {
-                {Token::C_EQUAL, Token::C_GREATER_EQUAL_THAN, Token::C_LESSER_EQUAL_THAN,
-                Token::C_NOT_EQUAL, Token::S_AND, Token::S_OR},
+                {Token::C_NOT_EQUAL, Token::C_EQUAL, Token::C_GREATER_EQUAL_THAN, Token::C_LESSER_EQUAL_THAN,
+                Token::S_AND, Token::S_OR},
                 {Token::C_GREATER_THAN, Token::C_LESSER_THAN, Token::S_NOT},
                 {Token::S_MODULO},
                 {Token::S_MULTIPLY, Token::S_DIVIDE},
@@ -52,6 +52,9 @@ namespace That {
             void GetCodeConditional(Nodes::Node **root, int from, int *end);
             void GetCodeWhile(Nodes::Node **root, int from, int *end);
             void GetCodeReturn(Nodes::Node **root, int from, int *end);
+            void GetCodeFor(Nodes::Node **root, int from, int *end);
+            void GetCodeBreak(Nodes::Node **root, int from, int *end);
+            void GetCodeSkip(Nodes::Node **root, int from, int *end);
 
             bool Eat(Token::TokenType tok, Token::TokenType comp, int *from);
 
