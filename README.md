@@ -91,7 +91,7 @@ print("Tres més dos és", suma(tres(), 2));
 
 # També existeixen condicionals
 if q {
-  print("Q és True");ç
+  print("Q és True");
   if tres() == 3 {
     print("tres és 3");
   } else if suma(2,2) == 4 {
