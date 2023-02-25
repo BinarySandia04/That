@@ -62,7 +62,7 @@ void Parser::GenerateCode(int from, int to, Nodes::Node *parent){
 }
 
 void Parser::GetCodeBreak(Nodes::Node **root, int from, int *end){
-    if(!Eat(this->tokens[from].type, Token::TokenType::K_BREAK, &from)) return;
+    if(!Eat(from, Token::TokenType::K_BREAK, &from)) return;
 
     Nodes::Node *brek = new Nodes::Node(Nodes::NodeType::BREAK);
 
@@ -71,7 +71,7 @@ void Parser::GetCodeBreak(Nodes::Node **root, int from, int *end){
 }
 
 void Parser::GetCodeSkip(Nodes::Node **root, int from, int *end){
-    if(!Eat(this->tokens[from].type, Token::TokenType::K_CONTINUE, &from)) return;
+    if(!Eat(from, Token::TokenType::K_CONTINUE, &from)) return;
 
     Nodes::Node *skip = new Nodes::Node(Nodes::NodeType::SKIP);
 
@@ -80,9 +80,9 @@ void Parser::GetCodeSkip(Nodes::Node **root, int from, int *end){
 }
 
 void Parser::GetCodeFor(Nodes::Node **root, int from, int *end){ 
-    if(!Eat(this->tokens[from].type, Token::TokenType::K_FOR, &from)) return;
+    if(!Eat(from, Token::TokenType::K_FOR, &from)) return;
 
-    int to = GetNext(from, -1, Token::TokenType::CURLY_BRACKET_OPEN);
+    int to = GetNextCodeSep(from, -1);
     // Suport per : ? 
 
     // Ara aconseguim les 3 expressions que hi ha a dins de to!
@@ -112,22 +112,17 @@ void Parser::GetCodeFor(Nodes::Node **root, int from, int *end){
     GetCodeLine(exp, from, to);
     fo->children.push_back(exp);
 
-    from = to + 1;
-    to = GetNext(from, -1, Token::TokenType::CURLY_BRACKET_CLOSE);
-
-    GenerateCode(from, to-1, code);
+    GetCodeBlock(to, &from, code);
 
     fo->children.push_back(code);
     
-    *end = to + 1;
+    *end = from;
     *root = fo;
-    // Val aqui hem de fer tres coses, primer veure on es tenquen els parèntesis
-    // despres, tenim tres expressions que hem de guardar i tal, i finalment un codi
 
 }
 
 void Parser::GetCodeReturn(Nodes::Node **root, int from, int *end){
-    if(!Eat(this->tokens[from].type, Token::TokenType::K_RETURN, &from)) return;
+    if(!Eat(from, Token::TokenType::K_RETURN, &from)) return;
 
     Nodes::Node *ret = new Nodes::Node(Nodes::NodeType::RETURN), *exp;
     int to = GetNext(from, -1, Token::TokenType::SEMICOLON);
@@ -153,32 +148,21 @@ if(<condició>){
 */
 
 void Parser::GetCodeConditional(Nodes::Node **root, int from, int *end){
-    if(!Eat(this->tokens[from].type, Token::TokenType::K_IF, &from)) return;
+    if(!Eat(from, Token::TokenType::K_IF, &from)) return;
 
     Nodes::Node *theIf = new Nodes::Node(Nodes::NodeType::IF);
 
     GetConditional(from, &from, theIf);
-    // Val aixo ens deixa allà
-    // std::cout << "F: " << from << std::endl;
-    // theIf->Debug();
 
-    while(Eat(this->tokens[from].type, Token::TokenType::K_ELSE, &from)){
-        if(Eat(this->tokens[from].type, Token::TokenType::K_IF, &from)){
+    while(Eat(from, Token::TokenType::K_ELSE, &from)){
+        if(Eat(from, Token::TokenType::K_IF, &from)){
             GetConditional(from, &from, theIf);
             theIf->nd += 1;
             continue;
-        } else if(Eat(this->tokens[from].type, Token::TokenType::CURLY_BRACKET_OPEN, &from)) {
-            // Estem al else, llegim codi i fem push!!!
-            
-            int to = GetNext(from, -1, Token::TokenType::CURLY_BRACKET_CLOSE);
-            Nodes::Node *elseCode = new Nodes::Node(Nodes::NodeType::NODE);
-            GenerateCode(from, to-1, elseCode);
-            theIf->children.push_back(elseCode);
-            from = to + 1;
-        }
+        } else GetCodeBlock(from, &from, theIf);
+        
         break;
     }
-
     
     *root = theIf;
     *end = from;
@@ -191,7 +175,7 @@ while expressió {
 }
 */
 void Parser::GetCodeWhile(Nodes::Node **root, int from, int *end){
-    if(!Eat(this->tokens[from].type, Token::TokenType::K_WHILE, &from)) return;
+    if(!Eat(from, Token::TokenType::K_WHILE, &from)) return;
 
     Nodes::Node *bucle = new Nodes::Node(Nodes::NodeType::WHILE);
     GetConditional(from, end, bucle);
@@ -209,25 +193,16 @@ void Parser::GetConditional(int from, int* end, Nodes::Node* pushNode){
     // Aconseguim la condició
     Nodes::Node *content = new Nodes::Node(Nodes::NodeType::NODE);
 
-    int to = GetNext(from, -1, Token::TokenType::CURLY_BRACKET_OPEN);
+    int to = GetNextCodeSep(from, -1);
 
     // std::cout << "EXP: " << from << " " << to - 1 << std::endl;
-    
     Nodes::Node *expression;
     GetExpression(from, to-1, &expression);
 
-    // std::cout << expression->type << std::endl;
-
-    // I el contingut del if
-    from = to + 1;
-    to = GetNext(from, -1, Token::TokenType::CURLY_BRACKET_CLOSE);
-    
-    GenerateCode(from, to-1, content);
+    GetCodeBlock(from, end, content);
 
     pushNode->children.push_back(expression);
     pushNode->children.push_back(content);
-
-    *end = to + 1;
 }
 
 /*
@@ -262,12 +237,12 @@ func <def> => type { // Sense arguments retorna el tipus
 */
 void Parser::GetCodeFunction(Nodes::Node **root, int from, int *end){
     
-    if(!Eat(this->tokens[from].type, Token::TokenType::FUNCTION_DECLARATION, &from)) return;
+    if(!Eat(from, Token::TokenType::FUNCTION_DECLARATION, &from)) return;
 
     Nodes::Node* function = new Nodes::Node(Nodes::NodeType::FUNCTION);
 
     // A partir d'aqui són excepcions
-    if(!Eat(this->tokens[from].type, Token::TokenType::IDENTIFIER, &from)) return;
+    if(!Eat(from, Token::TokenType::IDENTIFIER, &from)) return;
     
     from--;
     std::string funcIdentifier = this->tokens[from].value;
@@ -278,8 +253,8 @@ void Parser::GetCodeFunction(Nodes::Node **root, int from, int *end){
                 *type = new Nodes::Node(Nodes::NodeType::TYPE),
                 *identifier = new Nodes::Node(Nodes::NodeType::REFERENCE);
 
-    int to;
-    if(Eat(this->tokens[from].type, Token::TokenType::TWO_POINTS, &from)){
+    int to, to2;
+    if(Eat(from, Token::TokenType::TWO_POINTS, &from)){
         // Tipus 1, 3 - Tenim paràmetres! Ara falta veure si hi ha return type
         // if(!Eat(this->tokens[from].type, Token::TokenType::PARENTHESIS_OPEN, &from)) return;
         // Val ara estem apuntant al primer parèntesis i ara agafarem les coses
@@ -287,7 +262,10 @@ void Parser::GetCodeFunction(Nodes::Node **root, int from, int *end){
         function->nd = parameters.size();
 
         int finTo = GetNext(from, -1, Token::TokenType::CURLY_BRACKET_OPEN);
+
         to = GetNext(from, finTo, Token::TokenType::ARROW);
+        to2 = GetNext(from, -1, Token::TokenType::TWO_POINTS);
+        if(to2 < to) to = to2;
         
         
         GetFunctionParameters(from, to-1, &parameters); // Lo de dins sense parèntesis
@@ -298,7 +276,7 @@ void Parser::GetCodeFunction(Nodes::Node **root, int from, int *end){
         // from = to+1;
     }
 
-    if(Eat(this->tokens[from].type, Token::TokenType::ARROW, &from)){
+    if(Eat(from, Token::TokenType::ARROW, &from)){
         // Ara tenim return type! Anem a llegir-lo!
         if(!IsOf(types, this->tokens[from].type)) return;
         int typeId = (int) this->tokens[from].type;
@@ -309,18 +287,11 @@ void Parser::GetCodeFunction(Nodes::Node **root, int from, int *end){
         type->nd = -1; // Suposo que això és void
     }
 
-    
-    if(!Eat(this->tokens[from].type, Token::TokenType::CURLY_BRACKET_OPEN, &from)) return; // Aqui si es error. No ha posat { el senyor
-
-    to = GetNext(from, -1, Token::TokenType::CURLY_BRACKET_CLOSE);
-
+    GetCodeBlock(from - 1, end, code);
     // Empenyem info bàsica
     identifier->SetDataString(funcIdentifier);
     function->children.push_back(identifier);
     function->children.push_back(type);
-    
-    // From apunta a '{', to apunta a '}', generem el codi
-    GenerateCode(from, to-1, code);
 
     // L'afegim
     function->children.push_back(code);
@@ -331,7 +302,6 @@ void Parser::GetCodeFunction(Nodes::Node **root, int from, int *end){
     }
 
     *root = function;
-    *end = to+1;
 }
 
 // int a, string b, real c
@@ -484,7 +454,8 @@ void Parser::GetAssignations(int from, int to, std::vector<Nodes::Node *> *conta
     } while(from < to || tA < to);
 }
 
-bool Parser::Eat(Token::TokenType tok, Token::TokenType comp, int *from){
+bool Parser::Eat(int pos, Token::TokenType comp, int *from){
+    Token::TokenType tok = this->tokens[pos].type;
     if(*from >= this->tokens.size()) return false;
 
     if(tok == comp){
@@ -613,7 +584,7 @@ void Parser::GetExpression(int from, int to, Nodes::Node** writeNode){
             std::string value = this->tokens[from].value;
             
             from++;
-            if (Eat(this->tokens[from].type, Token::PARENTHESIS_OPEN, &from)){
+            if (Eat(from, Token::PARENTHESIS_OPEN, &from)){
                 Nodes::Node *call = new Nodes::Node(Nodes::NodeType::EXP_CALL);
                 call->SetDataString(value);
 
@@ -692,4 +663,39 @@ void Parser::GetExpression(int from, int to, Nodes::Node** writeNode){
 bool Parser::IsOf(std::vector<Token::TokenType> list, Token::TokenType type){
     for(int i = 0; i < list.size(); i++) if(type == list[i]) return true;
     return false;
+}
+
+int Parser::GetNextCodeSep(int from, int lim){
+    // Ok eh hem d'aconseguir el proxim '{', o ':', el que vingui abans:
+    int c = GetNext(from, lim, Token::TokenType::CURLY_BRACKET_OPEN);
+    int p = GetNext(from, lim, Token::TokenType::TWO_POINTS);
+
+    if(c < p) return c;
+    return p;
+}
+
+// ------- {
+//   |
+// from
+//      <codi>
+// }
+
+// o
+
+// ----------------- : <linea>
+//   |
+// from
+void Parser::GetCodeBlock(int from, int* to, Nodes::Node* parent){
+    from = GetNextCodeSep(from, -1);
+    if(Eat(from, Token::TokenType::CURLY_BRACKET_OPEN, &from)){
+        *to = GetNext(from, -1, Token::TokenType::CURLY_BRACKET_CLOSE);
+        GenerateCode(from, *to-1, parent);
+        *to = *to + 1;
+    } else if (Eat(from, Token::TokenType::TWO_POINTS, &from)){
+        *to = GetNext(from, -1, Token::TokenType::SEMICOLON);
+        GenerateCode(from, *to, parent);
+        *to = *to + 1;
+    } else {
+        std::cout << "Hola???? Aixo es que has programat malament" << std::endl;
+    }
 }

@@ -56,9 +56,10 @@ namespace That {
             void GetCodeBreak(Nodes::Node **root, int from, int *end);
             void GetCodeSkip(Nodes::Node **root, int from, int *end);
 
-            bool Eat(Token::TokenType tok, Token::TokenType comp, int *from);
+            bool Eat(int pos, Token::TokenType comp, int *from);
 
             int GetNext(int from, int lim, Token::TokenType type);
+            int GetNextCodeSep(int from, int lim);
 
             void GetArguments(int from, int to, std::vector<Nodes::Node *>* parent);
             void GetFunctionParameters(int from, int to, std::vector<Nodes::Node *>* container);
@@ -66,6 +67,7 @@ namespace That {
             void GetAssignation(int from, int to, Nodes::Node** writeNode);
             void GetAssignations(int from, int to, std::vector<Nodes::Node *> *container);
             void GetConditional(int from, int* to, Nodes::Node* pushNode);
+            void GetCodeBlock(int from, int* to, Nodes::Node* parent);
             
             void GetExpression(int from, int to, Nodes::Node** writeNode);
             void GetLiteral(int index, Nodes::Node** writeNode);

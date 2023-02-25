@@ -2,24 +2,13 @@
 
 # Això és un comentari
 
-func main { # Aquest programa fa print de 3 + 4
-    int a = 10;
-    for int i = 0; i < a; i += 1 {
-        dividir(i, a);
-
-        if i % 20 == 0 {
-            break;
-        }
-        if i % 2 == 0 {
-            skip;
-        }
-
-    }
-    return;
+func main {
+    int a = 3;
+    
+    for int i = 0; i < 10; i += 1: print(i);
 }
 
-##
-func dividir: int a, int b {
+func dividir: int a, int b => int {
     # Aquest el que fa es dividir!
     while a > b {
         a = a - 1;
@@ -29,4 +18,5 @@ func dividir: int a, int b {
     }
     return;
 }
-##
+
+func dividir: int a, int b: print("3");
