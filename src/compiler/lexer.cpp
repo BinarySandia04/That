@@ -2,48 +2,50 @@
 #include <iostream>
 #include "lexer.h"
 
-That::Token::Token(TokenType type, std::string value){
+using namespace That;
+
+Token::Token(TokenType type, std::string value){
     this->type = type;
     this->value = value;
 }
 
-That::Token::Token(TokenType type){
+Token::Token(TokenType type){
     this->type = type;
 }
 
-That::Token::Token(){
+Token::Token(){
     this->type = TokenType::ERROR;
 }
 
-That::Token::~Token(){
+Token::~Token(){
 
 }
 
-bool That::Token::IsLiteral(){
+bool Token::IsLiteral(){
     return this->type >= L_INT && this->type <= L_NULL;
 }
 
-bool That::Token::IsIdentifier(){
+bool Token::IsIdentifier(){
     return this->type == IDENTIFIER;
 }
 
 // ---------------------------------------------------------------------------
 
-That::Lexer::Lexer(std::string code){
+Lexer::Lexer(std::string code){
     this->code = code;
 }
 
-That::Lexer::~Lexer(){
+Lexer::~Lexer(){
 }
 
 /*
 De un codi doncs torna tokens!
 */
-std::vector<That::Token>* That::Lexer::GetTokens(){
+std::vector<Token>* Lexer::GetTokens(){
     return &tokenList;
 }
 
-std::string That::Lexer::nextWord(int pos, int* nextPos){
+std::string Lexer::nextWord(int pos, int* nextPos){
     std::string nWord = "";
     while(!isEnd(pos) && !isSymbol(code[pos])){
         nWord += code[pos];
@@ -54,96 +56,96 @@ std::string That::Lexer::nextWord(int pos, int* nextPos){
     return nWord;
 }
 
-int That::Lexer::isNumber(char c){
+int Lexer::isNumber(char c){
     if(c >= 48 && c <= 57) return true;
     return false;
 }
 
-int That::Lexer::isEmpty(char c){
+int Lexer::isEmpty(char c){
     return c == typeSymbol[Symbols::SPACE] ||
         c == typeSymbol[Symbols::NEWLINE] ||
         c == typeSymbol[Symbols::TAB];
 }
 
-void That::Lexer::flush(int *next){
+void Lexer::flush(int *next){
     int pos = *next;
     while(isEmpty(code[pos])) pos++;
     *next = pos;
 }
 
-int That::Lexer::isSemicolon(char c){
+int Lexer::isSemicolon(char c){
     return c == typeSymbol[Symbols::SEMICOLON];
 }
 
-int That::Lexer::isSeparator(char c){
+int Lexer::isSeparator(char c){
     return 0;
 }
 
-int That::Lexer::isComment(char c){
+int Lexer::isComment(char c){
     return c == typeSymbol[Symbols::COMMENT];
 }
 
-int That::Lexer::isEnd(int pos){
+int Lexer::isEnd(int pos){
     return pos >= code.size();
 }
 
-int That::Lexer::isPoint(char c){
+int Lexer::isPoint(char c){
     return c == typeSymbol[Symbols::POINT];
 }
 
-int That::Lexer::isQuot(char c){
+int Lexer::isQuot(char c){
     return c == typeSymbol[Symbols::QUOT];
 }
 
-int That::Lexer::isDoubleQuot(char c){
+int Lexer::isDoubleQuot(char c){
     return c == typeSymbol[Symbols::DOUBLE_QUOT];
 }
 
-int That::Lexer::isComma(char c){
+int Lexer::isComma(char c){
     return c == typeSymbol[Symbols::COMMA];
 }
 
-int That::Lexer::isOParentesis(char c){
+int Lexer::isOParentesis(char c){
     return c == typeSymbol[Symbols::PARENTESIS_O];
 }
 
-int That::Lexer::isCParentesis(char c){
+int Lexer::isCParentesis(char c){
     return c == typeSymbol[Symbols::PARENTESIS_C];
 }
 
-int That::Lexer::isParentesis(char c){
+int Lexer::isParentesis(char c){
     return isOParentesis(c) || isCParentesis(c);
 }
 
-int That::Lexer::isOClaudator(char c){
+int Lexer::isOClaudator(char c){
     return c == typeSymbol[Symbols::CLAUDATOR_O];
 }
 
-int That::Lexer::isCClaudator(char c){
+int Lexer::isCClaudator(char c){
     return c == typeSymbol[Symbols::CLAUDATOR_C];
 }
 
-int That::Lexer::isClaudator(char c){
+int Lexer::isClaudator(char c){
     return isCClaudator(c) || isOClaudator(c);
 }
 
-int That::Lexer::isOKey(char c){
+int Lexer::isOKey(char c){
     return c == typeSymbol[Symbols::KEY_O];
 }
 
-int That::Lexer::isCKey(char c){
+int Lexer::isCKey(char c){
     return c == typeSymbol[Symbols::KEY_C];
 }
 
-int That::Lexer::isKey(char c){
+int Lexer::isKey(char c){
     return isOKey(c) || isCKey(c);
 }
 
-int That::Lexer::isTwoPoints(char c){
+int Lexer::isTwoPoints(char c){
     return c == typeSymbol[Symbols::TWO_POINTS];
 }
 
-int That::Lexer::isSymbol(char c){
+int Lexer::isSymbol(char c){
     for (auto& it : typeSymbol) {
         if (it.second == c) {
             return 1;
@@ -153,11 +155,11 @@ int That::Lexer::isSymbol(char c){
     return 0;
 }
 
-void That::Lexer::addError(){
+void Lexer::addError(){
     tokenList.push_back(Token(Token::ERROR, ""));
 }
 
-int That::Lexer::getNumber(int *next){
+int Lexer::getNumber(int *next){
     int pos = *next;
 
     std::string num(1, code[pos]);
@@ -191,7 +193,7 @@ int That::Lexer::getNumber(int *next){
     }
 }
 
-void That::Lexer::getString(int *next){
+void Lexer::getString(int *next){
     int pos = *next;
     std::string s = "";
 
@@ -221,7 +223,7 @@ void That::Lexer::getString(int *next){
 
 }
 
-void That::Lexer::skipComment(int *next){
+void Lexer::skipComment(int *next){
     if(isComment(code[*next])){
         int pos = *next;
         if(!isEnd(pos + 1)){
@@ -237,7 +239,7 @@ void That::Lexer::skipComment(int *next){
     }
 }
 
-int That::Lexer::checkLiterals(int *next){
+int Lexer::checkLiterals(int *next){
     if(isEnd(*next)) return 1;
 
     char c = code[*next];
@@ -253,7 +255,7 @@ int That::Lexer::checkLiterals(int *next){
     return 1;
 }
 
-int That::Lexer::checkOperations(int *next){
+int Lexer::checkOperations(int *next){
     if(isEnd(*next)) return 1;
     if(isEmpty(code[*next])) flush(next);
 
@@ -285,7 +287,7 @@ int That::Lexer::checkOperations(int *next){
     return 1;
 }
 
-int That::Lexer::checkKeywords(int *next){
+int Lexer::checkKeywords(int *next){
 
     if(isEnd(*next)) return 1;
     if(isEmpty(code[*next])) return 1;
@@ -364,7 +366,7 @@ int That::Lexer::checkKeywords(int *next){
     
 }
 
-int That::Lexer::checkSymbols(int *next){
+int Lexer::checkSymbols(int *next){
     if(isEnd(*next)) return 0;
     switch(code[*next]){
         case '.':
@@ -411,7 +413,7 @@ int That::Lexer::checkSymbols(int *next){
     return 0;
 }
 
-int That::Lexer::GenerateTokens(){
+int Lexer::GenerateTokens(){
     for(int i = 0; i < code.size(); ){
         skipComment(&i);
 

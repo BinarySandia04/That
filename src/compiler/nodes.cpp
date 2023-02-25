@@ -26,6 +26,7 @@ void Nodes::Node::Debug(){
         {IF, "IF"},
         {WHILE, "WHILE"},
         {FUNCTION, "FUNCTION"},
+        {RETURN, "RETURN"},
         {NODE_ERROR, "NODE_ERROR"},
         {EXP_BINARY, "EXP_BINARY"},
         {EXP_UNARY, "EXP_UNARY"},

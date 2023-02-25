@@ -8,4 +8,5 @@ func main { # Aquest programa fa print de 3 + 4
         print(i);
         i += 1;
     }
+    return;
 }

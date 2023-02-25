@@ -11,15 +11,17 @@
 #include "compiler/assembler.h"
 #include "vm/machine.h"
 
-That::Kernel::Kernel() {
+using namespace That;
+
+Kernel::Kernel() {
     /* Constructor */
 }
 
-That::Kernel::~Kernel() {
+Kernel::~Kernel() {
     /* Destructor */
 }
 
-void That::Kernel::compile(std::string code){
+void Kernel::compile(std::string code){
     That::Lexer lexer(code);
 
     lexer.GenerateTokens();
@@ -109,16 +111,16 @@ void That::Kernel::compile(std::string code){
     std::cout << std::endl;
 #endif
 
-    That::Parser parser(tokens);
+    Parser parser(tokens);
 
-    That::Nodes::Node ast = parser.GenerateAST();
+    Nodes::Node ast = parser.GenerateAST();
 
-    That::Assembler assembler;
+    Assembler assembler;
     assembler.Assemble(&ast);
 
 }
 
-void That::Kernel::send(char filename[]){
+void Kernel::send(char filename[]){
     // Initialize vm
     
     VM vm(filename);
@@ -126,7 +128,7 @@ void That::Kernel::send(char filename[]){
     // Ara partim això en coses nose com shorts per exemple
 }
 
-void That::Kernel::sendScript(char name[]){
+void Kernel::sendScript(char name[]){
     std::fstream file(name);
 
     std::string code = "", line;

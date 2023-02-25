@@ -18,6 +18,7 @@ namespace That {
             TYPE,
             IF,
             WHILE,
+            RETURN,
             FUNCTION,
             NODE_ERROR,
             EXP_BINARY,

@@ -10,8 +10,6 @@ TODO: Val una manera de com construir aixo i ja tenir llenguatge estaria moolt b
 namespace That {
     class Assembler {
         public:
-            Assembler();
-
             void Assemble(That::Nodes::Node* ast);
     };
 

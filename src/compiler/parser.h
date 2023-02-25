@@ -51,6 +51,7 @@ namespace That {
             void GetCodeLine(Nodes::Node *root, int from, int to);
             void GetCodeConditional(Nodes::Node **root, int from, int *end);
             void GetCodeWhile(Nodes::Node **root, int from, int *end);
+            void GetCodeReturn(Nodes::Node **root, int from, int *end);
 
             bool Eat(Token::TokenType tok, Token::TokenType comp, int *from);
 

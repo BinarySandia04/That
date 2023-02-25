@@ -39,6 +39,10 @@ void Parser::GenerateCode(int from, int to, Nodes::Node *parent){
         GetCodeWhile(&next, from, &nF);
         if(nF != from) { parent->children.push_back(next); from = nF; continue; }
 
+        GetCodeReturn(&next, from, &nF);
+        if(nF != from) { parent->children.push_back(next); from = nF; continue; }
+
+
         // TODO: Aqui fer un for
 
         currentEnd = GetNext(from, to, Token::SEMICOLON);
@@ -58,6 +62,24 @@ if(<condició>){
     // Codi
 }
 */
+
+void Parser::GetCodeReturn(Nodes::Node **root, int from, int *end){
+    if(!Eat(this->tokens[from].type, Token::TokenType::K_RETURN, &from)) return;
+
+    Nodes::Node *ret = new Nodes::Node(Nodes::NodeType::RETURN), *exp;
+    int to = GetNext(from, -1, Token::TokenType::SEMICOLON);
+
+    // std::cout << from << " " << to << std::endl;
+    if(from != to){
+        GetExpression(from, to-1, &exp);
+            
+        ret->children.push_back(exp);
+    }
+    
+    *root = ret;
+    *end = to+1;
+}
+
 void Parser::GetCodeConditional(Nodes::Node **root, int from, int *end){
     if(!Eat(this->tokens[from].type, Token::TokenType::K_IF, &from)) return;
 
