@@ -44,12 +44,91 @@ En un futur m'agradaria que That tingui les següents "features" (molt guais):
 
 # Això és un comentari
 
-func main { # Aquest programa fa print de 3 + 4
-    int a = 3 + 4;
-    print(a);
-    if a == 7 {
-        print("Hello from that!");
-    }
+##
+Aquest comentari es llarg
+Amb That l'execució d'un programa es realitza de la següent manera: primer
+es fa una llegida sequencial i es declaren variables i funcions en ordre, i també
+s'executen instruccions, i després (si existeix) es crida a una funció main. Es com
+el punt d'entrada de Python, bastant similar. Aquesta linea per exemple mostra un 2
+##
+
+print(2);
+
+# Per declarar variables cal indicar el tipus
+int a;
+int b = 3;
+string c = "Això és una C!!!";
+bool q = True;
+
+# Per modificar el valor d'una funció és bastant senzill:
+a = b + b * 50 - 3;
+
+# Ara farem una funció. Si no té paràmetres i no retorna res, nomes cal posar la keyword func:
+
+func hola {
+  print("Hola!");
+}
+
+# Si una funció obte paràmetres s'introdueixen després del nom seguit de ':', indicant el tipus i el nom del paràmetre al costat:
+
+func salutacio: string a, string b {
+  print(a, "saluda a", b);
+}
+
+# Si una funció ha de retornar algo s'escriu "=>" abans del '{' i després el tipus de retorn:
+
+func suma: int a, int b => int {
+  print("Anem a sumar", a, "i", b);
+  return a + b;
+}
+
+func tres => int {
+  return 3;
+}
+
+# Per executar funcions també és com altres llenguatges:
+print("Tres més dos és", suma(tres(), 2));
+
+# També existeixen condicionals
+if q {
+  print("Q és True");ç
+  if tres() == 3 {
+    print("tres és 3");
+  } else if suma(2,2) == 4 {
+    print("2+2 = 4");
+  } else {
+    print("Això no és possible!");
+  }
+} else {
+  print("Q és False");
+}
+
+# Els bucles whiles també son com altres llenguatges
+print("Comptem fins a 10!");
+int i = 1;
+while i <= 10 {
+  print(i);
+  i += 1;
+}
+
+# També hi ha ordre de trencar while i seguir una altra volta. S'anomenen "break" i "skip" respectivament:
+i = 2;
+while i < 100 {
+  if i % 2 == 0 {
+    skip;
+  }
+  if i % 3 == 0 {
+    print(i);
+  }
+  if i % 23 == 0 {
+    break;
+  }
+  i += 1;
+}
+
+# També existeix el bucle for, que és un while compacte, igual que els altres llenguatges:
+for int j = 0; j < i; j += 1 {
+  print(j * i);
 }
 ```
 
