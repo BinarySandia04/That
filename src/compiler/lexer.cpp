@@ -4,17 +4,20 @@
 
 using namespace That;
 
-Token::Token(TokenType type, std::string value){
+Token::Token(TokenType type, std::string value, int pos){
     this->type = type;
     this->value = value;
+    this->position = pos;
 }
 
-Token::Token(TokenType type){
+Token::Token(TokenType type, int pos){
     this->type = type;
+    this->position = pos;
 }
 
 Token::Token(){
     this->type = TokenType::ERROR;
+    this->position = -1;
 }
 
 Token::~Token(){

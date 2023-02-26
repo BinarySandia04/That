@@ -80,8 +80,8 @@ namespace That {
 
             };
 
-            Token(TokenType type, std::string value);
-            Token(TokenType type);
+            Token(TokenType type, std::string value, int pos);
+            Token(TokenType type, int pos);
 
             Token();
             ~Token();
@@ -91,6 +91,7 @@ namespace That {
 
             std::string value;
             TokenType type;
+            int position;
     };
 
     class Lexer {
