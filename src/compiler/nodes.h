@@ -7,7 +7,6 @@
 
 namespace That {
     namespace Nodes {
-
         enum NodeType {
             NODE,
             ERROR,

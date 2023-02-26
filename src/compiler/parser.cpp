@@ -15,6 +15,8 @@ Parser::Parser(std::vector<Token> tokens){
     try {
         GenerateCode(0, this->tokens.size(), root);
         root->Debug();
+
+        std::cout << std::endl;
     } catch(std::string p){
         // Erroreado
         Debug::LogError(p);
@@ -120,7 +122,12 @@ void Parser::GetCodeFor(Nodes::Node **root, int from, int *end){
     // b, una expression
     tempTo = GetNext(from, -1, Token::TokenType::SEMICOLON);
     
-    GetExpression(from, tempTo-1, &exp);
+    try {
+        GetExpression(from, tempTo-1, &exp);
+    } catch(std::string p){
+        throw(p);
+    }
+
     fo->children.push_back(exp);
 
     // c, una altra codeline
@@ -147,7 +154,11 @@ void Parser::GetCodeReturn(Nodes::Node **root, int from, int *end){
 
     // std::cout << from << " " << to << std::endl;
     if(from != to){
-        GetExpression(from, to-1, &exp);
+        try {
+            GetExpression(from, to-1, &exp);
+        } catch(std::string p){
+            throw p;
+        }
             
         ret->children.push_back(exp);
     }
@@ -214,7 +225,11 @@ void Parser::GetConditional(int from, int* end, Nodes::Node* pushNode){
 
     // std::cout << "EXP: " << from << " " << to - 1 << std::endl;
     Nodes::Node *expression;
-    GetExpression(from, to-1, &expression);
+    try {
+        GetExpression(from, to-1, &expression);
+    } catch(std::string p){
+        throw(p);
+    }
 
     GetCodeBlock(from, end, content);
 
@@ -366,7 +381,11 @@ void Parser::GetCodeLine(Nodes::Node *root, int from, int to){
 
         // AQUI CAL FER UNA AMABLE LLISTA DE EXPRESSIONS I MODIFICAR-LES SEGONS EL TIPUS
         std::vector<Nodes::Node *> assignations;
-        GetAssignations(from, to - 1, &assignations);
+        try {
+            GetAssignations(from, to - 1, &assignations);
+        } catch(std::string p){
+            throw p;
+        }
 
         // Modifiquem les assignacions per tal de fer declaracions
         for(int i = 0; i < assignations.size(); i++){
@@ -381,14 +400,24 @@ void Parser::GetCodeLine(Nodes::Node *root, int from, int to){
         // Només assignations, res a veure
 
         std::vector<Nodes::Node *> assignations;
-        GetAssignations(from, to-1, &assignations);
+        
+        try {
+            GetAssignations(from, to-1, &assignations);
+        } catch(std::string p){
+            throw p;
+        }
+
         for(int i = 0; i < assignations.size(); i++){
             root->children.push_back(assignations[i]);
         }
     } else {
         // És una expressió, la afegim simplement
         Nodes::Node* nextNode;
-        GetExpression(from, to-1, &nextNode);
+        try {
+            GetExpression(from, to-1, &nextNode);
+        } catch(std::string p){
+            throw(p);
+        }
         root->children.push_back(nextNode);
     }
 }
@@ -409,12 +438,21 @@ void Parser::GetAssignation(int from, int to, Nodes::Node** writeNode){
     from++;
     if(!IsOf(assignations, this->tokens[from].type)){
         // Throw exception
-        Debug::LogError("Exception\n");
+        throw(std::string("Syntax error: Expected assignation"));
     }
 
     from++;
 
-    GetExpression(from, to, &exp);
+    if(!ContainsAssignation(from, to)){
+        try {
+            GetExpression(from, to, &exp);
+        } catch(std::string p) {
+            throw p;
+        }
+    }
+    else {
+        throw(std::string("Syntax error: Unexcepted assignation"));
+    }
 
     Nodes::Node *assignation = new Nodes::Node(Nodes::ASSIGNATION);
     assignation->SetDataString(id);
@@ -450,7 +488,11 @@ void Parser::GetAssignations(int from, int to, std::vector<Nodes::Node *> *conta
 
     if(from == to){
         // Empty assignation
-        GetAssignation(from, to, &next);
+        try {
+            GetAssignation(from, to, &next);
+        } catch(std::string p){
+            throw(p);
+        }
         container->push_back(next);
     }
 
@@ -461,7 +503,11 @@ void Parser::GetAssignations(int from, int to, std::vector<Nodes::Node *> *conta
         // Val llavors tenim que:
         // a = 3 + 5, b = 
         // | f      | tA
-        GetAssignation(from, tA-1, &next);
+        try {
+            GetAssignation(from, tA-1, &next);
+        } catch(std::string p){
+            throw(p);
+        }
         container->push_back(next);
 
         // Ara desplaçem from
@@ -499,7 +545,7 @@ int Parser::GetNext(int from, int lim, Token::TokenType type){
             
             from++;
             if(from > tokens.size()){
-                throw -1;
+                throw std::string("Syntax error: Unexpected token");
             }
             t = this->tokens[from].type;
 
@@ -529,7 +575,12 @@ void Parser::GetArguments(int from, int to, std::vector<Nodes::Node *>* parent){
         // Val llavors tenim que:
         // 3 + 5, f()
         // | f      | tA
-        GetExpression(from, tA-1, &next);
+        try {
+            GetExpression(from, tA-1, &next);
+        } catch(std::string p) {
+            throw p;
+        }
+
         parent->push_back(next);
 
         // Ara desplaçem from
@@ -581,6 +632,10 @@ void Parser::GetLiteral(int index, Nodes::Node** writeNode){
 
 void Parser::GetExpression(int from, int to, Nodes::Node** writeNode){
 
+    
+    if(from > to){
+        throw(std::string("Syntax error: Expected expression"));
+    }
     if(from == to){
         // En cas que la longitud sigui 1
         if(this->tokens[from].IsLiteral()){
@@ -621,7 +676,13 @@ void Parser::GetExpression(int from, int to, Nodes::Node** writeNode){
             int f = from+1;
             f = GetNext(f, -1, Token::PARENTHESIS_CLOSE);
             if(f == to){
-                GetExpression(from + 1, to - 1, writeNode);
+
+                try {
+                    GetExpression(from + 1, to - 1, writeNode);
+                } catch(std::string p){
+                    throw(p);
+                }
+
                 return;
             }
         }
@@ -631,7 +692,13 @@ void Parser::GetExpression(int from, int to, Nodes::Node** writeNode){
 
     for(i = opOrder.size() - 1; i >= 0; i--){
         for(k = 0; k < opOrder[i].size(); k++){
-            int n = GetNext(from, to, opOrder[i][k]);
+            int n;
+            try {
+                n = GetNext(from, to, opOrder[i][k]);
+            } catch(std::string p){
+                throw(p);
+            }
+
             // Val estem en la forma exp (simbol) exp, hem de trobar el simbol, estem al final doncs
             // iterem fins a trobar algun simbol potser
             Nodes::Node *op, *first, *second;
@@ -641,7 +708,12 @@ void Parser::GetExpression(int from, int to, Nodes::Node** writeNode){
 
                 op->nd = (int) opOrder[i][k];
 
-                GetExpression(from+1, to, &first);
+                try {
+                    GetExpression(from+1, to, &first);
+                } catch(std::string p){
+                    throw p;
+                }
+
                 op->children.push_back(first);
                 *writeNode = op;
                 return;
@@ -655,8 +727,18 @@ void Parser::GetExpression(int from, int to, Nodes::Node** writeNode){
                 // Aqui suposo que s'haura de passar per algun map
                 op->nd = (int) opOrder[i][k];
                 
-                GetExpression(from, n - 1, &first);
-                GetExpression(n + 1, to, &second);
+                try {
+                    GetExpression(from, n - 1, &first);
+                } catch(std::string p){
+                    throw p;
+                }
+
+                try {
+                    GetExpression(n + 1, to, &second);
+                } catch(std::string p){
+                    throw p;
+                }
+                
 
                 op->children.push_back(first);
                 op->children.push_back(second);
@@ -665,7 +747,10 @@ void Parser::GetExpression(int from, int to, Nodes::Node** writeNode){
                 return;
             }
         }
+        
     }
+
+    throw(std::string("Syntax error: Expected expression"));
     
     /*
     for(i = opOrder.size() - 1; i >= 0; i--){
@@ -687,7 +772,7 @@ int Parser::GetNextCodeSep(int from, int lim){
     try {
         c = GetNext(from, lim, Token::TokenType::CURLY_BRACKET_OPEN);
         p = GetNext(from, lim, Token::TokenType::TWO_POINTS);
-    } catch(int r){
+    } catch(std::string r){
         throw(r);
     }
 
@@ -710,8 +795,8 @@ void Parser::GetCodeBlock(int from, int* to, Nodes::Node* parent){
     
     try {
         from = GetNextCodeSep(from, -1);
-    } catch(int p) {
-        throw(std::string("Error: s'esperava un caracter per tancar alguna cosa"));
+    } catch(std::string p) {
+        throw(p);
     }
 
     if(Eat(from, Token::TokenType::CURLY_BRACKET_OPEN, &from)){
@@ -728,4 +813,11 @@ void Parser::GetCodeBlock(int from, int* to, Nodes::Node* parent){
         throw(std::string("Error: S'esperava '{' o ':'"));
         std::cout << "Hola???? Aixo es que has programat malament" << std::endl;
     }
+}
+
+bool Parser::ContainsAssignation(int from, int to){
+    for(int i = from; i < to; i++){
+        if(IsOf(assignations, this->tokens[i].type)) return true;
+    }
+    return false;
 }

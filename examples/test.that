@@ -3,6 +3,5 @@
 # Això és un comentari
 
 func main {
-    int a = 3, b = 3;
-    string s = "Hola", b = "Que tal";
+    int a = 23;
 }

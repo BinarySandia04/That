@@ -46,7 +46,7 @@ void Nodes::Node::Debug(){
         {VAL_STRING, "VAL_STRING"},
         {VAL_BOOLEAN, "VAL_BOOLEAN"},
         {VAL_NULL, "VAL_NULL"}
-    }; 
+    };
 
     std::cout << "[ ";
     std::cout << "type: " << termcolor::green << trans[this->type] << termcolor::reset << ", ";

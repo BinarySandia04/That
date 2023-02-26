@@ -78,6 +78,8 @@ namespace That {
 
             bool CodeLoop(int *from, int *nF, Nodes::Node *parent);
 
+            bool ContainsAssignation(int from, int to);
+
             bool IsOf( std::vector<Token::TokenType> list, Token::TokenType type);
     };
 }
