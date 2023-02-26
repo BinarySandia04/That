@@ -11,7 +11,7 @@ namespace That {
         public:
             Parser(std::vector<That::Token> tokens);
 
-            Nodes::Node GenerateAST();
+            Nodes::Node* GetAST();
         private:
             std::vector<That::Token> tokens;
 
@@ -45,7 +45,11 @@ namespace That {
                 {Token::A_MODULO, Token::S_MODULO}                
             };
 
+            Nodes::Node *root;
+
             void GenerateCode(int from, int to, Nodes::Node *parent);
+
+            void ThrowError();
 
             void GetCodeFunction(Nodes::Node **root, int from, int *end);
             void GetCodeLine(Nodes::Node *root, int from, int to);
@@ -71,6 +75,8 @@ namespace That {
             
             void GetExpression(int from, int to, Nodes::Node** writeNode);
             void GetLiteral(int index, Nodes::Node** writeNode);
+
+            bool CodeLoop(int *from, int *nF, Nodes::Node *parent);
 
             bool IsOf( std::vector<Token::TokenType> list, Token::TokenType type);
     };

@@ -13,7 +13,7 @@ namespace Debug
 
     template <typename T>
     void LogError(T t){
-        std::cout << termcolor::red << t << termcolor::reset;
+        std::cout << termcolor::red << t << termcolor::reset << std::endl;
     }
 
     template <typename T>

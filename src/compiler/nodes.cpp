@@ -9,10 +9,16 @@ using namespace That;
 
 Nodes::Node::Node(NodeType type){
     this->type = type;
+    this->children.reserve(1);
 }
 
 Nodes::Node::Node(){
     this->type = NodeType::NODE;
+    this->children.reserve(1);
+}
+
+Nodes::Node::~Node(){
+    // std::cout << "Miau" << std::endl;
 }
 
 void Nodes::Node::Debug(){
@@ -51,6 +57,12 @@ void Nodes::Node::Debug(){
     std::cout << ", data: " << this->data.integer;
     std::cout << ", nd: " << this->nd;
     std::cout << " ]";
+}
+
+void Nodes::Node::Free(){
+    for(int i = 0; i < children.size(); i++){
+        children[i]->Free();
+    }
 }
 
 void Nodes::Node::SetDataString(std::string s){

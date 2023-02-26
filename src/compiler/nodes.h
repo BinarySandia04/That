@@ -48,6 +48,7 @@ namespace That {
                 // void Execute(); // Això per execució un cop construida la estructura del codi
                 Node(NodeType);
                 Node();
+                ~Node();
 
                 std::vector<Node*> children;
                 NodeType type;
@@ -60,6 +61,7 @@ namespace That {
                 } data;
 
                 void Debug();
+                void Free();
 
                 void SetDataString(std::string s);
                 std::string GetDataString();

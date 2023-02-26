@@ -9,55 +9,73 @@ using namespace That;
 
 Parser::Parser(std::vector<Token> tokens){
     this->tokens = tokens;
+
+    // Nodes::Node root(Nodes::NodeType::NODE);
+    root = new Nodes::Node();
+    try {
+        GenerateCode(0, this->tokens.size(), root);
+        root->Debug();
+    } catch(std::string p){
+        // Erroreado
+        Debug::LogError(p);
+    }
+
 }
 
 
-Nodes::Node Parser::GenerateAST(){
-    Nodes::Node root(Nodes::NodeType::NODE);
-
-    GenerateCode(0, this->tokens.size(), &root);
-
-    root.Debug();
-    std::cout << std::endl;
-
+Nodes::Node* Parser::GetAST(){
     return root;
 }
 
-void Parser::GenerateCode(int from, int to, Nodes::Node *parent){
+bool Parser::CodeLoop(int *from, int *nF, Nodes::Node *parent){
+    // No hi ha manera de treure això ja que son funcions estàtiques
     Nodes::Node *next;
+
+    try {
+        GetCodeFunction(&next, *from, nF);
+        if(*nF != *from) { parent->children.push_back(next); *from = *nF; return true; }
+
+        GetCodeConditional(&next, *from, nF);
+        if(*nF != *from) { parent->children.push_back(next); *from = *nF; return true; }
+
+        GetCodeWhile(&next, *from, nF);
+        if(*nF != *from) { parent->children.push_back(next); *from = *nF; return true; }
+
+        GetCodeReturn(&next, *from, nF);
+        if(*nF != *from) { parent->children.push_back(next); *from = *nF; return true; }
+    
+        GetCodeFor(&next, *from, nF);
+        if(*nF != *from) { parent->children.push_back(next); *from = *nF; return true; }
+
+        GetCodeBreak(&next, *from, nF);
+        if(*nF != *from) { parent->children.push_back(next); *from = *nF; return true; }
+
+        GetCodeSkip(&next, *from, nF);
+        if(*nF != *from) { parent->children.push_back(next); *from = *nF; return true; }
+    } catch(std::string s){
+        throw(s);
+    }
+    return false;
+}
+
+void Parser::GenerateCode(int from, int to, Nodes::Node *parent){
+    
     int currentEnd;
     while(from < to){
         // Val aqui anem a fer check de una funció!
         int nF = from;
 
-        // No hi ha manera de treure això ja que son funcions estàtiques
-        GetCodeFunction(&next, from, &nF);
-        if(nF != from) { parent->children.push_back(next); from = nF; continue; }
-
-        GetCodeConditional(&next, from, &nF);
-        if(nF != from) { parent->children.push_back(next); from = nF; continue; }
-
-        GetCodeWhile(&next, from, &nF);
-        if(nF != from) { parent->children.push_back(next); from = nF; continue; }
-
-        GetCodeReturn(&next, from, &nF);
-        if(nF != from) { parent->children.push_back(next); from = nF; continue; }
-        
-        GetCodeFor(&next, from, &nF);
-        if(nF != from) { parent->children.push_back(next); from = nF; continue; }
-
-        GetCodeBreak(&next, from, &nF);
-        if(nF != from) { parent->children.push_back(next); from = nF; continue; }
-
-        GetCodeSkip(&next, from, &nF);
-        if(nF != from) { parent->children.push_back(next); from = nF; continue; }
-        // TODO: Aqui fer un for
+        try {
+            if(CodeLoop(&from, &nF, parent)) continue;
+        } catch(std::string s){
+            throw(s);
+        }
 
         currentEnd = GetNext(from, to, Token::SEMICOLON);
         GetCodeLine(parent, from, currentEnd);
-    
         from = currentEnd + 1;
 
+        // throw std::string("Miau por la ventana");
     }
 }
 
@@ -133,7 +151,6 @@ void Parser::GetCodeReturn(Nodes::Node **root, int from, int *end){
             
         ret->children.push_back(exp);
     }
-    
     *root = ret;
     *end = to+1;
 }
@@ -360,8 +377,6 @@ void Parser::GetCodeLine(Nodes::Node *root, int from, int to){
             // Posem les declaracions a dins!
             root->children.push_back(assignations[i]);
         }
-        
-        // TODO: Cal fer que detecti tots els assigments possibles
     } else if(this->tokens[from].type == Token::IDENTIFIER && IsOf(assignations, this->tokens[from + 1].type)) {
         // Només assignations, res a veure
 
@@ -483,10 +498,16 @@ int Parser::GetNext(int from, int lim, Token::TokenType type){
             if(t == Token::TokenType::SQUARE_BRACKET_OPEN) j++;
             
             from++;
+            if(from > tokens.size()){
+                throw -1;
+            }
             t = this->tokens[from].type;
 
             // Es podrien agafar excepcions si j < 0
         } while(j > 0);
+    }
+    if(from > tokens.size()){
+        throw -1;
     }
     if(from < lim || lim == -1) return from;
     else return lim;
@@ -516,8 +537,6 @@ void Parser::GetArguments(int from, int to, std::vector<Nodes::Node *>* parent){
     } while(from < to || tA < to);
 }
 
-
-// TODO: Plantejar si això necessita un for (de fet si per futurs tipus)
 void Parser::GetLiteral(int index, Nodes::Node** writeNode){
     Token token = this->tokens[index];
     Nodes::Node* lit = new Nodes::Node;
@@ -608,9 +627,6 @@ void Parser::GetExpression(int from, int to, Nodes::Node** writeNode){
         }
     }
 
-
-
-    // TODO: Estaria bé no repetir aquest proces dos cops
     int i, k;
 
     for(i = opOrder.size() - 1; i >= 0; i--){
@@ -667,8 +683,13 @@ bool Parser::IsOf(std::vector<Token::TokenType> list, Token::TokenType type){
 
 int Parser::GetNextCodeSep(int from, int lim){
     // Ok eh hem d'aconseguir el proxim '{', o ':', el que vingui abans:
-    int c = GetNext(from, lim, Token::TokenType::CURLY_BRACKET_OPEN);
-    int p = GetNext(from, lim, Token::TokenType::TWO_POINTS);
+    int c, p;
+    try {
+        c = GetNext(from, lim, Token::TokenType::CURLY_BRACKET_OPEN);
+        p = GetNext(from, lim, Token::TokenType::TWO_POINTS);
+    } catch(int r){
+        throw(r);
+    }
 
     if(c < p) return c;
     return p;
@@ -686,9 +707,17 @@ int Parser::GetNextCodeSep(int from, int lim){
 //   |
 // from
 void Parser::GetCodeBlock(int from, int* to, Nodes::Node* parent){
-    from = GetNextCodeSep(from, -1);
+    
+    try {
+        from = GetNextCodeSep(from, -1);
+    } catch(int p) {
+        throw(std::string("Error: s'esperava un caracter per tancar alguna cosa"));
+    }
+
     if(Eat(from, Token::TokenType::CURLY_BRACKET_OPEN, &from)){
         *to = GetNext(from, -1, Token::TokenType::CURLY_BRACKET_CLOSE);
+
+
         GenerateCode(from, *to-1, parent);
         *to = *to + 1;
     } else if (Eat(from, Token::TokenType::TWO_POINTS, &from)){
@@ -696,6 +725,7 @@ void Parser::GetCodeBlock(int from, int* to, Nodes::Node* parent){
         GenerateCode(from, *to, parent);
         *to = *to + 1;
     } else {
+        throw(std::string("Error: S'esperava '{' o ':'"));
         std::cout << "Hola???? Aixo es que has programat malament" << std::endl;
     }
 }

@@ -114,11 +114,12 @@ void Kernel::compile(std::string code){
 
     Parser parser(tokens);
 
-    Nodes::Node ast = parser.GenerateAST();
+    Nodes::Node *ast = parser.GetAST();
 
     Assembler assembler;
-    assembler.Assemble(&ast);
+    assembler.Assemble(ast);
 
+    delete ast;
 }
 
 void Kernel::send(char filename[]){
