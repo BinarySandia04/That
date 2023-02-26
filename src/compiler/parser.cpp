@@ -274,7 +274,7 @@ void Parser::GetCodeFunction(Nodes::Node **root, int from, int *end){
     Nodes::Node* function = new Nodes::Node(Nodes::NodeType::FUNCTION);
 
     // A partir d'aqui són excepcions
-    if(!Eat(from, Token::TokenType::IDENTIFIER, &from)) return;
+    if(!Eat(from, Token::TokenType::IDENTIFIER, &from)) throw(std::string("Syntax error: Expected function identifier"));
     
     from--;
     std::string funcIdentifier = this->tokens[from].value;
@@ -310,7 +310,9 @@ void Parser::GetCodeFunction(Nodes::Node **root, int from, int *end){
 
     if(Eat(from, Token::TokenType::ARROW, &from)){
         // Ara tenim return type! Anem a llegir-lo!
-        if(!IsOf(types, this->tokens[from].type)) return;
+        if(!IsOf(types, this->tokens[from].type)) {
+            throw std::string("Syntax error: Expected return type");
+        };
         int typeId = (int) this->tokens[from].type;
         
         type->nd = typeId;
@@ -801,8 +803,6 @@ void Parser::GetCodeBlock(int from, int* to, Nodes::Node* parent){
 
     if(Eat(from, Token::TokenType::CURLY_BRACKET_OPEN, &from)){
         *to = GetNext(from, -1, Token::TokenType::CURLY_BRACKET_CLOSE);
-
-
         GenerateCode(from, *to-1, parent);
         *to = *to + 1;
     } else if (Eat(from, Token::TokenType::TWO_POINTS, &from)){
