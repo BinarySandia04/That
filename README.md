@@ -17,14 +17,17 @@ Això encara està en obres. Acabaré el README quan tingui temps. Com m'agrada 
 
 ## Roadmap
 
-Aquesta llista pot canviar en un futur. La idea es com més o menys seràn les versions
+Aquesta llista pot canviar en un futur. La idea es com més o menys seràn les versions (m'estic flipant molt amb això)
 
+### Fase de desenvolupament
 - [ ] Acabar de completar l'assamblador (v0.5)
 - [ ] Acabar de completar la màquina virtual (v0.8)
 
-- [ ] Fer una versió estable del llenguatge (v1.0)
-- [ ] Completar les llibreries estandard per That (v2.0)
-- [ ] Multithreading i altres coses molt a futur (v3.0)
+### Futur
+- [ ] Fer una versió estable del llenguatge i una petita documentació (v1.0)
+- [ ] Acabar la API per incorporar noves llibreries i gestor de paquets (v2.0)
+- [ ] Completar les llibreries estandard per That (v3.0)
+- [ ] Multithreading i altres coses molt a futur (v4.0)
 
 ## Raons per las quals That hauria d'existir
 
