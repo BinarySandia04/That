@@ -2,8 +2,8 @@
 
 # Això és un comentari
 
-func => int {
-    for 0;0;0 {
-        
-    }
+func main {
+    print(2);
+    print("Hola");
+    print("Quetal");
 }

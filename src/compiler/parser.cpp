@@ -74,6 +74,8 @@ void Parser::GenerateCode(int from, int to, Nodes::Node *parent){
         }
 
         currentEnd = GetNext(from, to, Token::SEMICOLON);
+        if(currentEnd == to && tokens[currentEnd].type != Token::SEMICOLON) 
+            throw(std::string("Syntax error: Expected ';' at end of expression"));
         GetCodeLine(parent, from, currentEnd);
         from = currentEnd + 1;
 
