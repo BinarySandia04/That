@@ -15,14 +15,16 @@
 ## Coses
 Això encara està en obres. Acabaré el README quan tingui temps. Com m'agrada fer amb tots els projectes que mai acabo, aqui poso una llista amb coses per fer:
 
-## Coses per fer en total
+## Roadmap
 
-Aquesta llista pot canviar en un futur
+Aquesta llista pot canviar en un futur. La idea es com més o menys seràn les versions
 
-- [ ] Fer una versió estable del llenguatge
-- [ ] Fer un README
-- [ ] Fer un logo
-- [ ] Fer una llibreria estandard per That
+- [ ] Acabar de completar l'assamblador (v0.5)
+- [ ] Acabar de completar la màquina virtual (v0.8)
+
+- [ ] Fer una versió estable del llenguatge (v1.0)
+- [ ] Completar les llibreries estandard per That (v2.0)
+- [ ] Multithreading i altres coses molt a futur (v3.0)
 
 ## Raons per las quals That hauria d'existir
 
