@@ -159,7 +159,7 @@ int Lexer::isSymbol(char c){
 }
 
 void Lexer::addError(){
-    tokenList.push_back(Token(Token::ERROR, ""));
+    tokenList.push_back(Token());
 }
 
 int Lexer::getNumber(int *next){
@@ -186,8 +186,8 @@ int Lexer::getNumber(int *next){
     *next = pos;
     
     if(isEmpty(code[pos]) || !isNumber(code[pos]) || isSeparator(code[pos]) || isEnd(pos)){
-        if(isRational) tokenList.push_back(Token(Token::L_REAL, num));
-        else tokenList.push_back(Token(Token::L_INT, num));
+        if(isRational) tokenList.push_back(Token(Token::L_REAL, num, pos));
+        else tokenList.push_back(Token(Token::L_INT, num, pos));
         return 1;
     } else {
         // Error
@@ -199,6 +199,8 @@ int Lexer::getNumber(int *next){
 void Lexer::getString(int *next){
     int pos = *next;
     std::string s = "";
+
+    int start = pos;
 
     char check = code[pos];
     pos++;
@@ -221,7 +223,7 @@ void Lexer::getString(int *next){
     }
 
     *next = pos + 1;
-    tokenList.push_back(Token(Token::L_STRING, s));
+    tokenList.push_back(Token(Token::L_STRING, s, start));
     // Sin error
 
 }
@@ -263,6 +265,7 @@ int Lexer::checkOperations(int *next){
     if(isEmpty(code[*next])) flush(next);
 
     int pos = *next;
+    int start = pos;
     // Bueno pues a comprovar
     std::string test(1, code[*next]);
     int i;
@@ -276,7 +279,7 @@ int Lexer::checkOperations(int *next){
     bool done = false;
     for(i--; i >= 0; i--){
         if(typeOperation.count(test)){
-            tokenList.push_back(Token(typeOperation[test]));
+            tokenList.push_back(Token(typeOperation[test], pos));
             pos+=i+1;
             *next = pos;
             done = true;
@@ -307,55 +310,55 @@ int Lexer::checkKeywords(int *next){
         switch (typeKeyword[word]){
             case FUNC:
                 /* code */
-                tokenList.push_back(Token(Token::FUNCTION_DECLARATION));
+                tokenList.push_back(Token(Token::FUNCTION_DECLARATION, pos));
                 break;
             case MODULE:
-                tokenList.push_back(Token(Token::MODULE_DECLARATION));
+                tokenList.push_back(Token(Token::MODULE_DECLARATION, pos));
                 break;
             case IMPORT:
-                tokenList.push_back(Token(Token::IMPORT_DECLARATION));
+                tokenList.push_back(Token(Token::IMPORT_DECLARATION, pos));
                 break;
             case IF:
-                tokenList.push_back(Token(Token::K_IF));
+                tokenList.push_back(Token(Token::K_IF, pos));
                 break;
             case ELSE:
-                tokenList.push_back(Token(Token::K_ELSE));
+                tokenList.push_back(Token(Token::K_ELSE, pos));
                 break;
             case WHILE:
-                tokenList.push_back(Token(Token::K_WHILE));
+                tokenList.push_back(Token(Token::K_WHILE, pos));
                 break;
             case FOR:
-                tokenList.push_back(Token(Token::K_FOR));
+                tokenList.push_back(Token(Token::K_FOR, pos));
                 break;
             case RETURN:
-                tokenList.push_back(Token(Token::K_RETURN));
+                tokenList.push_back(Token(Token::K_RETURN, pos));
                 break;
             case BREAK:
-                tokenList.push_back(Token(Token::K_BREAK));
+                tokenList.push_back(Token(Token::K_BREAK, pos));
                 break;
             case CONTINUE:
-                tokenList.push_back(Token(Token::K_CONTINUE));
+                tokenList.push_back(Token(Token::K_CONTINUE, pos));
                 break;
             case REAL:
-                tokenList.push_back(Token(Token::T_REAL));
+                tokenList.push_back(Token(Token::T_REAL, pos));
                 break;
             case INT:
-                tokenList.push_back(Token(Token::T_INT));
+                tokenList.push_back(Token(Token::T_INT, pos));
                 break;
             case STRING:
-                tokenList.push_back(Token(Token::T_STRING));
+                tokenList.push_back(Token(Token::T_STRING, pos));
                 break;
             case BOOLEAN:
-                tokenList.push_back(Token(Token::T_BOOLEAN));
+                tokenList.push_back(Token(Token::T_BOOLEAN, pos));
                 break;
             case TRUE:
-                tokenList.push_back(Token(Token::L_TRUE));
+                tokenList.push_back(Token(Token::L_TRUE, pos));
                 break;
             case FALSE:
-                tokenList.push_back(Token(Token::L_FALSE));
+                tokenList.push_back(Token(Token::L_FALSE, pos));
                 break;
             case _NULL:
-                tokenList.push_back(Token(Token::L_NULL));
+                tokenList.push_back(Token(Token::L_NULL, pos));
                 break;
             default:
                 /* Ha de ser una reference */
@@ -363,7 +366,7 @@ int Lexer::checkKeywords(int *next){
                 break;
         }
     } else {
-        tokenList.push_back(Token(Token::IDENTIFIER, word));    
+        tokenList.push_back(Token(Token::IDENTIFIER, word, pos));    
     }
 
     *next = nextPos;
@@ -377,37 +380,37 @@ int Lexer::checkSymbols(int *next){
     if(isEnd(*next)) return 0;
     switch(code[*next]){
         case '.':
-            tokenList.push_back(Token(Token::POINT));
+            tokenList.push_back(Token(Token::POINT, *next));
             break;
         case ',':
-            tokenList.push_back(Token(Token::COMMA));
+            tokenList.push_back(Token(Token::COMMA, *next));
             break;
         case ';':
-            tokenList.push_back(Token(Token::SEMICOLON));
+            tokenList.push_back(Token(Token::SEMICOLON, *next));
             break;
         case ':':
-            tokenList.push_back(Token(Token::TWO_POINTS));
+            tokenList.push_back(Token(Token::TWO_POINTS, *next));
             break;
         case '(':
-            tokenList.push_back(Token(Token::PARENTHESIS_OPEN));
+            tokenList.push_back(Token(Token::PARENTHESIS_OPEN, *next));
             break;
         case ')':
-            tokenList.push_back(Token(Token::PARENTHESIS_CLOSE));
+            tokenList.push_back(Token(Token::PARENTHESIS_CLOSE, *next));
             break;
         case '[':
-            tokenList.push_back(Token(Token::SQUARE_BRACKET_OPEN));
+            tokenList.push_back(Token(Token::SQUARE_BRACKET_OPEN, *next));
             break;
         case ']':
-            tokenList.push_back(Token(Token::SQUARE_BRACKET_CLOSE));
+            tokenList.push_back(Token(Token::SQUARE_BRACKET_CLOSE, *next));
             break;
         case '{':
-            tokenList.push_back(Token(Token::CURLY_BRACKET_OPEN));
+            tokenList.push_back(Token(Token::CURLY_BRACKET_OPEN, *next));
             break;
         case '}':
-            tokenList.push_back(Token(Token::CURLY_BRACKET_CLOSE));
+            tokenList.push_back(Token(Token::CURLY_BRACKET_CLOSE, *next));
             break;
         case '$':
-            tokenList.push_back(Token(Token::DOLLAR));
+            tokenList.push_back(Token(Token::DOLLAR, *next));
             break;
         /* case '!':
             tokenList.push_back(Token(Token::S_NOT));
