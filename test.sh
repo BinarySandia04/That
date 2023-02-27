@@ -5,4 +5,4 @@ cmake ../
 cmake --build .
 cd ..
 
-build/src/That examples/test.that
+build/src/That -a examples/test.that

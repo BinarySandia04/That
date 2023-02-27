@@ -6,10 +6,13 @@
 #include <gmp.h>
 
 #include "kernel.h"
-#include "compiler/lexer.h"
-#include "compiler/parser.h"
-#include "compiler/assembler.h"
-#include "vm/machine.h"
+#include "shell.h"
+#include "../compiler/lexer.h"
+#include "../compiler/parser.h"
+#include "../compiler/assembler.h"
+#include "../vm/machine.h"
+#include "../version.h"
+#include "../flags/flags.h"
 
 using namespace That;
 
@@ -21,7 +24,7 @@ Kernel::~Kernel() {
     /* Destructor */
 }
 
-void Kernel::compile(std::string code){
+void Kernel::Compile(std::string code, Flag::Flags flags){
     That::Lexer lexer(code);
 
     lexer.GenerateTokens();
@@ -117,12 +120,12 @@ void Kernel::compile(std::string code){
     Nodes::Node *ast = parser.GetAST();
 
     Assembler assembler;
-    assembler.Assemble(ast);
+    assembler.Assemble(ast, flags);
 
     delete ast;
 }
 
-void Kernel::send(char filename[]){
+void Kernel::Send(char filename[]){
     // Initialize vm
     
     VM vm(filename);
@@ -130,12 +133,22 @@ void Kernel::send(char filename[]){
     // Ara partim això en coses nose com shorts per exemple
 }
 
-void Kernel::sendScript(char name[]){
+void Kernel::SendScript(std::string name, Flag::Flags flags){
     std::fstream file(name);
 
     std::string code = "", line;
     while(std::getline(file, line)){
         code += line + "\n";
     }
-    compile(code);
+    Compile(code, flags);
+}
+
+
+void Kernel::Cli(){
+    Shell::CreateShell(this);
+    return;
+}
+
+void Kernel::PrintVersion(){
+    printVersion();
 }

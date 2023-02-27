@@ -1,12 +1,14 @@
 #include "assembler.h"
+#include "../flags/flags.h"
 
 #include <map>
 #include <iostream>
 #include <string>
+#include <vector>
 
 using namespace That;
 
-void Assembler::Assemble(Nodes::Node* ast){
+void Assembler::Assemble(Nodes::Node* ast, Flag::Flags flags){
     AssembleFunction(ast->children[0]);
 }
 
@@ -24,4 +26,8 @@ void Assembler::AppendReference(That::Nodes::Node* ref){
 
     int d = identifiers.size();
     identifiers.insert({id, d});
+}
+
+void Assembler::PushExpression(Nodes::Node* exp, std::vector<Instruction> set){
+    
 }

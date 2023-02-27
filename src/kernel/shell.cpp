@@ -2,7 +2,8 @@
 #include "kernel.h"
 
 #include <iostream>
-#include "headers/termcolor.hpp"
+#include "../headers/termcolor.hpp"
+#include "../flags/flags.h"
 
 That::Shell::Shell(){
 
@@ -19,7 +20,7 @@ void That::Shell::CreateShell(Kernel *kernel){
 
     while(getline(std::cin, line)){
 
-        kernel->compile(line);
+        kernel->Compile(line, Flag::Flags::RUN);
 
         std::cout << termcolor::color<255, 168, 46> << termcolor::bold << ">> " << termcolor::reset;
     }
