@@ -3,7 +3,5 @@
 # Això és un comentari
 
 func main {
-    print(2);
-    print("Hola");
-    print("Quetal");
+    int a = 2;
 }

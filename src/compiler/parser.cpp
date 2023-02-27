@@ -755,14 +755,6 @@ void Parser::GetExpression(int from, int to, Nodes::Node** writeNode){
     }
 
     throw(std::string("Syntax error: Expected expression"));
-    
-    /*
-    for(i = opOrder.size() - 1; i >= 0; i--){
-        for(k = 0; k < opOrder[i].size(); k++){
-            
-        }
-    }
-    */
 }
 
 bool Parser::IsOf(std::vector<Token::TokenType> list, Token::TokenType type){
@@ -803,9 +795,11 @@ void Parser::GetCodeBlock(int from, int* to, Nodes::Node* parent){
         throw(p);
     }
 
+
     if(Eat(from, Token::TokenType::CURLY_BRACKET_OPEN, &from)){
         *to = GetNext(from, -1, Token::TokenType::CURLY_BRACKET_CLOSE);
-        GenerateCode(from, *to-1, parent);
+        
+        GenerateCode(from, *to, parent);
         *to = *to + 1;
     } else if (Eat(from, Token::TokenType::TWO_POINTS, &from)){
         *to = GetNext(from, -1, Token::TokenType::SEMICOLON);
