@@ -2,4 +2,4 @@
 
 # Això és un comentari
 
-3+4;
+int a = 3;

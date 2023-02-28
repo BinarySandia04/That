@@ -374,6 +374,8 @@ void Parser::GetCodeLine(Nodes::Node *root, int from, int to){
 
     //std::cout << "GetCodeLine " << from << " " << to << std::endl;
     if(IsOf(types, this->tokens[from].type)){
+        
+        std::cout << "Hola" << std::endl;
         // Aqui podriem optimitzar memòria
         Nodes::Node *typeNode = new Nodes::Node(Nodes::NodeType::TYPE);
         typeNode->nd = (int) this->tokens[from].type; // Hauriem de tenir una taula amb tipus més endavant?

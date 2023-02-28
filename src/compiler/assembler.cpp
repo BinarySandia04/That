@@ -17,6 +17,17 @@ void Assembler::AssembleFunction(Nodes::Node* func){
     // <nom>, <param> x nd x <param>, <codi>
 }
 
+void Assembler::AssembleDeclaration(Nodes::Node *dec){
+    // type DEC -> [EXP, TYPE]
+    // Primer hauriem de fer un assemble de l'expressió
+    AssembleExpression(dec->children[0]);
+    // Ara l'expression hauria d'estar al top del stack
+}
+
+void Assembler::AssembleExpression(Nodes::Node *exp){
+
+}
+
 void Assembler::AppendReference(That::Nodes::Node* ref){
     // Suposem que ref es de tipus referència. Aleshores doncs té un string molt maco!
     std::string id = "";
@@ -25,7 +36,11 @@ void Assembler::AppendReference(That::Nodes::Node* ref){
     }
 
     int d = identifiers.size();
-    identifiers.insert({id, d});
+
+    Identifier nId;
+    nId.name = id;
+
+    identifiers.push_back(nId);
 }
 
 void Assembler::PushExpression(Nodes::Node* exp, std::vector<Instruction> set){
