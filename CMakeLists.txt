@@ -6,7 +6,7 @@ find_package(Git)
 add_subdirectory(src)
 
 # DEBUG QUITAR SI NO SE QUIERE DEBUG
-add_compile_definitions(DEBUG)
+# add_compile_definitions(DEBUG)
 
 # GIT I COSAS
 FILE(WRITE ${CMAKE_BINARY_DIR}/version.h.in

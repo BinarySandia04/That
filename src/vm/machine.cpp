@@ -20,9 +20,9 @@ void VM::MemDump(uint8_t *data, int size){
     return;
 }
 
-VM::VM(char filename[]){
+VM::VM(std::string filename){
 
-    FILE* f = fopen(filename, "r");
+    FILE* f = fopen(filename.c_str(), "r");
     
     uint32_t nConst; // 32 bit
     fread(&nConst, sizeof(unsigned int), 1, f);
@@ -71,7 +71,7 @@ VM::VM(char filename[]){
     }
 }
 
-int VM::Process(uint8_t ins[], reg_t* regCons[], int offset, bool *returnFlag, int *returnVal){
+void VM::Process(uint8_t ins[], reg_t* regCons[], int offset, bool *returnFlag, int *returnVal){
     int8_t instId = ((int8_t) ins[0]);
     std::cout << "instId: " << (unsigned int) instId << std::endl;
     VM::Instructions tipus = static_cast<VM::Instructions>(instId);

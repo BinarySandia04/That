@@ -2,6 +2,7 @@
 
 #include <string>
 #include "../flags/flags.h"
+#include "../compiler/lexer.h"
 #define DEBUG
 
 /*
@@ -14,11 +15,15 @@ namespace That {
             ~Kernel();
 
             void Compile(std::string code, Flag::Flags flags);
-            void Send(char filename[]);
-            void SendScript(std::string file, Flag::Flags flags);
+            void Run(std::string filename);
+            void Run();
+
+            void CompileScript(std::string file, Flag::Flags flags);
             void SendByteScript(char name[]);
 
             void PrintVersion();
             void Cli();
+        private:
+            void DebugTokens(std::vector<That::Token> tokens);
     };
 }

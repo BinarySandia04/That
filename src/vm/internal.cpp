@@ -21,4 +21,6 @@ That::reg_t That::Internal::print(That::reg_t* a, That::reg_t* b){
         a++;
     }
 
+    return That::reg_t();
+
 }

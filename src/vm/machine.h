@@ -12,7 +12,7 @@ namespace That {
     class VM {
         
         public:
-            VM(char filename[]);
+            VM(std::string filename);
             ~VM();
 
             enum Instructions {
@@ -37,7 +37,7 @@ namespace That {
 
             void MemDump(uint8_t *data, int size);
 
-            int Process(uint8_t ins[], reg_t* cons[], int offset, bool *returnFlag, int *returnVal);
+            void Process(uint8_t ins[], reg_t* cons[], int offset, bool *returnFlag, int *returnVal);
             uint8_t ReadA(uint8_t ins[]);
             uint8_t ReadB(uint8_t ins[]);
             uint8_t ReadC(uint8_t ins[]);

@@ -7,7 +7,8 @@ That::Flag::RunInfo That::Flag::GetRunInfo(std::vector<std::string> args){
     Flags flags = Flags::RUN;
 
     std::map<std::string, Flags> flagMap = {
-        {"-a", Flags::ASSEMBLY}
+        {"-a", Flags::ASSEMBLY},
+        {"-d", Flags::DEBUG}
     };
 
     for(int i = 0; i < args.size(); i++){

@@ -15,6 +15,7 @@ namespace That {
         enum Flags {
             RUN = 0,
             ASSEMBLY = 1,
+            DEBUG = 1 << 1,
         };
 
         struct RunInfo {

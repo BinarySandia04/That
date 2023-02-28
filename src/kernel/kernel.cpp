@@ -7,6 +7,7 @@
 
 #include "kernel.h"
 #include "shell.h"
+#include "../headers/termcolor.hpp"
 #include "../compiler/lexer.h"
 #include "../compiler/parser.h"
 #include "../compiler/assembler.h"
@@ -28,10 +29,30 @@ void Kernel::Compile(std::string code, Flag::Flags flags){
     That::Lexer lexer(code);
 
     lexer.GenerateTokens();
-    std::vector<That::Token> tokens = *(lexer.GetTokens());
+    std::vector<Token> tokens = *(lexer.GetTokens());
 
+    if(CHECK_BIT(flags, 1)){
+        DebugTokens(tokens);
+    }
 
-#ifdef DEBUG
+    Parser parser(tokens);
+
+    Nodes::Node *ast = parser.GetAST();
+
+    if(CHECK_BIT(flags, 1)){
+        std::cout << termcolor::red << termcolor::bold << "AST:" << termcolor::reset << std::endl;
+        ast->Debug();
+        std::cout << std::endl;
+    }
+
+    Assembler assembler;
+    assembler.Assemble(ast, flags);
+
+    delete ast;
+}
+
+void Kernel::DebugTokens(std::vector<Token> tokens){
+    std::cout << termcolor::red << termcolor::bold << "Tokens:" << termcolor::reset << std::endl;
     std::map<That::Token::TokenType, std::string> mapo = {
         {Token::TokenType::ERROR, "ERROR"},
         {Token::TokenType::T_INT, "T_INT"},                  // int          X
@@ -113,33 +134,26 @@ void Kernel::Compile(std::string code, Flag::Flags flags){
         if(i < tokens.size() - 1) std::cout << ", ";
     }
     std::cout << std::endl;
-#endif
-
-    Parser parser(tokens);
-
-    Nodes::Node *ast = parser.GetAST();
-
-    Assembler assembler;
-    assembler.Assemble(ast, flags);
-
-    delete ast;
 }
 
-void Kernel::Send(char filename[]){
-    // Initialize vm
+void Kernel::Run(std::string filename){
+    // Inicialitzem la màquina virtual i fem carregar el bytecode
     
     VM vm(filename);
-
-    // Ara partim això en coses nose com shorts per exemple
 }
 
-void Kernel::SendScript(std::string name, Flag::Flags flags){
+void Kernel::Run(){
+    
+}
+
+void Kernel::CompileScript(std::string name, Flag::Flags flags){
     std::fstream file(name);
 
     std::string code = "", line;
     while(std::getline(file, line)){
         code += line + "\n";
     }
+
     Compile(code, flags);
 }
 

@@ -14,9 +14,7 @@ Parser::Parser(std::vector<Token> tokens){
     root = new Nodes::Node();
     try {
         GenerateCode(0, this->tokens.size(), root);
-        root->Debug();
-
-        std::cout << std::endl;
+        // root->Debug();
     } catch(std::string p){
         // Erroreado
         Debug::LogError(p);
