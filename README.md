@@ -139,3 +139,6 @@ for int j = 0; j < i; j += 1 {
 ```
 
 ## Dependències
+
+- [GMP - The GNU Multiple Precision Arithmetic Library](https://gmplib.org/)
+- [MPFR](https://www.mpfr.org/)

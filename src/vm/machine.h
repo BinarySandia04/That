@@ -16,7 +16,11 @@ namespace That {
             ~VM();
 
             enum Instructions {
+                LOAD,
+                LOADC,
+
                 PUSH, // abx
+                CLOSE,
                 MOVE, // A, B
 
                 CALL, // A, B, C // A(B+1, B+2, ..., B+C-1)
@@ -27,6 +31,14 @@ namespace That {
                 SUB, // A = B - C
                 MUL, // A = B * C
                 DIV, // A = B / C
+
+                EQ,
+                LT,
+                GT,
+                LEQ,
+                GEQ,
+                JMP,
+                HALT
             };
 
             static std::map<That::Internal::InternalFunctions, That::reg_t (*)(That::reg_t*, That::reg_t*)> FunctionMap;

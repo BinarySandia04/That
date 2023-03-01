@@ -9,10 +9,19 @@ i també pot ser una funció també.
 Al final, hi ha el codi del main, que té les següents
 instruccions:
 
+# Memòria
+Hi ha tres llocs de memòria:
+
+- Espai constant (Memòria fixa, mida fixada pel programa)
+- Registres (Memòria variable, mida fixada pel programa)
+- Stack (Memòria variable, mida variable pel programa)
+
 # Instruccions
 
 Hi ha les següents:
 
+- LOAD
+- LOADC
 - PUSH
 - CLOSE
 - MOVE
@@ -32,20 +41,28 @@ Hi ha les següents:
 
 TODO: Cal afegir més operadors per les instruccions i tal
 
+### LOAD
+Carrega una cosa del stack al registre
+Stack => Registre
+
+### LOADC
+Carrega una constant al registre
+Constant => Registre
+
 ### PUSH
 
-PUSH el que fa és afegir al stack una constant determinada.
-
-També hauria de poder afegir-hi directament alguna dada per anar més ràpid i tal suposo?
-
-La idea es que llegeix el tipus `abx` on abx doncs és l'adreça relativa de la constant
+A, Bx
+PUSH el que fa és afegir al stack unes constants carregada al registre.
+Registre => Stack
 
 ### CLOSE
 
-Treu tots els registers afegits per l'últim push
+Treu tots els stacks afegits per l'últim push
 
 ### MOVE
+
 Copia el contingut d'un registre a un altre. És de tipus `a,b`
+Registre <=> Registre
 
 ### CALL
 

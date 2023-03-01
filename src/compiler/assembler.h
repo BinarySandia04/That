@@ -14,9 +14,13 @@ TODO: Val una manera de com construir aixo i ja tenir llenguatge estaria moolt b
 
 namespace That {
 
-    struct Instruction {
-        VM::Instructions inst;
-        uint8_t ins[4];
+    class Instruction {
+        public:
+            Instruction();
+            VM::Instructions type;
+            uint8_t ins[4];
+
+            int a, b, x;
     };
 
     struct ConstantList {
@@ -26,10 +30,6 @@ namespace That {
     struct Function {
         ConstantList elements;
     };
-    
-    struct Identifier {
-        std::string name;
-    };
 
     class Assembler {
         public:
@@ -38,14 +38,27 @@ namespace That {
             void AssembleFunction(Nodes::Node* func);
             void AssembleDeclaration(Nodes::Node* ident);
             void AssembleExpression(Nodes::Node* exp);
+            void AssembleCall(Nodes::Node* call);
 
             void AppendReference(Nodes::Node* ref);
 
-            void PushExpression(Nodes::Node* exp, std::vector<Instruction> set);
-            
-            void PushInstruction();
+            void PushInstruction(Instruction ins);
+
+            VM::Instructions TranslateBinOpId(int data);
+            VM::Instructions TranslateUnOpId(int data);
+
+            bool IsValue(Nodes::Node* n);
+
+            void IncreasePointer();
+            void DecreasePointer();
+
+            int GetConstId(Nodes::Node *val);
+            int GetRefId(std::string ref);
         private:
-            std::vector<Identifier> identifiers;
+            std::vector<std::string> identifierStack;
             std::vector<Instruction> assembly;
+
+            int regCount = 1;
+            int regPointer = 0;
     };
 }
