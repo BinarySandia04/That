@@ -2,4 +2,6 @@
 
 # Això és un comentari
 
-hola(1,2,3,4,5,56,67);
+func a: int p, int b => int {
+    2+3;
+}

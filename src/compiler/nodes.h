@@ -22,6 +22,7 @@ namespace That {
             SKIP,
             RETURN,
             FUNCTION,
+            DEF_FUNCTION,
             NODE_ERROR,
             EXP_BINARY,
             EXP_UNARY,

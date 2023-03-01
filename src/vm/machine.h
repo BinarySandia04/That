@@ -24,6 +24,7 @@ namespace That {
                 MOVE, // A, B
 
                 CALL, // A, B, C // A(B+1, B+2, ..., B+C-1)
+                DEF,
                 ICL, // A, B, C // A(B+1,B+2,...,B+C-1) // Internal call
                 RET, // Return something from reg A
 

@@ -10,7 +10,7 @@
 using namespace That;
 
 void Assembler::Assemble(Nodes::Node* ast, Flag::Flags flags){
-    AssembleExpression(ast->children[0]);
+    AssembleCode(ast);
 
     if(CHECK_BIT(flags, 1)){
         std::cout << termcolor::red << termcolor::bold << "ASM:" << termcolor::reset << std::endl;
@@ -24,21 +24,61 @@ void Assembler::Assemble(Nodes::Node* ast, Flag::Flags flags){
     
 }
 
+void Assembler::AssembleCode(Nodes::Node* node){
+    // Aconseguim el tipus de assembleCode!!!
+    
+    std::cout << "Miau3 " << node->children.size() << std::endl;
+    for(int i = 0; i < node->children.size(); i++){
+        Nodes::Node* n = node->children[i];
+        Nodes::NodeType t = n->type;
+        
+        std::cout << t << std::endl;
+        if(IsExpression(t)) AssembleExpression(n);
+        else if(t == Nodes::DEF_FUNCTION) AssembleDef(n);
+        else if(t == Nodes::FUNCTION){
+            AssembleFunction(n);
+        }
+    }
+    
+}
+
 void Assembler::AssembleFunction(Nodes::Node* func){
+            std::cout << "Miau2 " << func->children.size() << std::endl;
+
     // Tenim aqui que els fills son en ordre:
     // <nom>, <param> x nd x <param>, <codi>
     // Suposant que al stack tenim les anteriors i al registre tenim els paràmetres fem la funció
     // Hem de saber ara doncs quins paràmetres tenim penjats al stack.
     // Com que aixo ho fem al cridar la funció, doncs estaràn enrere suposo. Anem a
     // afegir-los ara virtualment segons els paràmetres que tenim ara a la funció.
+    stackPointer = identifierStack.size();
+    // ref - name
+    // type - return tipus
+    // code
+    // params, 2 en 2
+    std::string funcName = func->children[0]->GetDataString();
 
+    for(int i = 0; i < (func->children.size() - 3) / 2; i++){
+        // i + 2 -> tipus, i + 3 -> ref
+        AppendReference(func->children[i+3]);
+    }
+
+    AssembleCode(func->children[2]);
 }
 
 void Assembler::AssembleDeclaration(Nodes::Node *dec){
     // type DEC -> [EXP, TYPE]
     // Primer hauriem de fer un assemble de l'expressió
+
+    // Suposo que hem de fer algo amb el type per optimitzar???
     AssembleExpression(dec->children[0]);
     // Ara l'expression hauria d'estar al top del stack
+    Instruction push;
+    push.type = VM::PUSH;
+    push.a = regPointer;
+    push.b = regPointer;
+
+    PushInstruction(push);
 }
 
 void Assembler::AssembleExpression(Nodes::Node *exp){
@@ -51,7 +91,7 @@ void Assembler::AssembleExpression(Nodes::Node *exp){
         Nodes::Node* f = exp->children[0], *s = exp->children[1], *t;
         
         // Optimització important
-        if(IsValue(f)){
+        if(IsValue(f->type)){
             t = s;
             s = f;
             f = t;
@@ -81,7 +121,7 @@ void Assembler::AssembleExpression(Nodes::Node *exp){
         op.a = regPointer;
 
         PushInstruction(op);
-    } else if(IsValue(exp)){
+    } else if(IsValue(exp->type)){
         // Bueno carreguem i ja està
         Instruction loadc;
         loadc.type = VM::Instructions::LOADC;
@@ -95,6 +135,15 @@ void Assembler::AssembleExpression(Nodes::Node *exp){
     }
 }
 
+void Assembler::AssembleDef(Nodes::Node* def){
+    // El fill és una expression
+    Instruction dif;
+    dif.type = VM::Instructions::DEF;
+    AssembleExpression(def->children[0]);
+    dif.a = regPointer;
+
+    PushInstruction(dif);
+}
 
 void Assembler::AssembleCall(Nodes::Node *call){
     // Ok suposem que call és una call.
@@ -160,13 +209,19 @@ void Assembler::DecreasePointer(){
 }
 
 // TODO: Canviar això per suportar més coses
-bool Assembler::IsValue(Nodes::Node* n){
-    Nodes::NodeType t = n->type;
+bool Assembler::IsValue(Nodes::NodeType t){
     return (t == Nodes::NodeType::VAL_BOOLEAN ||
     t == Nodes::NodeType::VAL_INT ||
     t == Nodes::NodeType::VAL_NULL ||
     t == Nodes::NodeType::VAL_REAL ||
     t == Nodes::NodeType::VAL_STRING);
+}
+
+bool Assembler::IsExpression(Nodes::NodeType t){
+    return (IsValue(t) ||
+    t == Nodes::NodeType::EXP_BINARY ||
+    t == Nodes::NodeType::EXP_UNARY ||
+    t == Nodes::NodeType::EXP_CALL);
 }
 
 void Assembler::PushInstruction(Instruction ins){
@@ -181,7 +236,7 @@ int Assembler::GetConstId(Nodes::Node *val){
 int Assembler::GetRefId(std::string ref){
     for(int i = identifierStack.size() - 1; i >= 0; i--){
         if(identifierStack[i] == ref){
-            return i;
+            return i - stackPointer;
         }
     }
     // Error

@@ -372,10 +372,7 @@ void Parser::GetFunctionParameter(int from, int to, Nodes::Node **writeNode){
 // i tipus és opcional en cas que l'expressió sigui <var> = exp
 void Parser::GetCodeLine(Nodes::Node *root, int from, int to){
 
-    //std::cout << "GetCodeLine " << from << " " << to << std::endl;
     if(IsOf(types, this->tokens[from].type)){
-        
-        std::cout << "Hola" << std::endl;
         // Aqui podriem optimitzar memòria
         Nodes::Node *typeNode = new Nodes::Node(Nodes::NodeType::TYPE);
         typeNode->nd = (int) this->tokens[from].type; // Hauriem de tenir una taula amb tipus més endavant?
@@ -415,14 +412,38 @@ void Parser::GetCodeLine(Nodes::Node *root, int from, int to){
             root->children.push_back(assignations[i]);
         }
     } else {
-        // És una expressió, la afegim simplement
-        Nodes::Node* nextNode;
+        // És una expressió, la afegim simplement (PERO AIXO ES UN PRINT!!!) detectem comes i les entrellacem!
+        Nodes::Node *exp;
+
+        int tA, tB;
+        do {
+            tA = GetNext(from, -1, Token::TokenType::COMMA);
+
+            if(tA > to) tA = to;
+            
+            try {
+                GetExpression(from, tA-1, &exp);
+            } catch(std::string p){
+                throw(p);
+            }
+            Nodes::Node *def = new Nodes::Node(Nodes::NodeType::DEF_FUNCTION);
+            def->children.push_back(exp);
+            
+            root->children.push_back(def);
+
+            // Ara desplaçem from
+            from = tA+1;
+        } while(from < to || tA < to);
+        /*
         try {
-            GetExpression(from, to-1, &nextNode);
+
+            GetExpression(from, to-1, &exp);
         } catch(std::string p){
             throw(p);
         }
-        root->children.push_back(nextNode);
+        def->children.push_back(exp);
+        root->children.push_back(def);
+        */
     }
 }
 

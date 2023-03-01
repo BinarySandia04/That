@@ -35,10 +35,12 @@ namespace That {
         public:
             void Assemble(Nodes::Node* ast, Flag::Flags flags);
 
+            void AssembleCode(Nodes::Node* node);
             void AssembleFunction(Nodes::Node* func);
             void AssembleDeclaration(Nodes::Node* ident);
             void AssembleExpression(Nodes::Node* exp);
             void AssembleCall(Nodes::Node* call);
+            void AssembleDef(Nodes::Node* call);
 
             void AppendReference(Nodes::Node* ref);
 
@@ -47,7 +49,8 @@ namespace That {
             VM::Instructions TranslateBinOpId(int data);
             VM::Instructions TranslateUnOpId(int data);
 
-            bool IsValue(Nodes::Node* n);
+            bool IsValue(Nodes::NodeType t);
+            bool IsExpression(Nodes::NodeType t);
 
             void IncreasePointer();
             void DecreasePointer();
@@ -60,5 +63,6 @@ namespace That {
 
             int regCount = 1;
             int regPointer = 0;
+            int stackPointer = 0;
     };
 }

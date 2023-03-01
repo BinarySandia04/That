@@ -33,6 +33,7 @@ void Nodes::Node::Debug(){
         {IF, "IF"},
         {WHILE, "WHILE"},
         {FUNCTION, "FUNCTION"},
+        {DEF_FUNCTION, "DEF_FUNCTION"},
         {RETURN, "RETURN"},
         {FOR, "FOR"},
         {BREAK, "BREAK"},

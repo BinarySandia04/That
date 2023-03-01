@@ -26,6 +26,7 @@ Hi ha les següents:
 - CLOSE
 - MOVE
 - CALL
+- DEF
 - ICL
 - RET
 - ADD
@@ -67,6 +68,10 @@ Registre <=> Registre
 ### CALL
 
 Crida a una funció guardada en `a` els paràmtres que hi ha als registres de la direcció `b` fins a la `c`
+
+### DEF
+
+Crida la funció predeterminada d'un objecte. Per defecte, està definida com una sortida standard per `stdout`
 
 ### ICL
 
