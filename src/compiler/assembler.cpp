@@ -10,21 +10,24 @@
 using namespace That;
 
 void Assembler::Assemble(Nodes::Node* ast, Flag::Flags flags){
-    AssembleCode(ast, assembly);
+    AssembleCode(ast, &assembly);
 
     if(CHECK_BIT(flags, 1)){
         std::cout << termcolor::red << termcolor::bold << "ASM:" << termcolor::reset << std::endl;
         // Ara doncs fem debug de les instruccions
         for(int i = 0; i < assembly.size(); i++){
-            std::cout << assembly[i].type << " " << assembly[i].a << " " << assembly[i].b << 
-            " " << assembly[i].x << std::endl;
+            std::cout << assembly[i].type << " ";
+            if(assembly[i].a != INT32_MIN) std::cout << assembly[i].a << " ";
+            if(assembly[i].b != INT32_MIN) std::cout << assembly[i].b << " ";
+            if(assembly[i].x != INT32_MIN) std::cout << assembly[i].x << " ";
+            std::cout << std::endl;
         }
         std::cout << std::endl;
     }
     
 }
 
-void Assembler::AssembleCode(Nodes::Node* node, std::vector<Instruction> to){
+void Assembler::AssembleCode(Nodes::Node* node, std::vector<Instruction> *to){
     
     // Mirem primer quines funcions hi ha al entorn i les identifiquem
     for(int i = 0; i < node->children.size(); i++){
@@ -53,11 +56,12 @@ void Assembler::AssembleCode(Nodes::Node* node, std::vector<Instruction> to){
         else if(t == Nodes::ASSIGNATION) AssembleAssignation(n, to);
         else if(t == Nodes::RETURN) AssembleReturn(n, to);
         else if(t == Nodes::IF) AssembleConditional(n, to);
+        else if(t == Nodes::WHILE) AssembleWhile(n, to);
     }
     
 }
 
-void Assembler::AssembleFunction(Nodes::Node* func, std::vector<Instruction> to){
+void Assembler::AssembleFunction(Nodes::Node* func, std::vector<Instruction> *to){
     // Tenim aqui que els fills son en ordre:
     // <nom>, <param> x nd x <param>, <codi>
     // Suposant que al stack tenim les anteriors i al registre tenim els paràmetres fem la funció
@@ -97,7 +101,7 @@ void Assembler::AssembleFunction(Nodes::Node* func, std::vector<Instruction> to)
 
 
 // TODO: Acabar de fer els ifs
-void Assembler::AssembleConditional(Nodes::Node* cond, std::vector<Instruction> to){
+void Assembler::AssembleConditional(Nodes::Node* cond, std::vector<Instruction> *to){
     // If
     // Conditional
     // Code
@@ -107,18 +111,114 @@ void Assembler::AssembleConditional(Nodes::Node* cond, std::vector<Instruction> 
     // Code
 
     int a = 0;
-    for(int i = 0; i < cond->children.size(); i += 2){
-        std::vector<Instruction> ins;
-        // AssembleExpression(cond->)
+    std::vector<std::vector<Instruction>> conditions, codes;
+    for(int i = 0; i < cond->children.size(); i++){
+        
+        std::cout << i << std::endl;
+        cond->children[i]->Debug();
+        std::cout << std::endl << std::endl;
+
+        std::vector<Instruction> condit, code;
+
+        if(i % 2 == 0){ // Ultimo codigo o condicion
+            if(cond->children.size() % 2 == 1 && i == cond->children.size() - 1){
+                AssembleCode(cond->children[i], &code);
+                std::cout << "El else es " << code.size() << std::endl; 
+                std::cout << std::endl;
+                
+                codes.push_back(code);
+                a += code.size();
+            } else {
+                AssembleExpression(cond->children[i], &condit);
+                conditions.push_back(condit);
+
+                a += condit.size();
+            }
+            
+        } else { // Codigo
+            AssembleCode(cond->children[i], &code);
+            
+            codes.push_back(code);
+            a += code.size() + 1;
+            // if(cond->children.size() % 2 == 1) a++;
+            a++;
+        }
     }
 
-    // Hi ha else
-    if(cond->children.size() % 2 == 1){
+    std::cout << "A: " << a << std::endl;
+    
 
+    // Val si es parell la idea es saltar fins al final
+    for(int i = 0; i < cond->children.size(); i++){
+        
+        std::cout << i << std::endl;
+        if(cond->children.size() % 2 == 1 && i == cond->children.size() - 1){
+            PushInstructions(&codes[(i) / 2], to);
+            std::cout << "Else??? " << i << " " << codes[(i) / 2].size() << std::endl;
+            break;
+        }
+
+        if(i % 2 == 0){
+            a -= conditions[i / 2].size();
+            PushInstructions(&conditions[i / 2], to);
+
+            a--;
+            Instruction test;
+            test.type = VM::TEST;
+            test.a = regPointer;
+            
+            test.b = codes[(i / 2)].size() + 1;
+            /*
+            if(cond->children.size() % 2 == 1) test.b = a - codes[codes.size() - 1].size(); // Saltem al else
+            else{
+                test.b = a; // Saltem al final
+            }
+            */
+            
+            PushInstruction(test, to);
+
+            
+        } else {
+            PushInstructions(&codes[(i - 1) / 2], to);
+            a -= codes[(i - 1) / 2].size();
+
+            //if(cond->children.size() % 2 == 1){
+                a--;
+                Instruction jmp;
+                jmp.type = VM::JUMP;
+                jmp.a = a;
+                PushInstruction(jmp, to);
+            //}
+        }
     }
+    
 }
 
-void Assembler::AssembleReturn(Nodes::Node* ret, std::vector<Instruction> to){
+// TODO: Falta aillar contexto
+void Assembler::AssembleWhile(Nodes::Node* whil, std::vector<Instruction> *to){
+    std::vector<Instruction> exp, code;
+    AssembleExpression(whil->children[0], &exp);
+    PushInstructions(&exp, to);
+    
+    AssembleCode(whil->children[1], &code);
+    int n = exp.size() + code.size() + 1;
+
+    Instruction test;
+    test.type = VM::TEST;
+    test.a = regPointer;
+    test.b = code.size() + 1;
+
+    PushInstruction(test, to);
+    PushInstructions(&code, to);
+
+    Instruction jump;
+    jump.type = VM::JUMP;
+    jump.a = -n - 1;
+
+    PushInstruction(jump, to);
+}
+
+void Assembler::AssembleReturn(Nodes::Node* ret, std::vector<Instruction> *to){
     AssembleExpression(ret->children[0], to);
 
     Instruction retu;
@@ -128,7 +228,7 @@ void Assembler::AssembleReturn(Nodes::Node* ret, std::vector<Instruction> to){
     PushInstruction(retu, to);
 }
 
-void Assembler::AssembleDeclaration(Nodes::Node *dec, std::vector<Instruction> to){
+void Assembler::AssembleDeclaration(Nodes::Node *dec, std::vector<Instruction> *to){
     // type DEC -> [EXP, TYPE]
     // Primer hauriem de fer un assemble de l'expressió
 
@@ -145,7 +245,7 @@ void Assembler::AssembleDeclaration(Nodes::Node *dec, std::vector<Instruction> t
     PushInstruction(push, to);
 }
 
-void Assembler::AssembleAssignation(Nodes::Node* assign, std::vector<Instruction> to){
+void Assembler::AssembleAssignation(Nodes::Node* assign, std::vector<Instruction> *to){
     // Ok primer l'expressió
     int where = GetRefId(assign->GetDataString());
     
@@ -161,7 +261,7 @@ void Assembler::AssembleAssignation(Nodes::Node* assign, std::vector<Instruction
 
 }
 
-void Assembler::AssembleExpression(Nodes::Node *exp, std::vector<Instruction> to){
+void Assembler::AssembleExpression(Nodes::Node *exp, std::vector<Instruction> *to){
     // Esta molt guai tenim una expression hem de fer coses
     // Podem tenir valors literals, la idea es que el resultat final el tinguem al registre que apunta el nostre punter + 1
     // Hem de tenir en compte que els registres després del punter no tenen efecte
@@ -223,7 +323,7 @@ void Assembler::AssembleExpression(Nodes::Node *exp, std::vector<Instruction> to
     }
 }
 
-void Assembler::AssembleDef(Nodes::Node* def, std::vector<Instruction> to){
+void Assembler::AssembleDef(Nodes::Node* def, std::vector<Instruction> *to){
     // El fill és una expression
     Instruction dif;
     dif.type = VM::Instructions::DEF;
@@ -233,7 +333,7 @@ void Assembler::AssembleDef(Nodes::Node* def, std::vector<Instruction> to){
     PushInstruction(dif, to);
 }
 
-void Assembler::AssembleCall(Nodes::Node *call, std::vector<Instruction> to){
+void Assembler::AssembleCall(Nodes::Node *call, std::vector<Instruction> *to){
     // Ok suposem que call és una call.
     // Primer carreguem la funció a cridar
     Instruction loadc;
@@ -311,8 +411,14 @@ bool Assembler::IsExpression(Nodes::NodeType t){
     t == Nodes::NodeType::EXP_CALL);
 }
 
-void Assembler::PushInstruction(Instruction ins, std::vector<Instruction> where){
-    where.push_back(ins);
+void Assembler::PushInstruction(Instruction ins, std::vector<Instruction> *where){
+    where->push_back(ins);
+}
+
+void Assembler::PushInstructions(std::vector<Instruction> *from, std::vector<Instruction> *to){
+    for(int i = 0; i < from->size(); i++){
+        PushInstruction((*from)[i], to);
+    }
 }
 
 // TODO: Aixo es de prova
@@ -333,8 +439,8 @@ int Assembler::GetRefId(std::string ref){
 }
 
 Instruction::Instruction(){
-    this->a = -100;
-    this->b = -100;
-    this->x = -100;
+    this->a = INT32_MIN;
+    this->b = INT32_MIN;
+    this->x = INT32_MIN;
     this->type = VM::Instructions::HALT;
 }

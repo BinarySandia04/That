@@ -49,10 +49,11 @@ namespace That {
                 LEQ,
                 // ---------------------
 
-                JMP,
-                HALT,
                 TO,
-                END
+                END,
+                JUMP,
+                TEST,
+                HALT,
             };
 
             static std::map<That::Internal::InternalFunctions, That::reg_t (*)(That::reg_t*, That::reg_t*)> FunctionMap;

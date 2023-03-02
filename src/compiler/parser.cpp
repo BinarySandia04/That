@@ -187,7 +187,11 @@ void Parser::GetCodeConditional(Nodes::Node **root, int from, int *end){
             GetConditional(from, &from, theIf);
             theIf->nd += 1;
             continue;
-        } else GetCodeBlock(from, &from, theIf);
+        } else{
+            Nodes::Node *theElse = new Nodes::Node(Nodes::NodeType::NODE);
+            GetCodeBlock(from, &from, theElse);
+            theIf->children.push_back(theElse);
+        }
         
         break;
     }

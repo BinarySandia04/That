@@ -38,6 +38,7 @@ Hi ha les següents:
 - GT
 - LEQ
 - GEQ
+- TEST
 - JUMP
 - TO
 - END
@@ -105,9 +106,13 @@ Operador `*`
 
 Operador `/`
 
+## TEST
+
+Si `a` és un valor de fals, salta a `bx`
+
 ## JUMP
 
-Si `a` és un valor de veritat, salta a `bx`
+Salta a `bx`
 
 ## TO
 
