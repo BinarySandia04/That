@@ -20,8 +20,8 @@ Això encara està en obres. Acabaré el README quan tingui temps. Com m'agrada 
 Aquesta llista pot canviar en un futur. La idea es com més o menys seràn les versions (m'estic flipant molt amb això)
 
 ### Fase de desenvolupament
-- [ ] Acabar de completar l'assamblador (v0.5)
-- [ ] Acabar de completar la màquina virtual (v0.8)
+- [ ] Acabar de completar l'assamblador (v0.3)
+- [ ] Acabar de completar la màquina virtual (v0.4)
 
 ### Futur
 - [ ] Fer una versió estable del llenguatge i una petita documentació (v1.0)
