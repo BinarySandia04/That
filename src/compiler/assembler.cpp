@@ -10,7 +10,7 @@
 using namespace That;
 
 void Assembler::Assemble(Nodes::Node* ast, Flag::Flags flags){
-    AssembleCode(ast);
+    AssembleCode(ast, assembly);
 
     if(CHECK_BIT(flags, 1)){
         std::cout << termcolor::red << termcolor::bold << "ASM:" << termcolor::reset << std::endl;
@@ -24,27 +24,40 @@ void Assembler::Assemble(Nodes::Node* ast, Flag::Flags flags){
     
 }
 
-void Assembler::AssembleCode(Nodes::Node* node){
-    // Aconseguim el tipus de assembleCode!!!
+void Assembler::AssembleCode(Nodes::Node* node, std::vector<Instruction> to){
     
-    std::cout << "Miau3 " << node->children.size() << std::endl;
+    // Mirem primer quines funcions hi ha al entorn i les identifiquem
+    for(int i = 0; i < node->children.size(); i++){
+        Nodes::NodeType t = node->children[i]->type;
+        if(t == Nodes::FUNCTION){
+            AppendReference(node->children[i]->children[0]);
+        }
+    }
+
+    // Després les definim
+    for(int i = 0; i < node->children.size(); i++){
+        Nodes::NodeType t = node->children[i]->type;
+        if(t == Nodes::FUNCTION){
+            AssembleFunction(node->children[i], to);
+        }
+    }
+
+    // Ara executem    
     for(int i = 0; i < node->children.size(); i++){
         Nodes::Node* n = node->children[i];
         Nodes::NodeType t = n->type;
         
-        std::cout << t << std::endl;
-        if(IsExpression(t)) AssembleExpression(n);
-        else if(t == Nodes::DEF_FUNCTION) AssembleDef(n);
-        else if(t == Nodes::FUNCTION){
-            AssembleFunction(n);
-        }
+        if(IsExpression(t)) AssembleExpression(n, to);
+        else if(t == Nodes::DEF_FUNCTION) AssembleDef(n, to);
+        else if(t == Nodes::DECLARATION) AssembleDeclaration(n, to);
+        else if(t == Nodes::ASSIGNATION) AssembleAssignation(n, to);
+        else if(t == Nodes::RETURN) AssembleReturn(n, to);
+        else if(t == Nodes::IF) AssembleConditional(n, to);
     }
     
 }
 
-void Assembler::AssembleFunction(Nodes::Node* func){
-            std::cout << "Miau2 " << func->children.size() << std::endl;
-
+void Assembler::AssembleFunction(Nodes::Node* func, std::vector<Instruction> to){
     // Tenim aqui que els fills son en ordre:
     // <nom>, <param> x nd x <param>, <codi>
     // Suposant que al stack tenim les anteriors i al registre tenim els paràmetres fem la funció
@@ -56,32 +69,99 @@ void Assembler::AssembleFunction(Nodes::Node* func){
     // type - return tipus
     // code
     // params, 2 en 2
-    std::string funcName = func->children[0]->GetDataString();
+    Instruction top;
+    top.type = VM::TO;
+    top.a = stackPointer - 1; // Direcció d'aquesta funció
+    PushInstruction(top, to);
 
-    for(int i = 0; i < (func->children.size() - 3) / 2; i++){
+    for(int i = 0; i <= (func->children.size() - 3) / 2; i++){
         // i + 2 -> tipus, i + 3 -> ref
+        // O get reference id
         AppendReference(func->children[i+3]);
+        std::cout << "Hola " << identifierStack.size() << std::endl;
     }
 
-    AssembleCode(func->children[2]);
+    AssembleCode(func->children[2], to);
+
+    // Vale ara que ja tenim la funció anem a treure tot el que haviem suposadament
+    // ficat al stack
+
+    while(identifierStack.size() > stackPointer){
+        identifierStack.pop_back();
+    }
+
+    Instruction end;
+    top.type = VM::END;
+    PushInstruction(end, to);
 }
 
-void Assembler::AssembleDeclaration(Nodes::Node *dec){
+
+// TODO: Acabar de fer els ifs
+void Assembler::AssembleConditional(Nodes::Node* cond, std::vector<Instruction> to){
+    // If
+    // Conditional
+    // Code
+    // |
+    // Conditional
+    // Code
+    // Code
+
+    int a = 0;
+    for(int i = 0; i < cond->children.size(); i += 2){
+        std::vector<Instruction> ins;
+        // AssembleExpression(cond->)
+    }
+
+    // Hi ha else
+    if(cond->children.size() % 2 == 1){
+
+    }
+}
+
+void Assembler::AssembleReturn(Nodes::Node* ret, std::vector<Instruction> to){
+    AssembleExpression(ret->children[0], to);
+
+    Instruction retu;
+    retu.type = VM::RET;
+    retu.a = regPointer;
+
+    PushInstruction(retu, to);
+}
+
+void Assembler::AssembleDeclaration(Nodes::Node *dec, std::vector<Instruction> to){
     // type DEC -> [EXP, TYPE]
     // Primer hauriem de fer un assemble de l'expressió
 
     // Suposo que hem de fer algo amb el type per optimitzar???
-    AssembleExpression(dec->children[0]);
+    AssembleExpression(dec->children[0], to);
     // Ara l'expression hauria d'estar al top del stack
     Instruction push;
     push.type = VM::PUSH;
     push.a = regPointer;
     push.b = regPointer;
 
-    PushInstruction(push);
+    AppendReference(dec);
+
+    PushInstruction(push, to);
 }
 
-void Assembler::AssembleExpression(Nodes::Node *exp){
+void Assembler::AssembleAssignation(Nodes::Node* assign, std::vector<Instruction> to){
+    // Ok primer l'expressió
+    int where = GetRefId(assign->GetDataString());
+    
+    AssembleExpression(assign->children[0], to);
+
+    Instruction move;
+    move.type = VM::MOVE;
+
+    move.a = regPointer;
+    move.b = where;
+
+    PushInstruction(move, to);
+
+}
+
+void Assembler::AssembleExpression(Nodes::Node *exp, std::vector<Instruction> to){
     // Esta molt guai tenim una expression hem de fer coses
     // Podem tenir valors literals, la idea es que el resultat final el tinguem al registre que apunta el nostre punter + 1
     // Hem de tenir en compte que els registres després del punter no tenen efecte
@@ -101,26 +181,26 @@ void Assembler::AssembleExpression(Nodes::Node *exp){
         op.type = TranslateBinOpId(exp->nd);
 
         // Val si cap dels dos es valor podem cridar recursivament AssembleExpression amb un dels dos
-        AssembleExpression(f);
+        AssembleExpression(f, to);
         // Ara tenim al nostre punter f assembleat. L'augmentem i assemblem t
         op.a = regPointer;
         IncreasePointer();
-        AssembleExpression(s);
+        AssembleExpression(s, to);
         op.b = regPointer;
         DecreasePointer();
 
-        PushInstruction(op);
+        PushInstruction(op, to);
     }
     else if(exp->type == Nodes::NodeType::EXP_UNARY){
         Nodes::Node* f = exp->children[0];
         Instruction op;
         op.type = TranslateUnOpId(exp->nd);
         // Val doncs volem al nostre punter l'expressió
-        AssembleExpression(f);
+        AssembleExpression(f, to);
         // I ara li apliquem la operació
         op.a = regPointer;
 
-        PushInstruction(op);
+        PushInstruction(op, to);
     } else if(IsValue(exp->type)){
         // Bueno carreguem i ja està
         Instruction loadc;
@@ -128,24 +208,32 @@ void Assembler::AssembleExpression(Nodes::Node *exp){
         loadc.a = regPointer;
         loadc.b = GetConstId(exp);
 
-        PushInstruction(loadc);
+        PushInstruction(loadc, to);
         return;
     } else if(exp->type == Nodes::NodeType::EXP_CALL){
-        AssembleCall(exp);
+        AssembleCall(exp, to);
+    } else if(exp->type == Nodes::NodeType::REFERENCE){
+        int ref = GetRefId(exp->GetDataString());
+        Instruction load;
+        load.type = VM::Instructions::LOAD;
+        load.a = regPointer;
+        load.b = ref;
+
+        PushInstruction(load, to);
     }
 }
 
-void Assembler::AssembleDef(Nodes::Node* def){
+void Assembler::AssembleDef(Nodes::Node* def, std::vector<Instruction> to){
     // El fill és una expression
     Instruction dif;
     dif.type = VM::Instructions::DEF;
-    AssembleExpression(def->children[0]);
+    AssembleExpression(def->children[0], to);
     dif.a = regPointer;
 
-    PushInstruction(dif);
+    PushInstruction(dif, to);
 }
 
-void Assembler::AssembleCall(Nodes::Node *call){
+void Assembler::AssembleCall(Nodes::Node *call, std::vector<Instruction> to){
     // Ok suposem que call és una call.
     // Primer carreguem la funció a cridar
     Instruction loadc;
@@ -153,11 +241,11 @@ void Assembler::AssembleCall(Nodes::Node *call){
     loadc.a = regPointer;
     loadc.b = GetRefId(call->GetDataString());
 
-    PushInstruction(loadc);
+    PushInstruction(loadc, to);
     IncreasePointer();
     // Ara estaria bé carregar tots els paràmetres
     for(int i = 0; i < call->children.size(); i++){
-        AssembleExpression(call->children[i]);
+        AssembleExpression(call->children[i], to);
         IncreasePointer();
     }
     // Tornem enrere on la funció
@@ -177,12 +265,12 @@ void Assembler::AssembleCall(Nodes::Node *call){
     cins.b = regPointer + 1;
     cins.x = regPointer + call->children.size();
 
-    PushInstruction(cins);
+    PushInstruction(cins, to);
 }
 
-// De moment serà un ADD
+// De moment serà una resta chunga
 VM::Instructions Assembler::TranslateBinOpId(int data){
-    return VM::Instructions::ADD;
+    return (VM::Instructions) ((int) VM::Instructions::ADD + data - 5);
 }
 
 VM::Instructions Assembler::TranslateUnOpId(int data){
@@ -191,12 +279,11 @@ VM::Instructions Assembler::TranslateUnOpId(int data){
 
 void Assembler::AppendReference(That::Nodes::Node* ref){
     // Suposem que ref es de tipus referència. Aleshores doncs té un string molt maco!
-    std::string id = "";
-    for(int i = 0; i < ref->nd; i++){
-        id += ref->data.bytes[i];
-    }
+    std::string id = ref->GetDataString();
     
     identifierStack.push_back(id);
+    
+    std::cout << "Appended: " << id << std::endl;
 }
 
 void Assembler::IncreasePointer(){
@@ -224,8 +311,8 @@ bool Assembler::IsExpression(Nodes::NodeType t){
     t == Nodes::NodeType::EXP_CALL);
 }
 
-void Assembler::PushInstruction(Instruction ins){
-    assembly.push_back(ins);
+void Assembler::PushInstruction(Instruction ins, std::vector<Instruction> where){
+    where.push_back(ins);
 }
 
 // TODO: Aixo es de prova
@@ -236,16 +323,18 @@ int Assembler::GetConstId(Nodes::Node *val){
 int Assembler::GetRefId(std::string ref){
     for(int i = identifierStack.size() - 1; i >= 0; i--){
         if(identifierStack[i] == ref){
+            std::cout << ref << std::endl;
             return i - stackPointer;
         }
     }
+            std::cout << ref << std::endl;
     // Error
     throw(std::string("Name Error: " + ref + " is not defined."));
 }
 
 Instruction::Instruction(){
-    this->a = -1;
-    this->b = -1;
-    this->x = -1;
+    this->a = -100;
+    this->b = -100;
+    this->x = -100;
     this->type = VM::Instructions::HALT;
 }

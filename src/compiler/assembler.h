@@ -35,16 +35,19 @@ namespace That {
         public:
             void Assemble(Nodes::Node* ast, Flag::Flags flags);
 
-            void AssembleCode(Nodes::Node* node);
-            void AssembleFunction(Nodes::Node* func);
-            void AssembleDeclaration(Nodes::Node* ident);
-            void AssembleExpression(Nodes::Node* exp);
-            void AssembleCall(Nodes::Node* call);
-            void AssembleDef(Nodes::Node* call);
+            void AssembleCode(Nodes::Node* node, std::vector<Instruction> to);
+            void AssembleFunction(Nodes::Node* func, std::vector<Instruction> to);
+            void AssembleDeclaration(Nodes::Node* ident, std::vector<Instruction> to);
+            void AssembleExpression(Nodes::Node* exp, std::vector<Instruction> to);
+            void AssembleCall(Nodes::Node* call, std::vector<Instruction> to);
+            void AssembleDef(Nodes::Node* call, std::vector<Instruction> to);
+            void AssembleAssignation(Nodes::Node* assign, std::vector<Instruction> to);
+            void AssembleReturn(Nodes::Node* ret, std::vector<Instruction> to);
+            void AssembleConditional(Nodes::Node* cond, std::vector<Instruction> to);
 
             void AppendReference(Nodes::Node* ref);
 
-            void PushInstruction(Instruction ins);
+            void PushInstruction(Instruction ins, std::vector<Instruction> where);
 
             VM::Instructions TranslateBinOpId(int data);
             VM::Instructions TranslateUnOpId(int data);

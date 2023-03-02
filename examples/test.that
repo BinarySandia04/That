@@ -1,7 +1,5 @@
-# That programming language test.
-
-# Això és un comentari
-
-func a: int p, int b => int {
-    2+3;
+if 2 + 2 == 4 {
+    1;
+} else {
+    0;
 }

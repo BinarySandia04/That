@@ -39,6 +39,8 @@ Hi ha les següents:
 - LEQ
 - GEQ
 - JUMP
+- TO
+- END
 
 TODO: Cal afegir més operadors per les instruccions i tal
 
@@ -60,10 +62,16 @@ Registre => Stack
 
 Treu tots els stacks afegits per l'últim push
 
+
 ### MOVE
 
+Copia el contingut d'un registre a una posició d'un stack. És de tipus `a,b`
+Registre => Stack
+
+### MOVER
+
 Copia el contingut d'un registre a un altre. És de tipus `a,b`
-Registre <=> Registre
+Registre => Registre
 
 ### CALL
 
@@ -79,7 +87,7 @@ Crida a una funció interna guardada en la direcció `a` amb els paràmetres que
 
 ### RET
 
-Retorna un valor de la funció suposo
+Retorna un valor de la funció del registre `a`
 
 ### ADD
 
@@ -100,3 +108,11 @@ Operador `/`
 ## JUMP
 
 Si `a` és un valor de veritat, salta a `bx`
+
+## TO
+
+Comença la creació de una funció i la penja al stack
+
+## END
+
+Declara el final d'una funció

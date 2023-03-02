@@ -27,15 +27,15 @@ namespace That {
                 S_OR,                   // ||
                 S_NOT,                  // !
 
-                S_INCREMENT,            // ++           X
-                S_DECREMENT,            // --
-
                 C_EQUAL,                // ==           X
                 C_NOT_EQUAL,            // !=           X
                 C_GREATER_THAN,         // >            X
                 C_LESSER_THAN,          // <            X
                 C_GREATER_EQUAL_THAN,   // >=           X
                 C_LESSER_EQUAL_THAN,    // <=           X
+
+                S_INCREMENT,            // ++           X
+                S_DECREMENT,            // --
 
                 A_ASSIGMENT,            // =            X
                 A_ADD,                  // +=           X

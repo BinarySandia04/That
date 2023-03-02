@@ -22,24 +22,37 @@ namespace That {
                 PUSH, // abx
                 CLOSE,
                 MOVE, // A, B
+                MOVER, // A, B
 
                 CALL, // A, B, C // A(B+1, B+2, ..., B+C-1)
                 DEF,
                 ICL, // A, B, C // A(B+1,B+2,...,B+C-1) // Internal call
                 RET, // Return something from reg A
 
+                // Operacions
+                // Important no canviar d'ordre
                 ADD, // A = B + C
                 SUB, // A = B - C
                 MUL, // A = B * C
                 DIV, // A = B / C
+                MOD,
+
+                AND,
+                OR,
+                NOT,
 
                 EQ,
-                LT,
+                NEQ,
                 GT,
-                LEQ,
+                LT,
                 GEQ,
+                LEQ,
+                // ---------------------
+
                 JMP,
-                HALT
+                HALT,
+                TO,
+                END
             };
 
             static std::map<That::Internal::InternalFunctions, That::reg_t (*)(That::reg_t*, That::reg_t*)> FunctionMap;
