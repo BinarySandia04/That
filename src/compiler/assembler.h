@@ -45,6 +45,7 @@ namespace That {
             void AssembleReturn(Nodes::Node* ret, std::vector<Instruction> *to);
             void AssembleConditional(Nodes::Node* cond, std::vector<Instruction> *to);
             void AssembleWhile(Nodes::Node* whil, std::vector<Instruction> *to);
+            void AssembleFor(Nodes::Node* para, std::vector<Instruction> *to);
 
             void AppendReference(Nodes::Node* ref);
 

@@ -57,6 +57,7 @@ void Assembler::AssembleCode(Nodes::Node* node, std::vector<Instruction> *to){
         else if(t == Nodes::RETURN) AssembleReturn(n, to);
         else if(t == Nodes::IF) AssembleConditional(n, to);
         else if(t == Nodes::WHILE) AssembleWhile(n, to);
+        else if(t == Nodes::FOR) AssembleFor(n, to);
     }
     
 }
@@ -203,6 +204,10 @@ void Assembler::AssembleConditional(Nodes::Node* cond, std::vector<Instruction> 
             //}
         }
     }
+    
+}
+
+void Assembler::AssembleFor(Nodes::Node* para, std::vector<Instruction> *to){
     
 }
 
