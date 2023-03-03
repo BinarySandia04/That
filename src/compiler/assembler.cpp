@@ -122,9 +122,14 @@ void Assembler::AssembleConditional(Nodes::Node* cond, std::vector<Instruction> 
 
         if(i % 2 == 0){ // Ultimo codigo o condicion
             if(cond->children.size() % 2 == 1 && i == cond->children.size() - 1){
+                // Aislar
+                
+                stackPointer = identifierStack.size();
                 AssembleCode(cond->children[i], &code);
-                std::cout << "El else es " << code.size() << std::endl; 
-                std::cout << std::endl;
+                
+                while(identifierStack.size() > stackPointer){
+                    identifierStack.pop_back();
+                }
                 
                 codes.push_back(code);
                 a += code.size();
@@ -136,7 +141,14 @@ void Assembler::AssembleConditional(Nodes::Node* cond, std::vector<Instruction> 
             }
             
         } else { // Codigo
+            // Aislar
+            stackPointer = identifierStack.size();
+
             AssembleCode(cond->children[i], &code);
+
+            while(identifierStack.size() > stackPointer){
+                identifierStack.pop_back();
+            }
             
             codes.push_back(code);
             a += code.size() + 1;
@@ -200,7 +212,13 @@ void Assembler::AssembleWhile(Nodes::Node* whil, std::vector<Instruction> *to){
     AssembleExpression(whil->children[0], &exp);
     PushInstructions(&exp, to);
     
+    // Aislar
+    stackPointer = identifierStack.size();
     AssembleCode(whil->children[1], &code);
+    while(identifierStack.size() > stackPointer){
+        identifierStack.pop_back();
+    }
+
     int n = exp.size() + code.size() + 1;
 
     Instruction test;
