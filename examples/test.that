@@ -1,9 +1,23 @@
-func foes {
-    for int i = 0; i < 10; i += 1 {
-        for int j = 0; j < 10; j += 1 {
-            for int k = 0; k < 10; k += 1 {
+##
+func fores: int im, int jm, int km {
+    for int i = 0; i < im; i += 1 {
+        for int j = 0; j < jm; j += 1 {
+            for int k = 0; k < km; k += 1 {
                 "Hola que tal ", i+j+k;
             }
         }
     }
 }
+
+fores(10,20,10);
+
+##
+func test: int a, int b {
+    "Hola";
+}
+func test2: int a, int b {
+    "Hola";
+}
+int p = 69;
+test(1,2);
+test2(1,p);

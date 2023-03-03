@@ -77,22 +77,20 @@ void Assembler::AssembleFunction(Nodes::Node* func, std::vector<Instruction> *to
     // params, 2 en 2
     Instruction top;
     top.type = VM::TO;
-    top.a = stackPointer - 1; // Direcció d'aquesta funció
     PushInstruction(top, to);
+    
 
-    for(int i = 0; i <= (func->children.size() - 3) / 2; i++){
+    for(int i = 3; i < func->children.size(); i++){
         // i + 2 -> tipus, i + 3 -> ref
         // O get reference id
-        AppendReference(func->children[i+3]);
-        std::cout << "Hola " << identifierStack.size() << std::endl;
+        AppendReference(func->children[i]);
     }
 
     AssembleCode(func->children[2], to);
-    std::cout << "Si" << std::endl;
 
     // Vale ara que ja tenim la funció anem a treure tot el que haviem suposadament
     // ficat al stack
-
+    
     EndContext(stack, to);
 
     Instruction end;
