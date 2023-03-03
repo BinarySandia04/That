@@ -20,7 +20,7 @@ namespace That {
                 LOADC,
 
                 PUSH, // abx
-                CLOSE,
+                CLOSE, // abx
                 MOVE, // A, B
                 MOVER, // A, B
 

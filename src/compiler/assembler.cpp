@@ -69,7 +69,8 @@ void Assembler::AssembleFunction(Nodes::Node* func, std::vector<Instruction> *to
     // Hem de saber ara doncs quins paràmetres tenim penjats al stack.
     // Com que aixo ho fem al cridar la funció, doncs estaràn enrere suposo. Anem a
     // afegir-los ara virtualment segons els paràmetres que tenim ara a la funció.
-    stackPointer = identifierStack.size();
+    
+    int stack = StartContext();
     // ref - name
     // type - return tipus
     // code
@@ -87,13 +88,12 @@ void Assembler::AssembleFunction(Nodes::Node* func, std::vector<Instruction> *to
     }
 
     AssembleCode(func->children[2], to);
+    std::cout << "Si" << std::endl;
 
     // Vale ara que ja tenim la funció anem a treure tot el que haviem suposadament
     // ficat al stack
 
-    while(identifierStack.size() > stackPointer){
-        identifierStack.pop_back();
-    }
+    EndContext(stack, to);
 
     Instruction end;
     top.type = VM::END;
@@ -124,13 +124,11 @@ void Assembler::AssembleConditional(Nodes::Node* cond, std::vector<Instruction> 
         if(i % 2 == 0){ // Ultimo codigo o condicion
             if(cond->children.size() % 2 == 1 && i == cond->children.size() - 1){
                 // Aislar
-                
-                stackPointer = identifierStack.size();
+                int stack = StartContext();
+
                 AssembleCode(cond->children[i], &code);
                 
-                while(identifierStack.size() > stackPointer){
-                    identifierStack.pop_back();
-                }
+                EndContext(stack, &code);
                 
                 codes.push_back(code);
                 a += code.size();
@@ -143,14 +141,12 @@ void Assembler::AssembleConditional(Nodes::Node* cond, std::vector<Instruction> 
             
         } else { // Codigo
             // Aislar
-            stackPointer = identifierStack.size();
+            int stack = StartContext();
 
             AssembleCode(cond->children[i], &code);
 
-            while(identifierStack.size() > stackPointer){
-                identifierStack.pop_back();
-            }
-            
+            EndContext(stack, &code);
+
             codes.push_back(code);
             a += code.size() + 1;
             // if(cond->children.size() % 2 == 1) a++;
@@ -208,7 +204,38 @@ void Assembler::AssembleConditional(Nodes::Node* cond, std::vector<Instruction> 
 }
 
 void Assembler::AssembleFor(Nodes::Node* para, std::vector<Instruction> *to){
-    
+    // Assemblem primer doncs una declaració, per això, aillem
+    int stack = StartContext();
+
+    std::vector<Instruction> exp, inc, code;
+    // Ponemos inicializacion y tal
+    AssembleCode(para->children[0], to);
+
+    int a = 0;
+    AssembleExpression(para->children[1], &exp);
+    a += exp.size() + 1;
+
+    AssembleCode(para->children[2], &inc);
+    a += inc.size() + 1;
+
+    AssembleCode(para->children[3], &code);
+    a += code.size();
+
+    Instruction jump, test;
+    test.type = VM::TEST;
+    test.a = regPointer;
+    test.b = a - exp.size();
+
+    PushInstructions(&exp, to);
+    PushInstruction(test, to);
+    PushInstructions(&code, to);
+    PushInstructions(&inc, to);
+
+    jump.type = VM::JUMP;
+    jump.a = -a + 1;
+    PushInstruction(jump, to);
+
+    EndContext(stack, to);
 }
 
 // TODO: Falta aillar contexto
@@ -218,11 +245,11 @@ void Assembler::AssembleWhile(Nodes::Node* whil, std::vector<Instruction> *to){
     PushInstructions(&exp, to);
     
     // Aislar
-    stackPointer = identifierStack.size();
+    int stack = StartContext();
+
     AssembleCode(whil->children[1], &code);
-    while(identifierStack.size() > stackPointer){
-        identifierStack.pop_back();
-    }
+
+    EndContext(stack, &code);
 
     int n = exp.size() + code.size() + 1;
 
@@ -406,7 +433,7 @@ void Assembler::AppendReference(That::Nodes::Node* ref){
     
     identifierStack.push_back(id);
     
-    std::cout << "Appended: " << id << std::endl;
+    // std::cout << "Appended: " << id << std::endl;
 }
 
 void Assembler::IncreasePointer(){
@@ -449,14 +476,35 @@ int Assembler::GetConstId(Nodes::Node *val){
     return val->data.integer;
 }
 
+
+int Assembler::StartContext(){
+    stackPointer = identifierStack.size();
+    return stackPointer;
+}
+
+// TODO: Falta alguna manera para decir a la maquina virtual de hacer close
+void Assembler::EndContext(int from, std::vector<Instruction> *to){
+    int n = 0;
+    while(identifierStack.size() > from){
+        identifierStack.pop_back();
+        n++;
+    }
+    stackPointer = from;
+
+    Instruction close;
+    close.type = VM::CLOSE;
+    close.a = n;
+    to->push_back(close);
+}
+
 int Assembler::GetRefId(std::string ref){
     for(int i = identifierStack.size() - 1; i >= 0; i--){
         if(identifierStack[i] == ref){
-            std::cout << ref << std::endl;
+            //std::cout << ref << std::endl;
             return i - stackPointer;
         }
     }
-            std::cout << ref << std::endl;
+    //std::cout << ref << std::endl;
     // Error
     throw(std::string("Name Error: " + ref + " is not defined."));
 }

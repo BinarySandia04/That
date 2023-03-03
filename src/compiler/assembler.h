@@ -58,6 +58,9 @@ namespace That {
             bool IsValue(Nodes::NodeType t);
             bool IsExpression(Nodes::NodeType t);
 
+            int StartContext();
+            void EndContext(int from, std::vector<Instruction> *to);
+
             void IncreasePointer();
             void DecreasePointer();
 

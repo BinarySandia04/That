@@ -61,7 +61,7 @@ Registre => Stack
 
 ### CLOSE
 
-Treu tots els stacks afegits per l'últim push
+Treu tal nombre d'stacks
 
 
 ### MOVE
