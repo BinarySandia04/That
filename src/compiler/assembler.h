@@ -18,6 +18,7 @@ namespace That {
         public:
             Instruction();
             VM::Instructions type;
+            int temp;
             uint8_t ins[4];
 
             int a, b, x;
@@ -46,6 +47,8 @@ namespace That {
             void AssembleConditional(Nodes::Node* cond, std::vector<Instruction> *to);
             void AssembleWhile(Nodes::Node* whil, std::vector<Instruction> *to);
             void AssembleFor(Nodes::Node* para, std::vector<Instruction> *to);
+            void AssembleTempBreak(Nodes::Node *stop, std::vector<Instruction> *to);
+            void AssembleTempSkip(Nodes::Node *skip, std::vector<Instruction> *to);
 
             void AppendReference(Nodes::Node* ref);
 

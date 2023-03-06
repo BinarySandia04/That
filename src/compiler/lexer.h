@@ -157,7 +157,7 @@ namespace That {
             {"while", WHILE},
             {"for", FOR},
             {"return", RETURN},
-            {"break", BREAK},
+            {"stop", BREAK},
             {"skip", CONTINUE},
             {"int", INT},
             {"real", REAL},

@@ -1,6 +1,7 @@
 #include "assembler.h"
 #include "../flags/flags.h"
 #include "../headers/termcolor.hpp"
+#include "../headers/debug.hpp"
 
 #include <map>
 #include <iostream>
@@ -10,7 +11,11 @@
 using namespace That;
 
 void Assembler::Assemble(Nodes::Node* ast, Flag::Flags flags){
-    AssembleCode(ast, &assembly);
+    try {
+        AssembleCode(ast, &assembly);
+    } catch(std::string r){
+        Debug::LogError(r);
+    }
 
     if(CHECK_BIT(flags, 1)){
         std::cout << termcolor::red << termcolor::bold << "ASM:" << termcolor::reset << std::endl;
@@ -50,14 +55,21 @@ void Assembler::AssembleCode(Nodes::Node* node, std::vector<Instruction> *to){
         Nodes::Node* n = node->children[i];
         Nodes::NodeType t = n->type;
         
-        if(IsExpression(t)) AssembleExpression(n, to);
-        else if(t == Nodes::DEF_FUNCTION) AssembleDef(n, to);
-        else if(t == Nodes::DECLARATION) AssembleDeclaration(n, to);
-        else if(t == Nodes::ASSIGNATION) AssembleAssignation(n, to);
-        else if(t == Nodes::RETURN) AssembleReturn(n, to);
-        else if(t == Nodes::IF) AssembleConditional(n, to);
-        else if(t == Nodes::WHILE) AssembleWhile(n, to);
-        else if(t == Nodes::FOR) AssembleFor(n, to);
+        try {
+            if(IsExpression(t)) AssembleExpression(n, to);
+            else if(t == Nodes::DEF_FUNCTION) AssembleDef(n, to);
+            else if(t == Nodes::DECLARATION) AssembleDeclaration(n, to);
+            else if(t == Nodes::ASSIGNATION) AssembleAssignation(n, to);
+            else if(t == Nodes::RETURN) AssembleReturn(n, to);
+            else if(t == Nodes::IF) AssembleConditional(n, to);
+            else if(t == Nodes::WHILE) AssembleWhile(n, to);
+            else if(t == Nodes::FOR) AssembleFor(n, to);
+            else if(t == Nodes::BREAK) AssembleTempBreak(n, to);
+            else if(t == Nodes::SKIP) AssembleTempSkip(n, to);
+        } catch(std::string r){
+            throw(r);
+        }
+        
     }
     
 }
@@ -205,9 +217,10 @@ void Assembler::AssembleFor(Nodes::Node* para, std::vector<Instruction> *to){
     // Assemblem primer doncs una declaració, per això, aillem
     int stack = StartContext();
 
-    std::vector<Instruction> exp, inc, code;
+    std::vector<Instruction> exp, inc, code, total;
     // Ponemos inicializacion y tal
-    AssembleCode(para->children[0], to);
+    AssembleCode(para->children[0], &total);
+    int decSize = total.size();
 
     int a = 0;
     AssembleExpression(para->children[1], &exp);
@@ -224,23 +237,44 @@ void Assembler::AssembleFor(Nodes::Node* para, std::vector<Instruction> *to){
     test.a = regPointer;
     test.b = a - exp.size();
 
-    PushInstructions(&exp, to);
-    PushInstruction(test, to);
-    PushInstructions(&code, to);
-    PushInstructions(&inc, to);
+    PushInstructions(&exp, &total);
+    PushInstruction(test, &total);
+    PushInstructions(&code, &total);
+    PushInstructions(&inc, &total);
 
     jump.type = VM::JUMP;
     jump.a = -a + 1;
-    PushInstruction(jump, to);
+    PushInstruction(jump, &total);
 
-    EndContext(stack, to);
+    EndContext(stack, &total);
+
+    // Val ok ara fem
+    int p = total.size();
+    for(int i = 0; i < total.size(); i++){
+        if(total[i].type == VM::JUMP && total[i].temp == 1){
+            std::cout << "Hola break" << std::endl;
+            // Val eh hem de posar el nombre de salts fin al final ja que això és un break
+            total[i].temp = 0;
+            total[i].a = total.size() - i;
+        }
+
+        if(total[i].type == VM::JUMP && total[i].temp == 2){
+            // Val eh ara aixo es un continue
+            total[i].temp = 0;
+            total[i].a = -i + decSize;
+        }
+    }
+
+    PushInstructions(&total, to);
 }
 
 // TODO: Falta aillar contexto
 void Assembler::AssembleWhile(Nodes::Node* whil, std::vector<Instruction> *to){
-    std::vector<Instruction> exp, code;
+    std::vector<Instruction> exp, code, total;
+
+    
     AssembleExpression(whil->children[0], &exp);
-    PushInstructions(&exp, to);
+    PushInstructions(&exp, &total);
     
     // Aislar
     int stack = StartContext();
@@ -256,14 +290,32 @@ void Assembler::AssembleWhile(Nodes::Node* whil, std::vector<Instruction> *to){
     test.a = regPointer;
     test.b = code.size() + 1;
 
-    PushInstruction(test, to);
-    PushInstructions(&code, to);
+    PushInstruction(test, &total);
+    PushInstructions(&code, &total);
 
     Instruction jump;
     jump.type = VM::JUMP;
     jump.a = -n - 1;
 
-    PushInstruction(jump, to);
+    PushInstruction(jump, &total);
+
+    int p = total.size();
+    for(int i = 0; i < total.size(); i++){
+        if(total[i].type == VM::JUMP && total[i].temp == 1){
+            std::cout << "Hola break" << std::endl;
+            // Val eh hem de posar el nombre de salts fin al final ja que això és un break
+            total[i].temp = 0;
+            total[i].a = total.size() - i;
+        }
+
+        if(total[i].type == VM::JUMP && total[i].temp == 2){
+            // Val eh ara aixo es un continue
+            total[i].temp = 0;
+            total[i].a = -n - 1 + i;
+        }
+    }
+
+    PushInstructions(&total, to);
 }
 
 void Assembler::AssembleReturn(Nodes::Node* ret, std::vector<Instruction> *to){
@@ -276,12 +328,32 @@ void Assembler::AssembleReturn(Nodes::Node* ret, std::vector<Instruction> *to){
     PushInstruction(retu, to);
 }
 
+void Assembler::AssembleTempBreak(Nodes::Node *stop, std::vector<Instruction> *to){
+    Instruction tmpStop;
+    tmpStop.temp = 1; // Identifier del break
+    tmpStop.type = VM::JUMP;
+
+    PushInstruction(tmpStop, to);
+}
+
+void Assembler::AssembleTempSkip(Nodes::Node *skip, std::vector<Instruction> *to){
+    Instruction tmpSkip;
+    tmpSkip.temp = 2; // Identifier del skip
+    tmpSkip.type = VM::JUMP;
+
+    PushInstruction(tmpSkip, to);
+}
+
 void Assembler::AssembleDeclaration(Nodes::Node *dec, std::vector<Instruction> *to){
     // type DEC -> [EXP, TYPE]
     // Primer hauriem de fer un assemble de l'expressió
 
     // Suposo que hem de fer algo amb el type per optimitzar???
-    AssembleExpression(dec->children[0], to);
+    try {
+        AssembleExpression(dec->children[0], to);
+    } catch(std::string r){
+        throw(r);
+    }
     // Ara l'expression hauria d'estar al top del stack
     Instruction push;
     push.type = VM::PUSH;
@@ -295,7 +367,12 @@ void Assembler::AssembleDeclaration(Nodes::Node *dec, std::vector<Instruction> *
 
 void Assembler::AssembleAssignation(Nodes::Node* assign, std::vector<Instruction> *to){
     // Ok primer l'expressió
-    int where = GetRefId(assign->GetDataString());
+    int where;
+    try {
+        where = GetRefId(assign->GetDataString());
+    } catch(std::string ex){
+        throw(ex);
+    }
     
     AssembleExpression(assign->children[0], to);
 
@@ -361,7 +438,12 @@ void Assembler::AssembleExpression(Nodes::Node *exp, std::vector<Instruction> *t
     } else if(exp->type == Nodes::NodeType::EXP_CALL){
         AssembleCall(exp, to);
     } else if(exp->type == Nodes::NodeType::REFERENCE){
-        int ref = GetRefId(exp->GetDataString());
+        int ref;
+        try {
+            ref = GetRefId(exp->GetDataString());
+        } catch(std::string ex){
+            throw(ex);
+        }
         Instruction load;
         load.type = VM::Instructions::LOAD;
         load.a = regPointer;
@@ -387,7 +469,12 @@ void Assembler::AssembleCall(Nodes::Node *call, std::vector<Instruction> *to){
     Instruction loadc;
     loadc.type = VM::Instructions::LOADC;
     loadc.a = regPointer;
-    loadc.b = GetRefId(call->GetDataString());
+    
+    try {
+        loadc.b = GetRefId(call->GetDataString());
+    } catch(std::string s){
+        throw(s);
+    }
 
     PushInstruction(loadc, to);
     IncreasePointer();
@@ -512,4 +599,5 @@ Instruction::Instruction(){
     this->b = INT32_MIN;
     this->x = INT32_MIN;
     this->type = VM::Instructions::HALT;
+    this->temp = 0;
 }
