@@ -24,17 +24,18 @@ namespace That {
             int a, b, x;
     };
 
-    struct ConstantList {
-        int elements;
+    struct Constant {
+        reg_t data;  
     };
 
-    struct Function {
-        ConstantList elements;
+    struct MachineCode {
+        std::vector<Constant> constants;
+        std::vector<Instruction> instructions;
     };
 
     class Assembler {
         public:
-            void Assemble(Nodes::Node* ast, Flag::Flags flags);
+            Assembler(Nodes::Node* ast, Flag::Flags flags);
 
             void AssembleCode(Nodes::Node* node, std::vector<Instruction> *to);
             void AssembleFunction(Nodes::Node* func, std::vector<Instruction> *to);
@@ -69,9 +70,12 @@ namespace That {
 
             int GetConstId(Nodes::Node *val);
             int GetRefId(std::string ref);
+
+            MachineCode GetAssembly();
         private:
             std::vector<std::string> identifierStack;
-            std::vector<Instruction> assembly;
+            std::vector<Instruction> instructions;
+            std::vector<Constant> constants;
 
             int regCount = 1;
             int regPointer = 0;

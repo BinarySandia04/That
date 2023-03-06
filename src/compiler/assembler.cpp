@@ -10,9 +10,9 @@
 
 using namespace That;
 
-void Assembler::Assemble(Nodes::Node* ast, Flag::Flags flags){
+Assembler::Assembler(Nodes::Node* ast, Flag::Flags flags){
     try {
-        AssembleCode(ast, &assembly);
+        AssembleCode(ast, &instructions);
     } catch(std::string r){
         Debug::LogError(r);
     }
@@ -20,16 +20,25 @@ void Assembler::Assemble(Nodes::Node* ast, Flag::Flags flags){
     if(CHECK_BIT(flags, 1)){
         std::cout << termcolor::red << termcolor::bold << "ASM:" << termcolor::reset << std::endl;
         // Ara doncs fem debug de les instruccions
-        for(int i = 0; i < assembly.size(); i++){
-            std::cout << assembly[i].type << " ";
-            if(assembly[i].a != INT32_MIN) std::cout << assembly[i].a << " ";
-            if(assembly[i].b != INT32_MIN) std::cout << assembly[i].b << " ";
-            if(assembly[i].x != INT32_MIN) std::cout << assembly[i].x << " ";
+        for(int i = 0; i < instructions.size(); i++){
+            std::cout << instructions[i].type << " ";
+            if(instructions[i].a != INT32_MIN) std::cout << instructions[i].a << " ";
+            if(instructions[i].b != INT32_MIN) std::cout << instructions[i].b << " ";
+            if(instructions[i].x != INT32_MIN) std::cout << instructions[i].x << " ";
             std::cout << std::endl;
         }
         std::cout << std::endl;
     }
     
+}
+
+MachineCode Assembler::GetAssembly(){
+    MachineCode machine;
+
+    machine.instructions = instructions;
+    machine.constants = constants;
+
+    return machine;
 }
 
 void Assembler::AssembleCode(Nodes::Node* node, std::vector<Instruction> *to){
@@ -558,7 +567,66 @@ void Assembler::PushInstructions(std::vector<Instruction> *from, std::vector<Ins
 
 // TODO: Aixo es de prova
 int Assembler::GetConstId(Nodes::Node *val){
-    return val->data.integer;
+    // Vale aqui tenim tot el tema de constants i tal.
+    // Hem de fer un reg_t per dir doncs quines constants són i tal
+    Constant c;
+    reg_t data;
+    // Ara fem switch segons el que sigui val. Es un VAL_ALGO
+    switch(val->type){
+        case Nodes::VAL_INT:
+            // Aqui data és int
+            data.num = val->nd;
+            data.type = reg_t::INT;
+            break;
+        case Nodes::VAL_BOOLEAN:
+            data.num = val->nd,
+            data.type = reg_t::BOOLEAN;
+            break;
+        case Nodes::VAL_STRING:
+            data.num = val->nd;
+            data.data = (uint8_t *) val->data.bytes;
+
+            data.type = reg_t::STRING;
+            break;
+        case Nodes::VAL_REAL:
+            data.num = val->nd;
+            data.data = (uint8_t *) val->data.bytes;
+
+            data.type = reg_t::REAL;
+            break;
+        case Nodes::VAL_NULL:
+            data.num = val->nd;
+            data.type = reg_t::_NULL;
+            break;
+        default:
+            break;
+    }
+    c.data = data;
+
+    // Val ja tenim la constant ara la busquem!!!
+    int i;
+    for(i = 0; i < constants.size(); i++){
+        // Comparem constants[i].data amb val->data
+        bool eq = true;
+        if(constants[i].data.type == data.type){
+            if(constants[i].data.num == data.num){
+                for(int j = 0; j < data.num; j++){
+                    if(constants[i].data.data[j] != data.data[j]){
+                        eq = false;
+                        break;
+                    }
+                }
+
+                if(eq){
+                    // Son iguals
+                    return i;
+                }
+            }
+        }
+        // No són iguals
+    }
+    constants.push_back(c);
+    return i;
 }
 
 

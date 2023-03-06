@@ -8,12 +8,13 @@ namespace That {
         uint8_t *data;
 
         enum type_t {
-            OBJECT,
             INT,
-            STR,
-            NUMBER,
-            FUNCTION,
-            NONE,
+            STRING,
+            REAL,
+            BOOLEAN,
+            _NULL,
         } type;
+        
     } reg_t;
+
 }

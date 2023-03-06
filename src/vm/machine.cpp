@@ -191,7 +191,7 @@ That::reg_t VM::Call(uint8_t a, uint8_t b, uint8_t c){
     }
 
     reg_t nul;
-    nul.type == reg_t::NONE;
+    nul.type == reg_t::_NULL;
     return nul;
 }
 

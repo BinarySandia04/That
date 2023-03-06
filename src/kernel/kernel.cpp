@@ -10,6 +10,7 @@
 #include "../headers/termcolor.hpp"
 #include "../compiler/lexer.h"
 #include "../compiler/parser.h"
+#include "../compiler/serializer.h"
 #include "../compiler/assembler.h"
 #include "../vm/machine.h"
 #include "../version.h"
@@ -45,8 +46,10 @@ void Kernel::Compile(std::string code, Flag::Flags flags){
         std::cout << std::endl;
     }
 
-    Assembler assembler;
-    assembler.Assemble(ast, flags);
+    Assembler assembler(ast, flags);
+
+    Serializer serializer;
+    serializer.SerializeToFile("a.th", assembler.GetAssembly());
 
     delete ast;
 }
