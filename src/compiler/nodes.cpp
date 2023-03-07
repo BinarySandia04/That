@@ -43,6 +43,7 @@ void Nodes::Node::Debug(){
         {EXP_UNARY, "EXP_UNARY"},
         {EXP_CALL, "EXP_CALL"},
         {VAL_INT, "VAL_INT"},
+        {VAL_BIGINT, "VAL_NUMBER"},
         {VAL_REAL, "VAL_REAL"},
         {VAL_STRING, "VAL_STRING"},
         {VAL_BOOLEAN, "VAL_BOOLEAN"},

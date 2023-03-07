@@ -6,3 +6,4 @@ file(GLOB SOURCES
     *.cpp
 )
 add_executable(That ${SOURCES})
+target_link_libraries(That gmp)

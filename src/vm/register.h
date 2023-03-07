@@ -9,8 +9,9 @@ namespace That {
 
         enum type_t {
             INT,
-            STRING,
+            NUMBER,
             REAL,
+            STRING,
             BOOLEAN,
             _NULL,
         } type;

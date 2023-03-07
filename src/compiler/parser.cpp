@@ -1,6 +1,7 @@
 #include "parser.h"
 
 #include "../headers/debug.hpp"
+#include "airthmetic.h"
 
 #include <iostream>
 #include <vector>
@@ -623,7 +624,21 @@ void Parser::GetLiteral(int index, Nodes::Node** writeNode){
     switch(token.type){
         case Token::L_INT:
             lit->type = Nodes::NodeType::VAL_INT;
-            lit->data.integer = std::stoi(token.value);
+            try {
+                lit->data.integer = std::stoi(token.value);
+            } catch(std::out_of_range){
+                // Aixo es que necessitem un big int!
+                lit->type = Nodes::NodeType::VAL_BIGINT;
+                std::string conv = "";
+                lit->nd = token.value.size();
+                for(int i = 0; i < lit->nd; i++){
+                    conv += token.value[i];
+                }
+
+                Arit::GetNumber(conv, &(lit->data.bytes), &(lit->nd));
+                
+                *writeNode = lit;
+            }
             *writeNode = lit;
             return;
         case Token::L_REAL:

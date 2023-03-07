@@ -54,6 +54,12 @@ void Serializer::WriteConst(FILE* f, reg_t reg){
             fwrite(&size, sizeof(int), 1, f);
             fwrite(&reg.num, sizeof(int), 1, f);
             break;
+        case reg_t::NUMBER:
+            size = reg.num;
+            fwrite(&size, sizeof(int), 1, f);
+
+            fwrite(reg.data, sizeof(uint8_t), size, f);
+            break;
         case reg_t::BOOLEAN:
             size = 1;
             fwrite(&size, sizeof(int), 1, f);

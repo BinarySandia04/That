@@ -244,7 +244,6 @@ void Assembler::AssembleFor(Nodes::Node* para, std::vector<Instruction> *to){
     int p = total.size();
     for(int i = 0; i < total.size(); i++){
         if(total[i].type == VM::JUMP && total[i].temp == 1){
-            std::cout << "Hola break" << std::endl;
             // Val eh hem de posar el nombre de salts fin al final ja que això és un break
             total[i].temp = 0;
             total[i].SetA(total.size() - i);
@@ -509,6 +508,7 @@ void Assembler::DecreasePointer(){
 bool Assembler::IsValue(Nodes::NodeType t){
     return (t == Nodes::NodeType::VAL_BOOLEAN ||
     t == Nodes::NodeType::VAL_INT ||
+    t == Nodes::NodeType::VAL_BIGINT ||
     t == Nodes::NodeType::VAL_NULL ||
     t == Nodes::NodeType::VAL_REAL ||
     t == Nodes::NodeType::VAL_STRING);
@@ -541,8 +541,14 @@ int Assembler::GetConstId(Nodes::Node *val){
     switch(val->type){
         case Nodes::VAL_INT:
             // Aqui data és int
-            data.num = val->nd;
+            data.num = val->data.integer;
             data.type = reg_t::INT;
+            break;
+        case Nodes::VAL_BIGINT:
+            data.num = val->nd;
+            data.data = (uint8_t *) val->data.bytes;
+
+            data.type = reg_t::NUMBER;
             break;
         case Nodes::VAL_BOOLEAN:
             data.num = val->nd,

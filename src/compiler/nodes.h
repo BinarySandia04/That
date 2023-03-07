@@ -28,6 +28,7 @@ namespace That {
             EXP_UNARY,
             EXP_CALL,
             VAL_INT,
+            VAL_BIGINT,
             VAL_REAL,
             VAL_STRING,
             VAL_BOOLEAN,
