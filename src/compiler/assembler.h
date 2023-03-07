@@ -14,14 +14,32 @@ TODO: Val una manera de com construir aixo i ja tenir llenguatge estaria moolt b
 
 namespace That {
 
+    enum ParamType {
+        E,
+        A,
+        AB,
+        ABC,
+    };
+
     class Instruction {
         public:
             Instruction();
+            Instruction(VM::Instructions type, ParamType paramType);
+
+            void SetA(int a);
+            void SetB(int b);
+            void SetC(int c);
+
+            int GetA();
+            int GetB();
+            int GetC();
+
             VM::Instructions type;
             int temp;
             uint8_t ins[4];
-
-            int a, b, x;
+            ParamType paramType;
+        private:
+            int a, b, c;
     };
 
     struct Constant {

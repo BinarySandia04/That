@@ -35,9 +35,9 @@ void Serializer::WriteInstruction(FILE *f, Instruction ins){
     uint8_t i;
     int16_t a,b,x;
     i = (uint8_t) ins.type;
-    a = (int16_t) ins.a;
-    b = (int16_t) ins.b;
-    x = (int16_t) ins.x;
+    a = (int16_t) ins.GetA();
+    b = (int16_t) ins.GetB();
+    x = (int16_t) ins.GetC();
 
     fwrite(&i, sizeof(uint8_t), 1, f);
     fwrite(&a, sizeof(int16_t), 1, f);
