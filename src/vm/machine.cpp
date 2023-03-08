@@ -6,10 +6,6 @@
 
 using namespace That;
 
-std::map<Internal::InternalFunctions, reg_t (*)(reg_t*, int)> VM::FunctionMap = {
-    {That::Internal::PRINT, That::Internal::print}
-};
-
 void VM::MemDump(uint8_t *data, int size){
     std::cout << "[Dump] Size: " << size << std::endl;
 
@@ -26,11 +22,18 @@ void VM::Run(MachineCode code){
     // Reservar memoria bonita para todo el code de machinecode
     registers = new reg_t[code.regCount];
 
+    // Carreguem funcions internes
+    Internal::LoadDefaultFunctions(&defaultFunctions);
+    Internal::LoadInternalFunctions(&internalFunctions);
+    Internal::LoadConversions(&conversions);
+    Internal::LoadOperations(&operations);
+
     for(int i = 0; i < code.instructions.size(); i++){
         try {
             Process(code.instructions[i]);
         } catch(std::string r){
             Debug::LogError(r);
+            break;
         }
     }
 }
@@ -41,15 +44,22 @@ void VM::Process(Instruction ins){
 
     switch (tipus)
     {
+    case InstructionID::LOAD:
+        registers[ins.GetA()] = stack[ins.GetB()];
+        break;
     case InstructionID::LOADC: //A,B
         registers[ins.GetA()] = currentCode.constants[ins.GetB()].data;
         break;
-    // Mas cosas
-
-
+    case InstructionID::PUSH:
+        for(int f = ins.GetA(), t = ins.GetB(); f <= t; f++)
+        stack.push_back(registers[f]);
+        break;
     case InstructionID::DEF: // De momento es un print
-        FunctionMap[Internal::InternalFunctions::PRINT]
+        defaultFunctions[0]
             (registers + ins.GetA(), 1);
+        break;
+    case InstructionID::ADD:
+        registers[ins.GetA()] = operations[{Operator::OP_ADD, registers[ins.GetA()].type}](registers + ins.GetA(), registers + ins.GetB());
         break;
     default: // Nose excepcion supongo??? XD
         throw(std::string("Undefined instruction error"));

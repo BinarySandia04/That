@@ -6,20 +6,28 @@
 
 namespace That {
 
-    typedef struct reg {  
+    enum Type {
+        INT,
+        NUMBER,
+        REAL,
+        STRING,
+        BOOLEAN,
+        _NULL,
+    };
+
+    enum Operator {
+        OP_ADD,
+        OP_SUB,
+        OP_MUL,
+        OP_DIV,
+        OP_MOD,
+    };
+
+    struct reg_t {  
         uint32_t num;
         uint8_t *data;
-
-        enum type_t {
-            INT,
-            NUMBER,
-            REAL,
-            STRING,
-            BOOLEAN,
-            _NULL,
-        } type;
-        
-    } reg_t;
+        Type type;
+    };
 
     enum ParamType {
         E,

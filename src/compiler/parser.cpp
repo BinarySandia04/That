@@ -675,13 +675,13 @@ void Parser::GetLiteral(int index, Nodes::Node** writeNode){
 }
 
 void Parser::GetExpression(int from, int to, Nodes::Node** writeNode){
-
-    
+    std::cout << "F: " << from << " T: " << to << std::endl;
     if(from > to){
         throw(std::string("Syntax error: Expected expression"));
     }
     if(from == to){
         // En cas que la longitud sigui 1
+        std::cout << from << "!!!" << std::endl;
         if(this->tokens[from].IsLiteral()){
             GetLiteral(from, writeNode);
         }
@@ -690,6 +690,7 @@ void Parser::GetExpression(int from, int to, Nodes::Node** writeNode){
             Nodes::Node *id = new Nodes::Node(Nodes::NodeType::REFERENCE);
             id->SetDataString(this->tokens[from].value);
             *writeNode = id;
+            std::cout << "IDENTIFIER" << std::endl;
         }
 
         return;
@@ -697,20 +698,25 @@ void Parser::GetExpression(int from, int to, Nodes::Node** writeNode){
 
     // Comprovem primer ara si això es una call
     if(this->tokens[from].IsIdentifier()){
-        if(this->tokens[to].type == Token::PARENTHESIS_CLOSE){
-            
-            std::string value = this->tokens[from].value;
-            
-            from++;
-            if (Eat(from, Token::PARENTHESIS_OPEN, &from)){
-                Nodes::Node *call = new Nodes::Node(Nodes::NodeType::EXP_CALL);
-                call->SetDataString(value);
+        if(this->tokens[from+1].type == Token::PARENTHESIS_OPEN){
+            int l = GetNext(from+1, to, Token::PARENTHESIS_CLOSE);
 
-                GetArguments(from, to - 1, &(call->children));
-                *writeNode = call;
+            if(l == to){
+                std::string value = this->tokens[from].value;
+            
+                from++;
+                if (Eat(from, Token::PARENTHESIS_OPEN, &from)){
+                    Nodes::Node *call = new Nodes::Node(Nodes::NodeType::EXP_CALL);
+                    call->SetDataString(value);
 
-                return;
+                    GetArguments(from, to - 1, &(call->children));
+                    *writeNode = call;
+
+                    return;
+                }
             }
+            
+            
         }
     }
 
@@ -739,6 +745,8 @@ void Parser::GetExpression(int from, int to, Nodes::Node** writeNode){
             int n;
             try {
                 n = GetNext(from, to, opOrder[i][k]);
+                
+                std::cout << "Vale tenim el desto a " << n << std::endl; 
             } catch(std::string p){
                 throw(p);
             }
@@ -747,6 +755,8 @@ void Parser::GetExpression(int from, int to, Nodes::Node** writeNode){
             // iterem fins a trobar algun simbol potser
             Nodes::Node *op, *first, *second;
             if(n == from){
+                
+                std::cout << "Vale tenim el ???a " << n << std::endl; 
                 // Ei és una operació unaria!
                 op = new Nodes::Node(Nodes::NodeType::EXP_UNARY);
 
@@ -765,7 +775,6 @@ void Parser::GetExpression(int from, int to, Nodes::Node** writeNode){
 
             if(n != to){ // L'hem trobat
                 // from --- n simbol n --- to
-
                 op = new Nodes::Node(Nodes::NodeType::EXP_BINARY);
 
                 // Aqui suposo que s'haura de passar per algun map

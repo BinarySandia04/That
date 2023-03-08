@@ -85,25 +85,25 @@ void Serializer::WriteConst(FILE* f, reg_t reg){
     fwrite(&type, sizeof(unsigned int), 1, f);
 
     switch(reg.type){
-    case reg_t::INT:
+    case Type::INT:
         size = 1;
         fwrite(&reg.num, sizeof(int), 1, f);
         break;
-    case reg_t::NUMBER:
+    case Type::NUMBER:
         size = reg.num;
         fwrite(&size, sizeof(unsigned int), 1, f);
         fwrite(reg.data, sizeof(uint8_t), size, f);
         break;
-    case reg_t::BOOLEAN:
+    case Type::BOOLEAN:
         size = 1;
         fwrite(&reg.num, sizeof(int), 1, f);
         break;
-    case reg_t::REAL:
+    case Type::REAL:
         size = reg.num;
         fwrite(&size, sizeof(unsigned int), 1, f);
         fwrite(reg.data, sizeof(uint8_t), size, f);
         break;
-    case reg_t::STRING:
+    case Type::STRING:
         size = reg.num;
         fwrite(&size, sizeof(unsigned int), 1, f);
         fwrite(reg.data, sizeof(uint8_t), size, f);
@@ -119,28 +119,28 @@ void Serializer::ReadConst(FILE *f, std::vector<Constant> *constants){
     unsigned int typeNum;
     fread(&typeNum, sizeof(unsigned int), 1, f);
 
-    reg_t::type_t type = (reg_t::type_t) typeNum;
+    Type type = (Type) typeNum;
 
     Constant c;
     unsigned int size;
 
     switch (type)
     {
-    case reg_t::INT:
+    case Type::INT:
         fread(&c.data.num, sizeof(int), 1, f);
         break;
-    case reg_t::NUMBER:
+    case Type::NUMBER:
         fread(&size, sizeof(unsigned int), 1, f);
         fread(&c.data.data, sizeof(uint8_t), size, f);
         break;
-    case reg_t::BOOLEAN:
+    case Type::BOOLEAN:
         fread(&c.data.num, sizeof(int), 1, f);
         break;
-    case reg_t::REAL:
+    case Type::REAL:
         fread(&size, sizeof(unsigned int), 1, f);
         fread(&c.data.data, sizeof(uint8_t), size, f);
         break;
-    case reg_t::STRING:
+    case Type::STRING:
         fread(&size, sizeof(unsigned int), 1, f);
         fread(&c.data.data, sizeof(uint8_t), size, f);
         break;

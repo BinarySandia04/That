@@ -531,33 +531,33 @@ int Assembler::GetConstId(Nodes::Node *val){
         case Nodes::VAL_INT:
             // Aqui data és int
             data.num = val->data.integer;
-            data.type = reg_t::INT;
+            data.type = Type::INT;
             break;
         case Nodes::VAL_BIGINT:
             data.num = val->nd;
             data.data = (uint8_t *) val->data.bytes;
 
-            data.type = reg_t::NUMBER;
+            data.type = Type::NUMBER;
             break;
         case Nodes::VAL_BOOLEAN:
             data.num = val->nd,
-            data.type = reg_t::BOOLEAN;
+            data.type = Type::BOOLEAN;
             break;
         case Nodes::VAL_STRING:
             data.num = val->nd;
             data.data = (uint8_t *) val->data.bytes;
 
-            data.type = reg_t::STRING;
+            data.type = Type::STRING;
             break;
         case Nodes::VAL_REAL:
             data.num = val->nd;
             data.data = (uint8_t *) val->data.bytes;
 
-            data.type = reg_t::REAL;
+            data.type = Type::REAL;
             break;
         case Nodes::VAL_NULL:
             data.num = val->nd;
-            data.type = reg_t::_NULL;
+            data.type = Type::_NULL;
             break;
         default:
             break;
@@ -571,22 +571,30 @@ int Assembler::GetConstId(Nodes::Node *val){
         bool eq = true;
         if(constants[i].data.type == data.type){
             if(constants[i].data.num == data.num){
-                for(int j = 0; j < data.num; j++){
-                    if(constants[i].data.data[j] != data.data[j]){
-                        eq = false;
-                        break;
+                // Val mirem si el tipus té mes data
+                if(data.type == Type::NUMBER || data.type == Type::STRING || data.type == Type::REAL){
+                    for(int j = 0; j < data.num; j++){
+                        if(constants[i].data.data[j] != data.data[j]){
+                            std::cout << "Si, son 2" << std::endl;
+                            eq = false;
+                            break;
+                        }
                     }
                 }
+                
 
                 if(eq){
                     // Son iguals
+                    // std::cout << "I (iguals): " << i << std::endl;
                     return i;
                 }
             }
         }
         // No són iguals
     }
+    // std::cout << "Push back!" << std::endl;
     constants.push_back(c);
+    // std::cout << "I: " << i << std::endl;
     return i;
 }
 
