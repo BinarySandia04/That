@@ -3,7 +3,7 @@
 #include "nodes.h"
 #include "../kernel/kernel.h"
 #include "../vm/machine.h"
-#include "../vm/internal.h"
+#include "../vm/data.h"
 
 #include <map>
 #include <vector>
@@ -13,43 +13,6 @@ TODO: Val una manera de com construir aixo i ja tenir llenguatge estaria moolt b
 */
 
 namespace That {
-
-    enum ParamType {
-        E,
-        A,
-        AB,
-        ABC,
-    };
-
-    class Instruction {
-        public:
-            Instruction();
-            Instruction(VM::Instructions type, ParamType paramType);
-
-            void SetA(int a);
-            void SetB(int b);
-            void SetC(int c);
-
-            int GetA();
-            int GetB();
-            int GetC();
-
-            VM::Instructions type;
-            int temp;
-            ParamType paramType;
-        private:
-            int a, b, c;
-    };
-
-    struct Constant {
-        reg_t data;  
-    };
-
-    struct MachineCode {
-        std::vector<Constant> constants;
-        std::vector<Instruction> instructions;
-    };
-
     class Assembler {
         public:
             Assembler(Nodes::Node* ast);
@@ -73,8 +36,8 @@ namespace That {
             void PushInstruction(Instruction ins, std::vector<Instruction> *where);
             void PushInstructions(std::vector<Instruction> *from, std::vector<Instruction> *to);
 
-            VM::Instructions TranslateBinOpId(int data);
-            VM::Instructions TranslateUnOpId(int data);
+            InstructionID TranslateBinOpId(int data);
+            InstructionID TranslateUnOpId(int data);
 
             bool IsValue(Nodes::NodeType t);
             bool IsExpression(Nodes::NodeType t);

@@ -2,6 +2,7 @@
 #include "../flags/flags.h"
 #include "../headers/termcolor.hpp"
 #include "../headers/debug.hpp"
+#include "../vm/data.h"
 
 #include <map>
 #include <iostream>
@@ -23,6 +24,7 @@ MachineCode Assembler::GetAssembly(){
 
     machine.instructions = instructions;
     machine.constants = constants;
+    machine.regCount = regCount;
 
     return machine;
 }
@@ -82,7 +84,7 @@ void Assembler::AssembleFunction(Nodes::Node* func, std::vector<Instruction> *to
     // type - return tipus
     // code
     // params, 2 en 2
-    Instruction top(VM::TO, ParamType::E);
+    Instruction top(InstructionID::TO, ParamType::E);
     PushInstruction(top, to);
     
 
@@ -99,7 +101,7 @@ void Assembler::AssembleFunction(Nodes::Node* func, std::vector<Instruction> *to
     
     EndContext(stack, to);
 
-    Instruction end(VM::END, ParamType::E);
+    Instruction end(InstructionID::END, ParamType::E);
     PushInstruction(end, to);
 }
 
@@ -171,7 +173,7 @@ void Assembler::AssembleConditional(Nodes::Node* cond, std::vector<Instruction> 
             PushInstructions(&conditions[i / 2], to);
 
             a--;
-            Instruction test(VM::TEST, ParamType::AB);
+            Instruction test(InstructionID::TEST, ParamType::AB);
 
             test.SetA(regPointer);
             
@@ -185,7 +187,7 @@ void Assembler::AssembleConditional(Nodes::Node* cond, std::vector<Instruction> 
             a -= codes[(i - 1) / 2].size();
 
             a--;
-            Instruction jmp(VM::JUMP, ParamType::A);
+            Instruction jmp(InstructionID::JUMP, ParamType::A);
             jmp.SetA(a);
             PushInstruction(jmp, to);
         }
@@ -212,7 +214,8 @@ void Assembler::AssembleFor(Nodes::Node* para, std::vector<Instruction> *to){
     AssembleCode(para->children[3], &code);
     a += code.size();
 
-    Instruction jump(VM::JUMP, ParamType::A), test(VM::TEST, ParamType::AB);
+    Instruction jump(InstructionID::JUMP, ParamType::A), 
+        test(InstructionID::TEST, ParamType::AB);
     test.SetA(regPointer);
     test.SetB(a - exp.size());
 
@@ -229,13 +232,13 @@ void Assembler::AssembleFor(Nodes::Node* para, std::vector<Instruction> *to){
     // Val ok ara fem
     int p = total.size();
     for(int i = 0; i < total.size(); i++){
-        if(total[i].type == VM::JUMP && total[i].temp == 1){
+        if(total[i].type == InstructionID::JUMP && total[i].temp == 1){
             // Val eh hem de posar el nombre de salts fin al final ja que això és un break
             total[i].temp = 0;
             total[i].SetA(total.size() - i);
         }
 
-        if(total[i].type == VM::JUMP && total[i].temp == 2){
+        if(total[i].type == InstructionID::JUMP && total[i].temp == 2){
             // Val eh ara aixo es un continue
             total[i].temp = 0;
             total[i].SetA(-i + decSize);
@@ -262,27 +265,27 @@ void Assembler::AssembleWhile(Nodes::Node* whil, std::vector<Instruction> *to){
 
     int n = exp.size() + code.size() + 1;
 
-    Instruction test(VM::TEST, ParamType::AB);
+    Instruction test(InstructionID::TEST, ParamType::AB);
     test.SetA(regPointer);
     test.SetB(code.size() + 1);
 
     PushInstruction(test, &total);
     PushInstructions(&code, &total);
 
-    Instruction jump(VM::JUMP, ParamType::A);
+    Instruction jump(InstructionID::JUMP, ParamType::A);
     jump.SetA(-n - 1);
 
     PushInstruction(jump, &total);
 
     int p = total.size();
     for(int i = 0; i < total.size(); i++){
-        if(total[i].type == VM::JUMP && total[i].temp == 1){
+        if(total[i].type == InstructionID::JUMP && total[i].temp == 1){
             // Val eh hem de posar el nombre de salts fin al final ja que això és un break
             total[i].temp = 0;
             total[i].SetA(total.size() - i);
         }
 
-        if(total[i].type == VM::JUMP && total[i].temp == 2){
+        if(total[i].type == InstructionID::JUMP && total[i].temp == 2){
             // Val eh ara aixo es un continue
             total[i].temp = 0;
             total[i].SetA(-n - 1 + i);
@@ -295,21 +298,21 @@ void Assembler::AssembleWhile(Nodes::Node* whil, std::vector<Instruction> *to){
 void Assembler::AssembleReturn(Nodes::Node* ret, std::vector<Instruction> *to){
     AssembleExpression(ret->children[0], to);
 
-    Instruction retu(VM::RET, ParamType::A);
+    Instruction retu(InstructionID::RET, ParamType::A);
     retu.SetA(regPointer);
 
     PushInstruction(retu, to);
 }
 
 void Assembler::AssembleTempBreak(Nodes::Node *stop, std::vector<Instruction> *to){
-    Instruction tmpStop(VM::JUMP, ParamType::A);
+    Instruction tmpStop(InstructionID::JUMP, ParamType::A);
     tmpStop.temp = 1; // Identifier del break
 
     PushInstruction(tmpStop, to);
 }
 
 void Assembler::AssembleTempSkip(Nodes::Node *skip, std::vector<Instruction> *to){
-    Instruction tmpSkip(VM::JUMP, ParamType::A);
+    Instruction tmpSkip(InstructionID::JUMP, ParamType::A);
     tmpSkip.temp = 2; // Identifier del skip
 
     PushInstruction(tmpSkip, to);
@@ -326,7 +329,7 @@ void Assembler::AssembleDeclaration(Nodes::Node *dec, std::vector<Instruction> *
         throw(r);
     }
     // Ara l'expression hauria d'estar al top del stack
-    Instruction push(VM::PUSH, ParamType::AB);
+    Instruction push(InstructionID::PUSH, ParamType::AB);
     push.SetA(regPointer);
     push.SetB(regPointer);
 
@@ -346,7 +349,7 @@ void Assembler::AssembleAssignation(Nodes::Node* assign, std::vector<Instruction
     
     AssembleExpression(assign->children[0], to);
 
-    Instruction move(VM::MOVE, ParamType::AB);
+    Instruction move(InstructionID::MOVE, ParamType::AB);
 
     move.SetA(regPointer);
     move.SetB(where);
@@ -394,7 +397,7 @@ void Assembler::AssembleExpression(Nodes::Node *exp, std::vector<Instruction> *t
         PushInstruction(op, to);
     } else if(IsValue(exp->type)){
         // Bueno carreguem i ja està
-        Instruction loadc(VM::Instructions::LOADC, ParamType::AB);
+        Instruction loadc(InstructionID::LOADC, ParamType::AB);
         loadc.SetA(regPointer);
         loadc.SetB(GetConstId(exp));
 
@@ -409,7 +412,7 @@ void Assembler::AssembleExpression(Nodes::Node *exp, std::vector<Instruction> *t
         } catch(std::string ex){
             throw(ex);
         }
-        Instruction load(VM::LOAD, ParamType::AB);
+        Instruction load(InstructionID::LOAD, ParamType::AB);
         load.SetA(regPointer);
         load.SetB(ref);
 
@@ -419,7 +422,7 @@ void Assembler::AssembleExpression(Nodes::Node *exp, std::vector<Instruction> *t
 
 void Assembler::AssembleDef(Nodes::Node* def, std::vector<Instruction> *to){
     // El fill és una expression
-    Instruction dif(VM::DEF, ParamType::A);
+    Instruction dif(InstructionID::DEF, ParamType::A);
     AssembleExpression(def->children[0], to);
     dif.SetA(regPointer);
 
@@ -429,7 +432,7 @@ void Assembler::AssembleDef(Nodes::Node* def, std::vector<Instruction> *to){
 void Assembler::AssembleCall(Nodes::Node *call, std::vector<Instruction> *to){
     // Ok suposem que call és una call.
     // Primer carreguem la funció a cridar
-    Instruction loadc(VM::LOADC, ParamType::AB);
+    Instruction loadc(InstructionID::LOADC, ParamType::AB);
     loadc.SetA(regPointer);
     
     try {
@@ -449,13 +452,13 @@ void Assembler::AssembleCall(Nodes::Node *call, std::vector<Instruction> *to){
     for(int i = 0; i <= call->children.size(); i++) DecreasePointer();
 
     // Empenyem al stack
-    Instruction stackPush(VM::PUSH, ParamType::AB);
+    Instruction stackPush(InstructionID::PUSH, ParamType::AB);
     stackPush.SetA(regPointer + 1);
     stackPush.SetB(regPointer + call->children.size());
 
     // Ara cridem a la funció. Hauria de sobreescriure a on es troba en la memoria
     // Com que 
-    Instruction cins(VM::CALL, ParamType::ABC);
+    Instruction cins(InstructionID::CALL, ParamType::ABC);
     cins.SetA(regPointer);
     cins.SetB(regPointer + 1);
     cins.SetC(regPointer + call->children.size());
@@ -464,12 +467,12 @@ void Assembler::AssembleCall(Nodes::Node *call, std::vector<Instruction> *to){
 }
 
 // De moment serà una resta chunga
-VM::Instructions Assembler::TranslateBinOpId(int data){
-    return (VM::Instructions) ((int) VM::Instructions::ADD + data - 5);
+InstructionID Assembler::TranslateBinOpId(int data){
+    return (InstructionID) ((int) InstructionID::ADD + data - 5);
 }
 
-VM::Instructions Assembler::TranslateUnOpId(int data){
-    return VM::Instructions::ADD;
+InstructionID Assembler::TranslateUnOpId(int data){
+    return InstructionID::ADD;
 }
 
 void Assembler::AppendReference(That::Nodes::Node* ref){
@@ -602,7 +605,7 @@ void Assembler::EndContext(int from, std::vector<Instruction> *to){
     }
     stackPointer = from;
 
-    Instruction close(VM::CLOSE, ParamType::A);
+    Instruction close(InstructionID::CLOSE, ParamType::A);
     close.SetA(n);
     to->push_back(close);
 }
@@ -617,38 +620,4 @@ int Assembler::GetRefId(std::string ref){
     //std::cout << ref << std::endl;
     // Error
     throw(std::string("Name Error: " + ref + " is not defined."));
-}
-
-Instruction::Instruction(){
-    Instruction(VM::HALT, ParamType::E);
-}
-
-Instruction::Instruction(VM::Instructions type, ParamType paramType){
-    this->type = type;
-    this->paramType = paramType;
-    
-    this->a = INT32_MIN;
-    this->b = INT32_MIN;
-    this->c = INT32_MIN;
-    this->temp = 0;
-}
-
-void Instruction::SetA(int a){
-    this->a = a;
-}
-void Instruction::SetB(int b){
-    this->b = b;
-}
-void Instruction::SetC(int c){
-    this->c = c;
-}
-
-int Instruction::GetA(){
-    return this->a;
-}
-int Instruction::GetB(){
-    return this->b;
-}
-int Instruction::GetC(){
-    return this->c;
 }

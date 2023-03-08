@@ -1,10 +1,10 @@
 #pragma once
 
-#include "register.h"
+#include "data.h"
 
 namespace That {
     namespace Internal {
-        That::reg_t print(That::reg_t* a, That::reg_t* b);
+        That::reg_t print(That::reg_t* a, int size);
 
         enum InternalFunctions {
             PRINT,

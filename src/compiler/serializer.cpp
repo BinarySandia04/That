@@ -1,5 +1,6 @@
 #include "serializer.h"
 #include "../headers/debug.hpp"
+#include "../vm/data.h"
 
 using namespace That;
 
@@ -14,6 +15,9 @@ void Serializer::SerializeToFile(std::string fileName, MachineCode assembly){
         Debug::LogError("Error writing to file!");
         return;
     }
+
+    unsigned int regCount = assembly.regCount;
+    fwrite(&regCount, sizeof(unsigned int), 1, f);
 
     unsigned int s = assembly.constants.size();
     fwrite(&s, sizeof(unsigned int), 1, f);
@@ -38,6 +42,12 @@ void Serializer::SerializeFromFile(std::string fileName, MachineCode *code){
     }  
     
     MachineCode machinCode;
+
+    unsigned int regCount;
+    fread(&regCount, sizeof(unsigned int), 1, f);
+
+    machinCode.regCount = regCount;
+
     unsigned int s; // Constant size
     fread(&s, sizeof(unsigned int), 1, f);
 
@@ -154,7 +164,7 @@ bool Serializer::ReadInstruction(FILE *f, std::vector<Instruction> *instructions
     if(!fread(&b, sizeof(int16_t), 1, f)) return false;
     if(!fread(&c, sizeof(int16_t), 1, f)) return false;
 
-    ins.type = (VM::Instructions) i;
+    ins.type = (InstructionID) i;
     ins.SetA(a);
     ins.SetB(b);
     ins.SetC(c);

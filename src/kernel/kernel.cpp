@@ -162,7 +162,10 @@ void Kernel::RunScript(std::string name, Flag::Flags flags){
 
     VM machine;
     // TODO: Hacer esto
-    // machine.Run(machineCode);
+    if(CHECK_BIT(flags, 1)){
+        std::cout << termcolor::red << termcolor::bold << "EXEC:" << termcolor::reset << std::endl;
+    }
+    machine.Run(machineCode);
 
 
     delete ast;
