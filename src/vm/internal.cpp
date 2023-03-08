@@ -1,5 +1,6 @@
 #include "internal.h"
 #include "../headers/debug.hpp"
+#include "operations.h"
 
 #include <iostream>
 #include <map>
@@ -44,15 +45,10 @@ void Internal::LoadConversions(std::map<std::tuple<Type, Type>, That::reg_t (*)(
     // conv->insert({{0, 0}, })
 }
 
-// Test
-reg_t IntSum(reg_t* a, reg_t* b){
-    reg_t res;
-    res.type = Type::INT;
-    res.num = a->num + b->num;
-    return res;
-}
-
 // 
-void Internal::LoadOperations(std::map<std::tuple<Operator, Type>, reg_t (*)(reg_t*, reg_t*)> *ops){
-    ops->insert({{Operator::OP_ADD, Type::INT}, IntSum});
+void Internal::LoadOperations(std::map<std::tuple<Operator, Type, Type>, reg_t (*)(reg_t*, reg_t*)> *ops){
+    ops->insert({{Operator::OP_ADD, Type::INT, Type::INT}, Operations::IntIntSum});
+    ops->insert({{Operator::OP_ADD, Type::STRING, Type::STRING}, Operations::StrStrSum});
+    ops->insert({{Operator::OP_ADD, Type::INT, Type::STRING}, Operations::IntStrSum});
+    ops->insert({{Operator::OP_ADD, Type::STRING, Type::INT}, Operations::StrIntSum});
 }

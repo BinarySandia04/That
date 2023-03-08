@@ -21,7 +21,7 @@ namespace That {
             std::vector<That::reg_t (*)(That::reg_t*, int)> defaultFunctions;
             std::vector<That::reg_t (*)(That::reg_t*, int)> internalFunctions;
             std::map<std::tuple<Type, Type>, That::reg_t (*)(That::reg_t*, That::reg_t*)> conversions;
-            std::map<std::tuple<Operator, Type>, reg_t (*)(reg_t*, reg_t*)> operations;
+            std::map<std::tuple<Operator, Type, Type>, reg_t (*)(reg_t*, reg_t*)> operations;
 
             MachineCode currentCode;
 
