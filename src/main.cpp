@@ -31,8 +31,7 @@ int Run(Flag::RunInfo runInfo){
         kernel.Cli();
     }
 
-    kernel.CompileScript(runInfo.files[0], runInfo.flags);
-    kernel.Run();
+    kernel.RunScript(runInfo.files[0], runInfo.flags);
 
     return 0;
 }

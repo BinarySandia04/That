@@ -26,34 +26,6 @@ Kernel::~Kernel() {
     /* Destructor */
 }
 
-void Kernel::Compile(std::string code, Flag::Flags flags){
-    That::Lexer lexer(code);
-
-    lexer.GenerateTokens();
-    std::vector<Token> tokens = *(lexer.GetTokens());
-
-    if(CHECK_BIT(flags, 1)){
-        DebugTokens(tokens);
-    }
-
-    Parser parser(tokens);
-
-    Nodes::Node *ast = parser.GetAST();
-
-    if(CHECK_BIT(flags, 1)){
-        std::cout << termcolor::red << termcolor::bold << "AST:" << termcolor::reset << std::endl;
-        ast->Debug();
-        std::cout << std::endl;
-    }
-
-    Assembler assembler(ast, flags);
-
-    Serializer serializer;
-    serializer.SerializeToFile("a.th", assembler.GetAssembly());
-
-    delete ast;
-}
-
 void Kernel::DebugTokens(std::vector<Token> tokens){
     std::cout << termcolor::red << termcolor::bold << "Tokens:" << termcolor::reset << std::endl;
     std::map<That::Token::TokenType, std::string> mapo = {
@@ -139,17 +111,7 @@ void Kernel::DebugTokens(std::vector<Token> tokens){
     std::cout << std::endl;
 }
 
-void Kernel::Run(std::string filename){
-    // Inicialitzem la màquina virtual i fem carregar el bytecode
-    
-    VM vm(filename);
-}
-
-void Kernel::Run(){
-    
-}
-
-void Kernel::CompileScript(std::string name, Flag::Flags flags){
+void Kernel::RunScript(std::string name, Flag::Flags flags){
     std::fstream file(name);
 
     std::string code = "", line;
@@ -157,7 +119,53 @@ void Kernel::CompileScript(std::string name, Flag::Flags flags){
         code += line + "\n";
     }
 
-    Compile(code, flags);
+    That::Lexer lexer(code);
+
+    lexer.GenerateTokens();
+    std::vector<Token> tokens = *(lexer.GetTokens());
+
+    if(CHECK_BIT(flags, 1)){
+        DebugTokens(tokens);
+    }
+
+    Parser parser(tokens);
+
+    Nodes::Node *ast = parser.GetAST();
+
+    if(CHECK_BIT(flags, 1)){
+        std::cout << termcolor::red << termcolor::bold << "AST:" << termcolor::reset << std::endl;
+        ast->Debug();
+        std::cout << std::endl;
+    }
+
+    Assembler assembler(ast);
+    MachineCode machineCode = assembler.GetAssembly();
+    
+    if(CHECK_BIT(flags, 1)){
+        std::cout << termcolor::red << termcolor::bold << "ASM:" << termcolor::reset << std::endl;
+        // Ara doncs fem debug de les instruccions
+        for(int i = 0; i < machineCode.instructions.size(); i++){
+            std::cout << machineCode.instructions[i].type << " ";
+            if(machineCode.instructions[i].GetA() != INT32_MIN) std::cout << machineCode.instructions[i].GetA() << " ";
+            if(machineCode.instructions[i].GetB() != INT32_MIN) std::cout << machineCode.instructions[i].GetB() << " ";
+            if(machineCode.instructions[i].GetC() != INT32_MIN) std::cout << machineCode.instructions[i].GetC() << " ";
+            std::cout << std::endl;
+        }
+        std::cout << std::endl;
+    }
+    
+    /*
+    Serializer serializer;
+    serializer.SerializeToFile("a.th", machineCode);
+    serializer.SerializeFromFile("a.th", &machineCode);
+    */
+
+    VM machine;
+    // TODO: Hacer esto
+    // machine.Run(machineCode);
+
+
+    delete ast;
 }
 
 

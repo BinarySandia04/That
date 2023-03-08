@@ -36,7 +36,6 @@ namespace That {
 
             VM::Instructions type;
             int temp;
-            uint8_t ins[4];
             ParamType paramType;
         private:
             int a, b, c;
@@ -53,7 +52,7 @@ namespace That {
 
     class Assembler {
         public:
-            Assembler(Nodes::Node* ast, Flag::Flags flags);
+            Assembler(Nodes::Node* ast);
 
             void AssembleCode(Nodes::Node* node, std::vector<Instruction> *to);
             void AssembleFunction(Nodes::Node* func, std::vector<Instruction> *to);

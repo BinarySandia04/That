@@ -1,4 +1,5 @@
-int a = 1234567890098765432112345678900987654321;
-string b = "Hola que tal això es una string!";
+int a = 13;
+int b = 14;
+int c = 2321313213213;
 
 a + b;

@@ -12,7 +12,7 @@ namespace That {
     class VM {
         
         public:
-            VM(std::string filename);
+            VM();
             ~VM();
 
             enum Instructions {

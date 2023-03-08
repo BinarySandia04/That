@@ -20,7 +20,7 @@ void That::Shell::CreateShell(Kernel *kernel){
 
     while(getline(std::cin, line)){
 
-        kernel->Compile(line, Flag::Flags::RUN);
+        // kernel->Compile(line, Flag::Flags::RUN);
 
         std::cout << termcolor::color<255, 168, 46> << termcolor::bold << ">> " << termcolor::reset;
     }

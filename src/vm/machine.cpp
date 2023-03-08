@@ -20,8 +20,9 @@ void VM::MemDump(uint8_t *data, int size){
     return;
 }
 
-VM::VM(std::string filename){
+VM::VM(){
 
+    /*
     FILE* f = fopen(filename.c_str(), "r");
     
     uint32_t nConst; // 32 bit
@@ -69,6 +70,7 @@ VM::VM(std::string filename){
 
         Process(ins, regCons, 0, NULL, NULL);
     }
+    */
 }
 
 void VM::Process(uint8_t ins[], reg_t* regCons[], int offset, bool *returnFlag, int *returnVal){

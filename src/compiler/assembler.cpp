@@ -10,26 +10,12 @@
 
 using namespace That;
 
-Assembler::Assembler(Nodes::Node* ast, Flag::Flags flags){
+Assembler::Assembler(Nodes::Node* ast){
     try {
         AssembleCode(ast, &instructions);
     } catch(std::string r){
         Debug::LogError(r);
     }
-
-    if(CHECK_BIT(flags, 1)){
-        std::cout << termcolor::red << termcolor::bold << "ASM:" << termcolor::reset << std::endl;
-        // Ara doncs fem debug de les instruccions
-        for(int i = 0; i < instructions.size(); i++){
-            std::cout << instructions[i].type << " ";
-            if(instructions[i].GetA() != INT32_MIN) std::cout << instructions[i].GetA() << " ";
-            if(instructions[i].GetB() != INT32_MIN) std::cout << instructions[i].GetB() << " ";
-            if(instructions[i].GetC() != INT32_MIN) std::cout << instructions[i].GetC() << " ";
-            std::cout << std::endl;
-        }
-        std::cout << std::endl;
-    }
-    
 }
 
 MachineCode Assembler::GetAssembly(){
