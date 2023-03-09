@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <vector>
 #include <map>
+#include <stack>
 
 #include "internal.h"
 #include "data.h"
@@ -19,6 +20,7 @@ namespace That {
             std::vector<reg_t> stack;
             int stackOffset;
 
+            std::stack<int> offsets;
             std::vector<That::reg_t (*)(That::reg_t*, int)> defaultFunctions;
             std::vector<That::reg_t (*)(That::reg_t*, int)> internalFunctions;
             std::map<std::tuple<Type, Type>, That::reg_t (*)(That::reg_t*, That::reg_t*)> conversions;
@@ -33,5 +35,8 @@ namespace That {
 
             std::string GetTypeName(Type t);
             std::string GetOperationName(Operator t);
+
+            
+            void RegDump();
     };
 }

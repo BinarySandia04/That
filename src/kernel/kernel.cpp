@@ -144,8 +144,40 @@ void Kernel::RunScript(std::string name, Flag::Flags flags){
     if(CHECK_BIT(flags, 1)){
         std::cout << termcolor::red << termcolor::bold << "ASM:" << termcolor::reset << std::endl;
         // Ara doncs fem debug de les instruccions
+        std::map<InstructionID, std::string> ins = {
+            {LOAD, "LOAD"},
+            {LOADC, "LOADC"},
+            {PUSH, "PUSH"},
+            {CLOSE, "CLOSE"},
+            {CONT, "CONT"},
+            {MOVE, "MOVE"},
+            {MOVER, "MOVER"},
+            {CALL, "CALL"},
+            {DEF, "DEF"},
+            {ICL, "ICL"},
+            {RET, "RET"},
+            {ADD, "ADD"},
+            {SUB, "SUB"},
+            {MUL, "MUL"},
+            {DIV, "DIV"},
+            {MOD, "MOD"},
+            {AND, "AND"},
+            {OR, "OR"},
+            {NOT, "NOT"},
+            {EQ, "EQ"},
+            {NEQ, "NEQ"},
+            {GT, "GT"},
+            {LT, "LT"},
+            {GEQ, "GEQ"},
+            {TO, "TO"},
+            {END, "END"},
+            {JUMP, "JUMP"},
+            {TEST, "TEST"},
+            {HALT, "HALT"},
+        };
+
         for(int i = 0; i < machineCode.instructions.size(); i++){
-            std::cout << machineCode.instructions[i].type << " ";
+            std::cout << ins[machineCode.instructions[i].type] << " ";
             if(machineCode.instructions[i].GetA() != INT32_MIN) std::cout << machineCode.instructions[i].GetA() << " ";
             if(machineCode.instructions[i].GetB() != INT32_MIN) std::cout << machineCode.instructions[i].GetB() << " ";
             if(machineCode.instructions[i].GetC() != INT32_MIN) std::cout << machineCode.instructions[i].GetC() << " ";

@@ -43,11 +43,43 @@ void VM::Run(MachineCode code){
 void VM::Process(Instruction ins, int* current){
 
     InstructionID tipus = ins.type;
-
+    std::map<InstructionID, std::string> table = {
+            {LOAD, "LOAD"},
+            {LOADC, "LOADC"},
+            {PUSH, "PUSH"},
+            {CLOSE, "CLOSE"},
+            {CONT, "CONT"},
+            {MOVE, "MOVE"},
+            {MOVER, "MOVER"},
+            {CALL, "CALL"},
+            {DEF, "DEF"},
+            {ICL, "ICL"},
+            {RET, "RET"},
+            {ADD, "ADD"},
+            {SUB, "SUB"},
+            {MUL, "MUL"},
+            {DIV, "DIV"},
+            {MOD, "MOD"},
+            {AND, "AND"},
+            {OR, "OR"},
+            {NOT, "NOT"},
+            {EQ, "EQ"},
+            {NEQ, "NEQ"},
+            {GT, "GT"},
+            {LT, "LT"},
+            {GEQ, "GEQ"},
+            {TO, "TO"},
+            {END, "END"},
+            {JUMP, "JUMP"},
+            {TEST, "TEST"},
+            {HALT, "HALT"},
+        };
+    // Debug::Log(table[tipus]); std::cout << std::endl;
     try {
         switch (tipus)
         {
         case InstructionID::LOAD:
+            // std::cout << "S: " << ins.GetB() + stackOffset << " -> R: " << ins.GetA() << std::endl;
             registers[ins.GetA()] = stack[ins.GetB() + stackOffset];
             break;
         case InstructionID::LOADC: //A,B
@@ -70,14 +102,21 @@ void VM::Process(Instruction ins, int* current){
             *current += ins.GetA();
             break;
         case InstructionID::MOVE:
-            stack[ins.GetA() + stackOffset] = registers[ins.GetB()];
+            stack[ins.GetB() + stackOffset] = registers[ins.GetA()];
+            // std::cout << "S: " << ins.GetB() + stackOffset << " <- R: " << ins.GetA() << std::endl;
             break;
         case InstructionID::CLOSE:
             for(int i = 0; i < ins.GetA(); i++) stack.pop_back();
-            stackOffset -= ins.GetA();
+            // std::cout << "Before: " << stackOffset << std::endl;
+            stackOffset = offsets.top();
+            offsets.pop();
+            // std::cout << "After: " << stackOffset << std::endl;
             break;
         case InstructionID::CONT:
+            offsets.push(stackOffset);
             stackOffset = stack.size();
+
+            // std::cout << "OFSET: " << stackOffset << std::endl;
             break;
         // Operacions
         // Arit
@@ -122,6 +161,8 @@ void VM::Process(Instruction ins, int* current){
     } catch(std::string r){
         throw(r);
     }
+    
+    // RegDump();
 }
 
 reg_t VM::Operate(Operator op, reg_t* a, reg_t* b){
@@ -160,4 +201,10 @@ std::string VM::GetOperationName(Operator t){
         {OP_OR,      "||"}
     };
     return m[t];
+}
+
+void VM::RegDump(){
+    for(int i = 0; i < currentCode.regCount; i++){
+        std::cout << i << ": [" << GetTypeName(registers[i].type) << ", " << registers[i].num << "]" << std::endl;
+    }
 }

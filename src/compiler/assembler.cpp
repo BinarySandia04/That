@@ -254,10 +254,10 @@ void Assembler::AssembleWhile(Nodes::Node* whil, std::vector<Instruction> *to){
 
     
     AssembleExpression(whil->children[0], &exp);
-    PushInstructions(&exp, &total);
     
     // Aislar
-    int stack = StartContext(to);
+    int stack = StartContext(&exp);
+    PushInstructions(&exp, &total);
 
     AssembleCode(whil->children[1], &code);
 
@@ -613,6 +613,8 @@ void Assembler::EndContext(int from, std::vector<Instruction> *to){
         identifierStack.pop_back();
         n++;
     }
+    Debug::LogImportant(n);
+    std::cout << "\n";
     stackPointer = from;
 
     Instruction close(InstructionID::CLOSE, ParamType::A);
