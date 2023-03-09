@@ -11,7 +11,7 @@ namespace That {
         NUMBER,
         REAL,
         STRING,
-        BOOLEAN,
+        BOOL,
         _NULL,
     };
 
@@ -21,10 +21,20 @@ namespace That {
         OP_MUL,
         OP_DIV,
         OP_MOD,
+
+        OP_NOT,
+        OP_EQ,
+        OP_NEQ,
+        OP_GT,
+        OP_LT,
+        OP_GEQ,
+        OP_LEQ,
+        OP_AND,
+        OP_OR,
     };
 
     struct reg_t {  
-        uint32_t num;
+        int num;
         uint8_t *data;
         Type type;
     };
@@ -42,6 +52,7 @@ namespace That {
 
         PUSH, // abx
         CLOSE, // abx
+        CONT, // -
         MOVE, // A, B
         MOVER, // A, B
 

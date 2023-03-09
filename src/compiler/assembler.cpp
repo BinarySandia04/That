@@ -79,7 +79,7 @@ void Assembler::AssembleFunction(Nodes::Node* func, std::vector<Instruction> *to
     // Com que aixo ho fem al cridar la funció, doncs estaràn enrere suposo. Anem a
     // afegir-los ara virtualment segons els paràmetres que tenim ara a la funció.
     
-    int stack = StartContext();
+    int stack = StartContext(to);
     // ref - name
     // type - return tipus
     // code
@@ -129,7 +129,7 @@ void Assembler::AssembleConditional(Nodes::Node* cond, std::vector<Instruction> 
         if(i % 2 == 0){ // Ultimo codigo o condicion
             if(cond->children.size() % 2 == 1 && i == cond->children.size() - 1){
                 // Aislar
-                int stack = StartContext();
+                int stack = StartContext(&code);
 
                 AssembleCode(cond->children[i], &code);
                 
@@ -146,7 +146,7 @@ void Assembler::AssembleConditional(Nodes::Node* cond, std::vector<Instruction> 
             
         } else { // Codigo
             // Aislar
-            int stack = StartContext();
+            int stack = StartContext(&code);
 
             AssembleCode(cond->children[i], &code);
 
@@ -197,7 +197,7 @@ void Assembler::AssembleConditional(Nodes::Node* cond, std::vector<Instruction> 
 
 void Assembler::AssembleFor(Nodes::Node* para, std::vector<Instruction> *to){
     // Assemblem primer doncs una declaració, per això, aillem
-    int stack = StartContext();
+    int stack = StartContext(to);
 
     std::vector<Instruction> exp, inc, code, total;
     // Ponemos inicializacion y tal
@@ -257,7 +257,7 @@ void Assembler::AssembleWhile(Nodes::Node* whil, std::vector<Instruction> *to){
     PushInstructions(&exp, &total);
     
     // Aislar
-    int stack = StartContext();
+    int stack = StartContext(to);
 
     AssembleCode(whil->children[1], &code);
 
@@ -541,7 +541,7 @@ int Assembler::GetConstId(Nodes::Node *val){
             break;
         case Nodes::VAL_BOOLEAN:
             data.num = val->nd,
-            data.type = Type::BOOLEAN;
+            data.type = Type::BOOL;
             break;
         case Nodes::VAL_STRING:
             data.num = val->nd;
@@ -599,7 +599,9 @@ int Assembler::GetConstId(Nodes::Node *val){
 }
 
 
-int Assembler::StartContext(){
+int Assembler::StartContext(std::vector<Instruction> *to){
+    Instruction cont(InstructionID::CONT, That::ParamType::A);
+    to->push_back(cont);
     stackPointer = identifierStack.size();
     return stackPointer;
 }

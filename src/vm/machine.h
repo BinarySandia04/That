@@ -17,6 +17,7 @@ namespace That {
         private:
             reg_t* registers;
             std::vector<reg_t> stack;
+            int stackOffset;
 
             std::vector<That::reg_t (*)(That::reg_t*, int)> defaultFunctions;
             std::vector<That::reg_t (*)(That::reg_t*, int)> internalFunctions;
@@ -27,6 +28,10 @@ namespace That {
 
             void MemDump(uint8_t *data, int size);
 
-            void Process(Instruction ins);
+            void Process(Instruction ins, int* current);
+            reg_t Operate(Operator op, reg_t* a, reg_t* b);
+
+            std::string GetTypeName(Type t);
+            std::string GetOperationName(Operator t);
     };
 }

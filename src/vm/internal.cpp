@@ -12,16 +12,22 @@ using namespace That;
 
 reg_t Internal::print(reg_t* p, int size){
 
+    int r;
     for(int i = 0; i < size; i++){
+
         switch((p+i)->type){
         case Type::INT:
             std::cout << (p+i)->num;
             break;
         case Type::STRING:
-            int r = (p+i)->num;
+            r = (p+i)->num;
             for(int j = 0; j < r; j++){
                 std::cout << (char) ((p+i)->data[j]);
             }
+            break;
+        case Type::BOOL:
+            if(p->num == 1) std::cout << "True";
+            else std::cout << "False";
             break;
         }
     }
@@ -53,4 +59,14 @@ void Internal::LoadOperations(std::map<std::tuple<Operator, Type, Type>, reg_t (
     ops->insert({{Operator::OP_ADD, Type::STRING, Type::INT}, Operations::StrIntSum});
 
     ops->insert({{Operator::OP_MUL, Type::INT, Type::INT}, Operations::IntIntMul});
+    ops->insert({{Operator::OP_MUL, Type::STRING, Type::INT}, Operations::StrIntMul});
+    ops->insert({{Operator::OP_MUL, Type::INT, Type::STRING}, Operations::IntStrMul});
+
+    ops->insert({{Operator::OP_SUB, Type::INT, Type::INT}, Operations::IntIntSub});
+
+    ops->insert({{Operator::OP_DIV, Type::INT, Type::INT}, Operations::IntIntDiv});
+
+    ops->insert({{Operator::OP_LT, Type::INT, Type::INT}, Operations::IntIntLt});
+
+    ops->insert({{Operator::OP_GT, Type::INT, Type::INT}, Operations::IntIntGt});
 }

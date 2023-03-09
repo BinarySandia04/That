@@ -24,6 +24,7 @@ Hi ha les següents:
 - LOADC
 - PUSH
 - CLOSE
+- CONT
 - MOVE
 - CALL
 - DEF
@@ -34,6 +35,8 @@ Hi ha les següents:
 - MUL
 - DIV
 - EQ
+- NEQ
+- NOT
 - LT
 - GT
 - LEQ
@@ -62,6 +65,10 @@ Registre => Stack
 ### CLOSE
 
 Treu tal nombre d'stacks
+
+### CONT
+
+Entra en nou context
 
 
 ### MOVE

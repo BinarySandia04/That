@@ -69,3 +69,63 @@ reg_t Operations::IntIntMul(reg_t *a, reg_t *b){
     res.num = a->num * b->num;
     return res;
 }
+
+reg_t Operations::IntStrMul(reg_t* a, reg_t* b){
+    reg_t res;
+    res.type = Type::STRING;
+    res.num = b->num * a->num;
+
+    res.data = new uint8_t[res.num];
+    for(int i = 0; i < a->num; i++){
+        for(int j = 0; j < b->num; j++){
+            res.data[i * b->num + j] = b->data[j];
+        }
+    }
+    return res;
+}
+
+reg_t Operations::StrIntMul(reg_t* a, reg_t* b){
+    reg_t res;
+    res.type = Type::STRING;
+    res.num = b->num * a->num;
+
+    res.data = new uint8_t[res.num];
+    for(int i = 0; i < b->num; i++){
+        for(int j = 0; j < a->num; j++){
+            res.data[i * a->num + j] = a->data[j];
+        }
+    }
+    return res;
+}
+
+// -
+reg_t Operations::IntIntSub(reg_t* a, reg_t* b){
+    reg_t res;
+    res.type = Type::INT;
+    res.num = a->num - b->num;
+    return res;
+}
+
+// /
+reg_t Operations::IntIntDiv(reg_t* a, reg_t* b){
+    reg_t res;
+    res.type = Type::INT;
+    res.num = a->num / b->num;
+    return res;
+}
+
+// <
+reg_t Operations::IntIntLt(reg_t* a, reg_t* b){
+    reg_t res;
+    res.type = Type::BOOL;
+    res.num = a->num < b->num;
+    return res;
+}
+
+// >
+reg_t Operations::IntIntGt(reg_t* a, reg_t* b){
+    reg_t res;
+    res.type = Type::BOOL;
+    res.num = a->num > b->num;
+    return res;
+}

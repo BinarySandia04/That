@@ -94,7 +94,7 @@ void Serializer::WriteConst(FILE* f, reg_t reg){
         fwrite(&size, sizeof(unsigned int), 1, f);
         fwrite(reg.data, sizeof(uint8_t), size, f);
         break;
-    case Type::BOOLEAN:
+    case Type::BOOL:
         size = 1;
         fwrite(&reg.num, sizeof(int), 1, f);
         break;
@@ -133,7 +133,7 @@ void Serializer::ReadConst(FILE *f, std::vector<Constant> *constants){
         fread(&size, sizeof(unsigned int), 1, f);
         fread(&c.data.data, sizeof(uint8_t), size, f);
         break;
-    case Type::BOOLEAN:
+    case Type::BOOL:
         fread(&c.data.num, sizeof(int), 1, f);
         break;
     case Type::REAL:

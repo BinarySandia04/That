@@ -10,5 +10,15 @@ namespace That {
         reg_t StrIntSum(reg_t* a, reg_t* b);
         
         reg_t IntIntMul(reg_t* a, reg_t* b);
+        reg_t IntStrMul(reg_t* a, reg_t* b);
+        reg_t StrIntMul(reg_t* a, reg_t* b);
+
+        reg_t IntIntSub(reg_t* a, reg_t* b);
+
+        reg_t IntIntDiv(reg_t* a, reg_t* b);
+
+        reg_t IntIntLt(reg_t* a, reg_t* b);
+        
+        reg_t IntIntGt(reg_t* a, reg_t* b);
     }
 }

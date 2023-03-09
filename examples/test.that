@@ -1,4 +1,4 @@
-int r = 3;
-"Hola sabem que r és " + r + " i ja està això funciona";
-
-"r + 6 * 7 + (r * 3 + 4) és: " + (r + 6 * 7 + (r * 3 + 4));
+int a = 10;
+a += 3;
+if a > 0: a;
+else: "Adeu";

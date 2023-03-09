@@ -657,12 +657,12 @@ void Parser::GetLiteral(int index, Nodes::Node** writeNode){
             return;
         case Token::L_TRUE:
             lit->type = Nodes::NodeType::VAL_BOOLEAN;
-            lit->data.integer = 1;
+            lit->nd = 1;
             *writeNode = lit;
             return;
         case Token::L_FALSE:
             lit->type = Nodes::NodeType::VAL_BOOLEAN;
-            lit->data.integer = 0;
+            lit->nd = 0;
             *writeNode = lit;
             return;
         case Token::L_NULL:
