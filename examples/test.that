@@ -1,3 +1,4 @@
-int r = 3213213;
+int r = 3;
+"Hola sabem que r és " + r + " i ja està això funciona";
 
-r + " si!";
+"r + 6 * 7 + (r * 3 + 4) és: " + (r + 6 * 7 + (r * 3 + 4));

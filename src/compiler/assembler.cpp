@@ -368,11 +368,11 @@ void Assembler::AssembleExpression(Nodes::Node *exp, std::vector<Instruction> *t
         Nodes::Node* f = exp->children[0], *s = exp->children[1], *t;
         
         // Optimització important
-        if(IsValue(f->type)){
+        /*if(IsValue(f->type)){
             t = s;
             s = f;
             f = t;
-        }
+        }*/
 
         Instruction op(TranslateBinOpId(exp->nd), ParamType::AB);
         // Val si cap dels dos es valor podem cridar recursivament AssembleExpression amb un dels dos

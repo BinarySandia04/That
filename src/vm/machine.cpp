@@ -60,7 +60,11 @@ void VM::Process(Instruction ins){
         break;
     case InstructionID::ADD:
         registers[ins.GetA()] = operations[{Operator::OP_ADD, registers[ins.GetA()].type, registers[ins.GetB()].type}]
-            (registers + ins.GetB(), registers + ins.GetA());
+            (registers + ins.GetA(), registers + ins.GetB());
+        break;
+    case InstructionID::MUL:
+        registers[ins.GetA()] = operations[{Operator::OP_MUL, registers[ins.GetA()].type, registers[ins.GetB()].type}]
+            (registers + ins.GetA(), registers + ins.GetB());
         break;
     default: // Nose excepcion supongo??? XD
         throw(std::string("Undefined instruction error"));

@@ -51,4 +51,6 @@ void Internal::LoadOperations(std::map<std::tuple<Operator, Type, Type>, reg_t (
     ops->insert({{Operator::OP_ADD, Type::STRING, Type::STRING}, Operations::StrStrSum});
     ops->insert({{Operator::OP_ADD, Type::INT, Type::STRING}, Operations::IntStrSum});
     ops->insert({{Operator::OP_ADD, Type::STRING, Type::INT}, Operations::StrIntSum});
+
+    ops->insert({{Operator::OP_MUL, Type::INT, Type::INT}, Operations::IntIntMul});
 }
