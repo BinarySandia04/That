@@ -2,17 +2,36 @@
 
 int f = 1;
 
+int i = 2;
+i;
 
-for int i = 2; (i <= 20) && (f % 7 != 0); i += 1 {
+for "Hola"; (i <= 10) && (f % 7 != 0); i += 1 {
     f = f * i;
     i + "! = " + f;
+    if f % 5 == 0: stop;
 }
 
 
+"Hola";
+
+##
+i;
+
 int a = 0;
 int r = 10;
+a;
 while a <= r {
     a = a + 1;
     a;
 }
-r;
+##
+
+##
+for int j = 0; j < 10; j += 1 {
+    for int k = 0; k < 10; k += 1 {
+        for int l = 0; l < 10; l += 1 {
+            j + " " + k + " " + l;
+        }
+    }
+}
+##

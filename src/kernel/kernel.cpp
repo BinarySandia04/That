@@ -15,6 +15,7 @@
 #include "../vm/machine.h"
 #include "../version.h"
 #include "../flags/flags.h"
+#include "../headers/debug.hpp"
 
 using namespace That;
 
@@ -178,6 +179,7 @@ void Kernel::RunScript(std::string name, Flag::Flags flags){
         };
 
         for(int i = 0; i < machineCode.instructions.size(); i++){
+            std::cout << termcolor::color<255,125,0> << "(" << i << ") " << termcolor::reset;
             std::cout << ins[machineCode.instructions[i].type] << " ";
             std::cout << "= " << machineCode.instructions[i].type << " ";
             if(machineCode.instructions[i].GetA() != INT32_MIN) std::cout << machineCode.instructions[i].GetA() << " ";

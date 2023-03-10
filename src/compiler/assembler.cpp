@@ -226,7 +226,7 @@ void Assembler::AssembleFor(Nodes::Node* para, std::vector<Instruction> *to){
 
     jump.SetA(-a + 1);
     PushInstruction(jump, &total);
-
+    std::cout << termcolor::green << "STACK: " << stack << std::endl;
     EndContext(stack, &total);
 
     // Val ok ara fem
@@ -252,11 +252,11 @@ void Assembler::AssembleFor(Nodes::Node* para, std::vector<Instruction> *to){
 void Assembler::AssembleWhile(Nodes::Node* whil, std::vector<Instruction> *to){
     std::vector<Instruction> exp, code, total;
 
+    int stack = StartContext(&exp);
     
     AssembleExpression(whil->children[0], &exp);
     
     // Aislar
-    int stack = StartContext(&exp);
     PushInstructions(&exp, &total);
 
     AssembleCode(whil->children[1], &code);
@@ -267,7 +267,7 @@ void Assembler::AssembleWhile(Nodes::Node* whil, std::vector<Instruction> *to){
 
     Instruction test(InstructionID::TEST, ParamType::AB);
     test.SetA(regPointer);
-    test.SetB(code.size() + 1);
+    test.SetB(code.size() + 2);
 
     PushInstruction(test, &total);
     PushInstructions(&code, &total);
@@ -625,7 +625,7 @@ void Assembler::EndContext(int from, std::vector<Instruction> *to){
 int Assembler::GetRefId(std::string ref){
     for(int i = identifierStack.size() - 1; i >= 0; i--){
         if(identifierStack[i] == ref){
-            //std::cout << ref << std::endl;
+            std::cout << "REF: " << ref << " " << i - stackPointer + 1 << " S: " << stackPointer <<  std::endl;
             return i - stackPointer;
         }
     }

@@ -746,7 +746,7 @@ void Parser::GetExpression(int from, int to, Nodes::Node** writeNode){
             try {
                 n = GetNext(from, to, opOrder[i][k]);
                 
-                std::cout << "Vale tenim el desto a " << n << std::endl; 
+                // std::cout << "Vale tenim el desto a " << n << std::endl; 
             } catch(std::string p){
                 throw(p);
             }

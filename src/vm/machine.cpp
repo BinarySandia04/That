@@ -1,8 +1,10 @@
 #include <iostream>
+#include <climits>
 
 #include "machine.h"
 #include "internal.h"
 #include "../headers/debug.hpp"
+#include "../headers/termcolor.hpp"
 
 using namespace That;
 
@@ -75,20 +77,27 @@ void VM::Process(Instruction ins, int* current){
             {TEST, "TEST"},
             {HALT, "HALT"},
         };
+    // std::cout << termcolor::color<255,125,0> << "(" << *current << ") " << termcolor::reset;
     // Debug::Log(table[tipus]); std::cout << std::endl;
+    // if(ins.GetA() != INT_MIN) Debug::Log(ins.GetA()); std::cout << " ";
+    // if(ins.GetB() != INT_MIN) Debug::Log(ins.GetB()); std::cout << " ";
+    // if(ins.GetC() != INT_MIN) Debug::Log(ins.GetC()); std::cout << " " << std::endl;
     try {
         switch (tipus)
         {
         case InstructionID::LOAD:
-            // std::cout << "S: " << ins.GetB() + stackOffset << " -> R: " << ins.GetA() << std::endl;
+            // std::cout << "S: " << ins.GetB() << " (+" << stackOffset << ") -> R: " << ins.GetA() << std::endl;
             registers[ins.GetA()] = stack[ins.GetB() + stackOffset];
             break;
         case InstructionID::LOADC: //A,B
+            // std::cout << "C: " << ins.GetB() << " (" << currentCode.constants[ins.GetB()].data.num << ") -> R: " << ins.GetA() << std::endl;
             registers[ins.GetA()] = currentCode.constants[ins.GetB()].data;
             break;
         case InstructionID::PUSH:
             for(int f = ins.GetA(), t = ins.GetB(); f <= t; f++)
             stack.push_back(registers[f]);
+
+            // StackDump();
             break;
         case InstructionID::DEF: // De momento es un print
             defaultFunctions[0]
@@ -96,7 +105,7 @@ void VM::Process(Instruction ins, int* current){
             break;
         case InstructionID::TEST:
             if(registers[ins.GetA()].num == 0){
-                *current += ins.GetB();
+                *current += ins.GetB() - 1;
             }
             break;
         case InstructionID::JUMP:
@@ -112,6 +121,7 @@ void VM::Process(Instruction ins, int* current){
             stackOffset = offsets.top();
             offsets.pop();
             // std::cout << "After: " << stackOffset << std::endl;
+            // StackDump();
             break;
         case InstructionID::CONT:
             offsets.push(stackOffset);
@@ -213,5 +223,11 @@ std::string VM::GetOperationName(Operator t){
 void VM::RegDump(){
     for(int i = 0; i < currentCode.regCount; i++){
         std::cout << i << ": [" << GetTypeName(registers[i].type) << ", " << registers[i].num << "]" << std::endl;
+    }
+}
+
+void VM::StackDump(){
+    for(int i = 0; i < stack.size(); i++){
+        std::cout << termcolor::blue << i << ": [" << GetTypeName(stack[i].type) << ", " << stack[i].num << "]" << termcolor::reset << std::endl;
     }
 }

@@ -38,5 +38,6 @@ namespace That {
 
             
             void RegDump();
+            void StackDump();
     };
 }
