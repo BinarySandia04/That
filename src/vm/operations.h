@@ -17,8 +17,20 @@ namespace That {
 
         reg_t IntIntDiv(reg_t* a, reg_t* b);
 
+        reg_t IntIntMod(reg_t* a, reg_t* b);
+
         reg_t IntIntLt(reg_t* a, reg_t* b);
         
+        reg_t IntIntLeq(reg_t* a, reg_t* b);
+
         reg_t IntIntGt(reg_t* a, reg_t* b);
+
+        reg_t IntIntGeq(reg_t* a, reg_t* b);
+
+        reg_t IntIntEq(reg_t* a, reg_t* b);
+    
+        reg_t IntIntNeq(reg_t* a, reg_t* b);
+
+        reg_t BoolBoolAnd(reg_t* a, reg_t *b);
     }
 }

@@ -16,12 +16,12 @@ namespace That {
             std::vector<That::Token> tokens;
 
             std::vector<std::vector<That::Token::TokenType>> opOrder = {
-                {Token::C_NOT_EQUAL, Token::C_EQUAL, Token::C_GREATER_EQUAL_THAN, Token::C_LESSER_EQUAL_THAN,
-                Token::S_AND, Token::S_OR},
-                {Token::C_GREATER_THAN, Token::C_LESSER_THAN, Token::S_NOT},
                 {Token::S_MODULO},
                 {Token::S_MULTIPLY, Token::S_DIVIDE},
-                {Token::S_PLUS, Token::S_SUBTRACT}
+                {Token::S_PLUS, Token::S_SUBTRACT},
+                {Token::C_GREATER_THAN, Token::C_LESSER_THAN, Token::S_NOT},
+                {Token::C_NOT_EQUAL, Token::C_EQUAL, Token::C_GREATER_EQUAL_THAN, Token::C_LESSER_EQUAL_THAN,
+                Token::S_AND, Token::S_OR}
             };
 
             std::vector<That::Token::TokenType> types = {

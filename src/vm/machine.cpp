@@ -68,6 +68,7 @@ void VM::Process(Instruction ins, int* current){
             {GT, "GT"},
             {LT, "LT"},
             {GEQ, "GEQ"},
+            {LEQ, "LEQ"},
             {TO, "TO"},
             {END, "END"},
             {JUMP, "JUMP"},
@@ -132,6 +133,9 @@ void VM::Process(Instruction ins, int* current){
         case InstructionID::DIV:
             registers[ins.GetA()] = Operate(Operator::OP_DIV, registers + ins.GetA(), registers + ins.GetB());
             break; 
+        case InstructionID::MOD:
+            registers[ins.GetA()] = Operate(Operator::OP_MOD, registers + ins.GetA(), registers + ins.GetB());
+            break;
         // Bool
         case InstructionID::EQ:
             registers[ins.GetA()] = Operate(Operator::OP_EQ, registers + ins.GetA(), registers + ins.GetB());
@@ -153,6 +157,9 @@ void VM::Process(Instruction ins, int* current){
             break;
         case InstructionID::GEQ:
             registers[ins.GetA()] = Operate(Operator::OP_GEQ, registers + ins.GetA(), registers + ins.GetB());
+            break;
+        case InstructionID::AND:
+            registers[ins.GetA()] = Operate(Operator::OP_AND, registers + ins.GetA(), registers + ins.GetB());
             break;
         default: // Nose excepcion supongo??? XD
             throw(std::string("Undefined instruction error " + std::to_string(tipus)));

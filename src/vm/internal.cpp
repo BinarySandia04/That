@@ -66,7 +66,19 @@ void Internal::LoadOperations(std::map<std::tuple<Operator, Type, Type>, reg_t (
 
     ops->insert({{Operator::OP_DIV, Type::INT, Type::INT}, Operations::IntIntDiv});
 
+    ops->insert({{Operator::OP_MOD, Type::INT, Type::INT}, Operations::IntIntMod});
+
     ops->insert({{Operator::OP_LT, Type::INT, Type::INT}, Operations::IntIntLt});
 
+    ops->insert({{Operator::OP_LEQ, Type::INT, Type::INT}, Operations::IntIntLeq});
+
     ops->insert({{Operator::OP_GT, Type::INT, Type::INT}, Operations::IntIntGt});
+    
+    ops->insert({{Operator::OP_GEQ, Type::INT, Type::INT}, Operations::IntIntGeq});
+
+    ops->insert({{Operator::OP_EQ, Type::INT, Type::INT}, Operations::IntIntEq});
+    
+    ops->insert({{Operator::OP_NEQ, Type::INT, Type::INT}, Operations::IntIntNeq});
+
+    ops->insert({{Operator::OP_AND, Type::BOOL, Type::BOOL}, Operations::BoolBoolAnd});
 }

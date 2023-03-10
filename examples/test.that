@@ -1,11 +1,19 @@
 "Factorial de 10:";
 
 int f = 1;
-int i = 1;
 
-while i < 10 {
-    i += 1;
+# Aqui fan falta parentesis !!!
+for int i = 2; (i <= 20) && (f % 7 != 0); i += 1 {
     f = f * i;
+    i + "! = " + f;
 }
 
-f;
+"Hola";
+
+int b = 10;
+for int i = 0; i < b; i += 1 {
+    # No treu variables !!!
+    int r = 0;
+    r += 5;
+    r;
+}

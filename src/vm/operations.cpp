@@ -7,10 +7,19 @@ using namespace That;
 // +
 reg_t Operations::IntIntSum(reg_t* a, reg_t* b){
     reg_t res;
-    res.type = Type::INT;
+    
+    /*
+    if(a->num > 0 && b->num > INT32_MAX - a->num){
+        res.type = Type::NUMBER;
+        // I doncs fer nombre gran
+    }
+    */
+
     res.num = a->num + b->num;
+    res.type = Type::INT;
     return res;
 }
+
 reg_t Operations::StrStrSum(reg_t* a, reg_t* b){
     reg_t res;
     res.type = Type::STRING;
@@ -114,6 +123,14 @@ reg_t Operations::IntIntDiv(reg_t* a, reg_t* b){
     return res;
 }
 
+// %
+reg_t Operations::IntIntMod(reg_t* a, reg_t* b){
+    reg_t res;
+    res.type = Type::INT;
+    res.num = a->num % b->num;
+    return res;
+}
+
 // <
 reg_t Operations::IntIntLt(reg_t* a, reg_t* b){
     reg_t res;
@@ -127,5 +144,45 @@ reg_t Operations::IntIntGt(reg_t* a, reg_t* b){
     reg_t res;
     res.type = Type::BOOL;
     res.num = a->num > b->num;
+    return res;
+}
+
+// <=
+reg_t Operations::IntIntLeq(reg_t* a, reg_t* b){
+    reg_t res;
+    res.type = Type::BOOL;
+    res.num = a->num <= b->num;
+    return res;
+}
+
+// >=
+reg_t Operations::IntIntGeq(reg_t* a, reg_t* b){
+    reg_t res;
+    res.type = Type::BOOL;
+    res.num = a->num >= b->num;
+    return res;
+}
+
+// ==
+reg_t Operations::IntIntEq(reg_t* a, reg_t* b){
+    reg_t res;
+    res.type = Type::BOOL;
+    res.num = a->num == b->num;
+    return res;
+}
+
+// !=
+reg_t Operations::IntIntNeq(reg_t* a, reg_t* b){
+    reg_t res;
+    res.type = Type::BOOL;
+    res.num = a->num != b->num;
+    return res;
+}
+
+// &&
+reg_t Operations::BoolBoolAnd(reg_t* a, reg_t* b){
+    reg_t res;
+    res.type = Type::BOOL;
+    res.num = a->num && b->num;
     return res;
 }
