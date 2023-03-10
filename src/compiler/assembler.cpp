@@ -481,7 +481,7 @@ void Assembler::AppendReference(That::Nodes::Node* ref){
     
     identifierStack.push_back(id);
     
-    // std::cout << "Appended: " << id << std::endl;
+    std::cout << "Appended: " << id << std::endl;
 }
 
 void Assembler::IncreasePointer(){
