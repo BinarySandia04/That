@@ -13,6 +13,7 @@ using namespace That;
 
 Assembler::Assembler(Nodes::Node* ast){
     try {
+        stacks.push(0);
         AssembleCode(ast, &instructions);
     } catch(std::string r){
         Debug::LogError(r);
@@ -30,7 +31,7 @@ MachineCode Assembler::GetAssembly(){
 }
 
 void Assembler::AssembleCode(Nodes::Node* node, std::vector<Instruction> *to){
-    
+
     // Mirem primer quines funcions hi ha al entorn i les identifiquem
     for(int i = 0; i < node->children.size(); i++){
         Nodes::NodeType t = node->children[i]->type;
@@ -79,7 +80,7 @@ void Assembler::AssembleFunction(Nodes::Node* func, std::vector<Instruction> *to
     // Com que aixo ho fem al cridar la funció, doncs estaràn enrere suposo. Anem a
     // afegir-los ara virtualment segons els paràmetres que tenim ara a la funció.
     
-    int stack = StartContext(to);
+    StartContext(to);
     // ref - name
     // type - return tipus
     // code
@@ -99,7 +100,7 @@ void Assembler::AssembleFunction(Nodes::Node* func, std::vector<Instruction> *to
     // Vale ara que ja tenim la funció anem a treure tot el que haviem suposadament
     // ficat al stack
     
-    EndContext(stack, to);
+    EndContext(to);
 
     Instruction end(InstructionID::END, ParamType::E);
     PushInstruction(end, to);
@@ -129,11 +130,11 @@ void Assembler::AssembleConditional(Nodes::Node* cond, std::vector<Instruction> 
         if(i % 2 == 0){ // Ultimo codigo o condicion
             if(cond->children.size() % 2 == 1 && i == cond->children.size() - 1){
                 // Aislar
-                int stack = StartContext(&code);
+                StartContext(&code);
 
                 AssembleCode(cond->children[i], &code);
                 
-                EndContext(stack, &code);
+                EndContext(&code);
                 
                 codes.push_back(code);
                 a += code.size();
@@ -146,11 +147,11 @@ void Assembler::AssembleConditional(Nodes::Node* cond, std::vector<Instruction> 
             
         } else { // Codigo
             // Aislar
-            int stack = StartContext(&code);
+            StartContext(&code);
 
             AssembleCode(cond->children[i], &code);
 
-            EndContext(stack, &code);
+            EndContext(&code);
 
             codes.push_back(code);
             a += code.size() + 1;
@@ -198,7 +199,7 @@ void Assembler::AssembleConditional(Nodes::Node* cond, std::vector<Instruction> 
 
 void Assembler::AssembleFor(Nodes::Node* para, std::vector<Instruction> *to){
     // Assemblem primer doncs una declaració, per això, aillem
-    int stack = StartContext(to);
+    StartContext(to);
 
     std::vector<Instruction> exp, inc, code, total;
     // Ponemos inicializacion y tal
@@ -230,7 +231,7 @@ void Assembler::AssembleFor(Nodes::Node* para, std::vector<Instruction> *to){
 
     PushInstruction(jump, &total);
     // std::cout << termcolor::green << "STACK: " << stack << std::endl;
-    int ended = EndContext(stack, &total);
+    EndContext(&total);
 
     // Val ok ara fem
     int p = total.size();
@@ -239,7 +240,7 @@ void Assembler::AssembleFor(Nodes::Node* para, std::vector<Instruction> *to){
             // Val eh hem de posar el nombre de salts fin al final ja que això és un break
             total[i].temp = 0;
             total[i].SetA(total.size() - i);
-            total[i].SetB(ended);
+            total[i].SetB(stacks.top());
         }
 
         if(total[i].type == InstructionID::JUMP && total[i].temp == 2){
@@ -257,7 +258,7 @@ void Assembler::AssembleFor(Nodes::Node* para, std::vector<Instruction> *to){
 void Assembler::AssembleWhile(Nodes::Node* whil, std::vector<Instruction> *to){
     std::vector<Instruction> exp, code, total;
 
-    int stack = StartContext(&exp);
+    StartContext(&exp);
     
     AssembleExpression(whil->children[0], &exp);
     
@@ -266,7 +267,7 @@ void Assembler::AssembleWhile(Nodes::Node* whil, std::vector<Instruction> *to){
 
     AssembleCode(whil->children[1], &code);
 
-    int end = EndContext(stack, &code);
+    EndContext(&code);
 
     int n = exp.size() + code.size() + 1;
 
@@ -289,7 +290,7 @@ void Assembler::AssembleWhile(Nodes::Node* whil, std::vector<Instruction> *to){
             // Val eh hem de posar el nombre de salts fin al final ja que això és un break
             total[i].temp = 0;
             total[i].SetA(total.size() - i);
-            total[i].SetB(end);
+            total[i].SetB(stacks.top());
         }
 
         if(total[i].type == InstructionID::JUMP && total[i].temp == 2){
@@ -607,36 +608,32 @@ int Assembler::GetConstId(Nodes::Node *val){
 }
 
 
-int Assembler::StartContext(std::vector<Instruction> *to){
+void Assembler::StartContext(std::vector<Instruction> *to){
     Instruction cont(InstructionID::CONT, That::ParamType::A);
     to->push_back(cont);
-    stackPointer = identifierStack.size();
-    return stackPointer;
+    stacks.push(identifierStack.size());
 }
 
 // TODO: Falta alguna manera para decir a la maquina virtual de hacer close
-int Assembler::EndContext(int from, std::vector<Instruction> *to){
+void Assembler::EndContext(std::vector<Instruction> *to){
     int n = 0;
-    while(identifierStack.size() > from){
+    while(identifierStack.size() > stacks.top()){
         identifierStack.pop_back();
         n++;
     }
-    // Debug::LogImportant(n);
-    // std::cout << "\n";
-    stackPointer = from;
+
+    stacks.pop();
 
     Instruction close(InstructionID::CLOSE, ParamType::A);
     close.SetA(n);
     to->push_back(close);
-
-    return n;
 }
 
 int Assembler::GetRefId(std::string ref){
     for(int i = identifierStack.size() - 1; i >= 0; i--){
         if(identifierStack[i] == ref){
             // std::cout << "REF: " << ref << " " << i - stackPointer + 1 << " S: " << stackPointer <<  std::endl;
-            return i - stackPointer;
+            return i - stacks.top();
         }
     }
     //std::cout << ref << std::endl;

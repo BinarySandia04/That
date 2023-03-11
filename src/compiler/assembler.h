@@ -42,8 +42,8 @@ namespace That {
             bool IsValue(Nodes::NodeType t);
             bool IsExpression(Nodes::NodeType t);
 
-            int StartContext(std::vector<Instruction> *to);
-            int EndContext(int from, std::vector<Instruction> *to);
+            void StartContext(std::vector<Instruction> *to);
+            void EndContext(std::vector<Instruction> *to);
 
             void IncreasePointer();
             void DecreasePointer();
@@ -59,6 +59,6 @@ namespace That {
 
             int regCount = 1;
             int regPointer = 0;
-            int stackPointer = 0;
+            std::stack<int> stacks;
     };
 }

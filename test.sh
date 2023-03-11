@@ -5,6 +5,6 @@ cmake ../
 cmake --build .
 cd ..
 
-build/src/That -a -d examples/test.that
+# build/src/That -a -d examples/test.that
 echo "------- RUN --------"
-build/src/That -a examples/test.that
+build/src/That examples/test.that
