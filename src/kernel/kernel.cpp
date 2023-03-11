@@ -201,7 +201,7 @@ void Kernel::RunScript(std::string name, Flag::Flags flags){
     if(CHECK_BIT(flags, 1)){
         std::cout << termcolor::red << termcolor::bold << "EXEC:" << termcolor::reset << std::endl;
     }
-    machine.Run(machineCode);
+    machine.Run(machineCode, flags);
 
 
     delete ast;

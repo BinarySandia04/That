@@ -43,7 +43,7 @@ namespace That {
             bool IsExpression(Nodes::NodeType t);
 
             int StartContext(std::vector<Instruction> *to);
-            void EndContext(int from, std::vector<Instruction> *to);
+            int EndContext(int from, std::vector<Instruction> *to);
 
             void IncreasePointer();
             void DecreasePointer();

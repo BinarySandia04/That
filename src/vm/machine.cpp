@@ -4,7 +4,10 @@
 #include "machine.h"
 #include "internal.h"
 #include "../headers/debug.hpp"
+#include "../flags/flags.h"
 #include "../headers/termcolor.hpp"
+
+#define MAX_INS 1000
 
 using namespace That;
 
@@ -18,11 +21,13 @@ void VM::MemDump(uint8_t *data, int size){
     return;
 }
 
-void VM::Run(MachineCode code){
+void VM::Run(MachineCode code, Flag::Flags flags){
     currentCode = code;
 
     // Reservar memoria bonita para todo el code de machinecode
     registers = new reg_t[code.regCount];
+
+    debug = CHECK_BIT(flags, 1);
 
     // Carreguem funcions internes
     Internal::LoadDefaultFunctions(&defaultFunctions);
@@ -30,11 +35,15 @@ void VM::Run(MachineCode code){
     Internal::LoadConversions(&conversions);
     Internal::LoadOperations(&operations);
 
-    stackOffset = 0;
+    offsets.push(0);
+
+    int r = 0;
 
     for(int i = 0; i < code.instructions.size(); i++){
         try {
             Process(code.instructions[i], &i);
+            r++;
+            if(r >= MAX_INS) break;
         } catch(std::string r){
             Debug::LogError(r);
             break;
@@ -44,8 +53,11 @@ void VM::Run(MachineCode code){
 
 void VM::Process(Instruction ins, int* current){
 
+    std::cout << "Offset stack size: " << offsets.size() << std::endl;
+    std::cout << "Stack size: " << stack.size() << std::endl;
     InstructionID tipus = ins.type;
-    std::map<InstructionID, std::string> table = {
+    if(debug){
+        std::map<InstructionID, std::string> table = {
             {LOAD, "LOAD"},
             {LOADC, "LOADC"},
             {PUSH, "PUSH"},
@@ -77,27 +89,29 @@ void VM::Process(Instruction ins, int* current){
             {TEST, "TEST"},
             {HALT, "HALT"},
         };
-    // std::cout << termcolor::color<255,125,0> << "(" << *current << ") " << termcolor::reset;
-    // Debug::Log(table[tipus]); std::cout << std::endl;
-    // if(ins.GetA() != INT_MIN) Debug::Log(ins.GetA()); std::cout << " ";
-    // if(ins.GetB() != INT_MIN) Debug::Log(ins.GetB()); std::cout << " ";
-    // if(ins.GetC() != INT_MIN) Debug::Log(ins.GetC()); std::cout << " " << std::endl;
+    std::cout << termcolor::color<255,125,0> << "(" << *current << ") " << termcolor::reset;
+    Debug::Log(table[tipus]); std::cout << std::endl;
+    if(ins.GetA() != INT_MIN) Debug::Log(ins.GetA()); std::cout << " ";
+    if(ins.GetB() != INT_MIN) Debug::Log(ins.GetB()); std::cout << " ";
+    if(ins.GetC() != INT_MIN) Debug::Log(ins.GetC()); std::cout << " " << std::endl;
+    }
+    
     try {
         switch (tipus)
         {
         case InstructionID::LOAD:
-            // std::cout << "S: " << ins.GetB() << " (+" << stackOffset << ") -> R: " << ins.GetA() << std::endl;
-            registers[ins.GetA()] = stack[ins.GetB() + stackOffset];
+            if(debug) std::cout << "S: " << ins.GetB() << " (+" << offsets.top() << ") -> R: " << ins.GetA() << std::endl;
+            registers[ins.GetA()] = stack[ins.GetB() + offsets.top()];
             break;
         case InstructionID::LOADC: //A,B
-            // std::cout << "C: " << ins.GetB() << " (" << currentCode.constants[ins.GetB()].data.num << ") -> R: " << ins.GetA() << std::endl;
+            if(debug) std::cout << "C: " << ins.GetB() << " (" << currentCode.constants[ins.GetB()].data.num << ") -> R: " << ins.GetA() << std::endl;
             registers[ins.GetA()] = currentCode.constants[ins.GetB()].data;
             break;
         case InstructionID::PUSH:
             for(int f = ins.GetA(), t = ins.GetB(); f <= t; f++)
             stack.push_back(registers[f]);
 
-            // StackDump();
+            if(debug) StackDump();
             break;
         case InstructionID::DEF: // De momento es un print
             defaultFunctions[0]
@@ -112,22 +126,29 @@ void VM::Process(Instruction ins, int* current){
             *current += ins.GetA();
             break;
         case InstructionID::MOVE:
-            stack[ins.GetB() + stackOffset] = registers[ins.GetA()];
-            // std::cout << "S: " << ins.GetB() + stackOffset << " <- R: " << ins.GetA() << std::endl;
+            stack[ins.GetB() + offsets.top()] = registers[ins.GetA()];
+            if(debug) std::cout << "S: " << ins.GetB() + offsets.top() << " <- R: " << ins.GetA() << std::endl;
             break;
         case InstructionID::CLOSE:
-            for(int i = 0; i < ins.GetA(); i++) stack.pop_back();
-            // std::cout << "Before: " << stackOffset << std::endl;
-            stackOffset = offsets.top();
+            // for(int i = 0; i < ins.GetA(); i++) stack.pop_back();
+            //std::cout << offsets.size() << std::endl;
+            //std::cout << "Miau: " << stack.size() - offsets.top() << std::endl;
+            for(int i = 0; i < stack.size() - offsets.top(); i++) stack.pop_back();
+            // if(debug) std::cout << "Before: " << stackOffset << std::endl;
+            // stackOffset = offsets.top();
             offsets.pop();
-            // std::cout << "After: " << stackOffset << std::endl;
-            // StackDump();
+            
+            //std::cout << stack.size() << std::endl;
+            //std::cout << "Stack size: " << offsets.size() << std::endl;
+            //if(debug) std::cout << "After: " << stackOffset << std::endl;
+            // if(debug) StackDump();
             break;
         case InstructionID::CONT:
-            offsets.push(stackOffset);
-            stackOffset = stack.size();
-
-            // std::cout << "OFSET: " << stackOffset << std::endl;
+            offsets.push(stack.size());
+            // stackOffset = offsets.size();
+            
+            // std::cout << "Stack size: " << offsets.size() << " | Current: " << offsets.top() << std::endl;
+            // if(debug) std::cout << "OFSET: " << offsets.top() << std::endl;
             break;
         // Operacions
         // Arit
@@ -179,7 +200,7 @@ void VM::Process(Instruction ins, int* current){
         throw(r);
     }
     
-    // RegDump();
+    if(debug) RegDump();
 }
 
 reg_t VM::Operate(Operator op, reg_t* a, reg_t* b){

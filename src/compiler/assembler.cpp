@@ -187,8 +187,9 @@ void Assembler::AssembleConditional(Nodes::Node* cond, std::vector<Instruction> 
             a -= codes[(i - 1) / 2].size();
 
             a--;
-            Instruction jmp(InstructionID::JUMP, ParamType::A);
+            Instruction jmp(InstructionID::JUMP, ParamType::AB);
             jmp.SetA(a);
+            jmp.SetB(0);
             PushInstruction(jmp, to);
         }
     }
@@ -214,7 +215,7 @@ void Assembler::AssembleFor(Nodes::Node* para, std::vector<Instruction> *to){
     AssembleCode(para->children[3], &code);
     a += code.size();
 
-    Instruction jump(InstructionID::JUMP, ParamType::A), 
+    Instruction jump(InstructionID::JUMP, ParamType::AB), 
         test(InstructionID::TEST, ParamType::AB);
     test.SetA(regPointer);
     test.SetB(a - exp.size());
@@ -225,9 +226,11 @@ void Assembler::AssembleFor(Nodes::Node* para, std::vector<Instruction> *to){
     PushInstructions(&inc, &total);
 
     jump.SetA(-a + 1);
+    jump.SetB(0);
+
     PushInstruction(jump, &total);
     std::cout << termcolor::green << "STACK: " << stack << std::endl;
-    EndContext(stack, &total);
+    int ended = EndContext(stack, &total);
 
     // Val ok ara fem
     int p = total.size();
@@ -236,12 +239,14 @@ void Assembler::AssembleFor(Nodes::Node* para, std::vector<Instruction> *to){
             // Val eh hem de posar el nombre de salts fin al final ja que això és un break
             total[i].temp = 0;
             total[i].SetA(total.size() - i);
+            total[i].SetB(ended);
         }
 
         if(total[i].type == InstructionID::JUMP && total[i].temp == 2){
             // Val eh ara aixo es un continue
             total[i].temp = 0;
             total[i].SetA(-i + decSize);
+            total[i].SetB(0);
         }
     }
 
@@ -261,7 +266,7 @@ void Assembler::AssembleWhile(Nodes::Node* whil, std::vector<Instruction> *to){
 
     AssembleCode(whil->children[1], &code);
 
-    EndContext(stack, &code);
+    int end = EndContext(stack, &code);
 
     int n = exp.size() + code.size() + 1;
 
@@ -272,8 +277,9 @@ void Assembler::AssembleWhile(Nodes::Node* whil, std::vector<Instruction> *to){
     PushInstruction(test, &total);
     PushInstructions(&code, &total);
 
-    Instruction jump(InstructionID::JUMP, ParamType::A);
+    Instruction jump(InstructionID::JUMP, ParamType::AB);
     jump.SetA(-n - 1);
+    jump.SetB(0);
 
     PushInstruction(jump, &total);
 
@@ -283,12 +289,14 @@ void Assembler::AssembleWhile(Nodes::Node* whil, std::vector<Instruction> *to){
             // Val eh hem de posar el nombre de salts fin al final ja que això és un break
             total[i].temp = 0;
             total[i].SetA(total.size() - i);
+            total[i].SetB(end);
         }
 
         if(total[i].type == InstructionID::JUMP && total[i].temp == 2){
             // Val eh ara aixo es un continue
             total[i].temp = 0;
             total[i].SetA(-n - 1 + i);
+            total[i].SetB(0);
         }
     }
 
@@ -305,14 +313,14 @@ void Assembler::AssembleReturn(Nodes::Node* ret, std::vector<Instruction> *to){
 }
 
 void Assembler::AssembleTempBreak(Nodes::Node *stop, std::vector<Instruction> *to){
-    Instruction tmpStop(InstructionID::JUMP, ParamType::A);
+    Instruction tmpStop(InstructionID::JUMP, ParamType::AB);
     tmpStop.temp = 1; // Identifier del break
 
     PushInstruction(tmpStop, to);
 }
 
 void Assembler::AssembleTempSkip(Nodes::Node *skip, std::vector<Instruction> *to){
-    Instruction tmpSkip(InstructionID::JUMP, ParamType::A);
+    Instruction tmpSkip(InstructionID::JUMP, ParamType::AB);
     tmpSkip.temp = 2; // Identifier del skip
 
     PushInstruction(tmpSkip, to);
@@ -607,7 +615,7 @@ int Assembler::StartContext(std::vector<Instruction> *to){
 }
 
 // TODO: Falta alguna manera para decir a la maquina virtual de hacer close
-void Assembler::EndContext(int from, std::vector<Instruction> *to){
+int Assembler::EndContext(int from, std::vector<Instruction> *to){
     int n = 0;
     while(identifierStack.size() > from){
         identifierStack.pop_back();
@@ -620,6 +628,8 @@ void Assembler::EndContext(int from, std::vector<Instruction> *to){
     Instruction close(InstructionID::CLOSE, ParamType::A);
     close.SetA(n);
     to->push_back(close);
+
+    return n;
 }
 
 int Assembler::GetRefId(std::string ref){

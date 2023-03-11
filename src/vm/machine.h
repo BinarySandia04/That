@@ -7,6 +7,7 @@
 
 #include "internal.h"
 #include "data.h"
+#include "../flags/flags.h"
 
 #define UINT32_SIZE 4
 
@@ -14,11 +15,10 @@ namespace That {
     class VM {
         
         public:
-            void Run(MachineCode code);
+            void Run(MachineCode code, Flag::Flags flags);
         private:
             reg_t* registers;
             std::vector<reg_t> stack;
-            int stackOffset;
 
             std::stack<int> offsets;
             std::vector<That::reg_t (*)(That::reg_t*, int)> defaultFunctions;
@@ -35,6 +35,8 @@ namespace That {
 
             std::string GetTypeName(Type t);
             std::string GetOperationName(Operator t);
+
+            bool debug;
 
             
             void RegDump();
