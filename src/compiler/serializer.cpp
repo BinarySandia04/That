@@ -51,7 +51,7 @@ void Serializer::SerializeFromFile(std::string fileName, MachineCode *code){
     unsigned int s; // Constant size
     fread(&s, sizeof(unsigned int), 1, f);
 
-    std::cout << "S: " << s << std::endl;
+    // std::cout << "S: " << s << std::endl;
 
     for(unsigned int i = 0; i < s; i++){
         ReadConst(f, &machinCode.constants);

@@ -120,9 +120,9 @@ void Assembler::AssembleConditional(Nodes::Node* cond, std::vector<Instruction> 
     std::vector<std::vector<Instruction>> conditions, codes;
     for(int i = 0; i < cond->children.size(); i++){
         
-        std::cout << i << std::endl;
+        // std::cout << i << std::endl;
         cond->children[i]->Debug();
-        std::cout << std::endl << std::endl;
+        // std::cout << std::endl << std::endl;
 
         std::vector<Instruction> condit, code;
 
@@ -162,7 +162,7 @@ void Assembler::AssembleConditional(Nodes::Node* cond, std::vector<Instruction> 
     // Val si es parell la idea es saltar fins al final
     for(int i = 0; i < cond->children.size(); i++){
         
-        std::cout << i << std::endl;
+        // std::cout << i << std::endl;
         if(cond->children.size() % 2 == 1 && i == cond->children.size() - 1){
             PushInstructions(&codes[(i) / 2], to);
             break;
@@ -229,7 +229,7 @@ void Assembler::AssembleFor(Nodes::Node* para, std::vector<Instruction> *to){
     jump.SetB(0);
 
     PushInstruction(jump, &total);
-    std::cout << termcolor::green << "STACK: " << stack << std::endl;
+    // std::cout << termcolor::green << "STACK: " << stack << std::endl;
     int ended = EndContext(stack, &total);
 
     // Val ok ara fem
@@ -489,7 +489,7 @@ void Assembler::AppendReference(That::Nodes::Node* ref){
     
     identifierStack.push_back(id);
     
-    std::cout << "Appended: " << id << std::endl;
+    // std::cout << "Appended: " << id << std::endl;
 }
 
 void Assembler::IncreasePointer(){
@@ -583,7 +583,7 @@ int Assembler::GetConstId(Nodes::Node *val){
                 if(data.type == Type::NUMBER || data.type == Type::STRING || data.type == Type::REAL){
                     for(int j = 0; j < data.num; j++){
                         if(constants[i].data.data[j] != data.data[j]){
-                            std::cout << "Si, son 2" << std::endl;
+                            // std::cout << "Si, son 2" << std::endl;
                             eq = false;
                             break;
                         }
@@ -621,8 +621,8 @@ int Assembler::EndContext(int from, std::vector<Instruction> *to){
         identifierStack.pop_back();
         n++;
     }
-    Debug::LogImportant(n);
-    std::cout << "\n";
+    // Debug::LogImportant(n);
+    // std::cout << "\n";
     stackPointer = from;
 
     Instruction close(InstructionID::CLOSE, ParamType::A);
@@ -635,7 +635,7 @@ int Assembler::EndContext(int from, std::vector<Instruction> *to){
 int Assembler::GetRefId(std::string ref){
     for(int i = identifierStack.size() - 1; i >= 0; i--){
         if(identifierStack[i] == ref){
-            std::cout << "REF: " << ref << " " << i - stackPointer + 1 << " S: " << stackPointer <<  std::endl;
+            // std::cout << "REF: " << ref << " " << i - stackPointer + 1 << " S: " << stackPointer <<  std::endl;
             return i - stackPointer;
         }
     }

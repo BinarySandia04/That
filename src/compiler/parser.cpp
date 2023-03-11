@@ -675,13 +675,13 @@ void Parser::GetLiteral(int index, Nodes::Node** writeNode){
 }
 
 void Parser::GetExpression(int from, int to, Nodes::Node** writeNode){
-    std::cout << "F: " << from << " T: " << to << std::endl;
+    // std::cout << "F: " << from << " T: " << to << std::endl;
     if(from > to){
         throw(std::string("Syntax error: Expected expression"));
     }
     if(from == to){
         // En cas que la longitud sigui 1
-        std::cout << from << "!!!" << std::endl;
+        // std::cout << from << "!!!" << std::endl;
         if(this->tokens[from].IsLiteral()){
             GetLiteral(from, writeNode);
         }
@@ -690,7 +690,7 @@ void Parser::GetExpression(int from, int to, Nodes::Node** writeNode){
             Nodes::Node *id = new Nodes::Node(Nodes::NodeType::REFERENCE);
             id->SetDataString(this->tokens[from].value);
             *writeNode = id;
-            std::cout << "IDENTIFIER" << std::endl;
+            // std::cout << "IDENTIFIER" << std::endl;
         }
 
         return;
@@ -756,7 +756,7 @@ void Parser::GetExpression(int from, int to, Nodes::Node** writeNode){
             Nodes::Node *op, *first, *second;
             if(n == from){
                 
-                std::cout << "Vale tenim el ???a " << n << std::endl; 
+                // std::cout << "Vale tenim el ???a " << n << std::endl; 
                 // Ei és una operació unaria!
                 op = new Nodes::Node(Nodes::NodeType::EXP_UNARY);
 
@@ -856,7 +856,7 @@ void Parser::GetCodeBlock(int from, int* to, Nodes::Node* parent){
         *to = *to + 1;
     } else {
         throw(std::string("Error: S'esperava '{' o ':'"));
-        std::cout << "Hola???? Aixo es que has programat malament" << std::endl;
+        // std::cout << "Hola???? Aixo es que has programat malament" << std::endl;
     }
 }
 

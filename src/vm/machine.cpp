@@ -7,8 +7,6 @@
 #include "../flags/flags.h"
 #include "../headers/termcolor.hpp"
 
-#define MAX_INS 1000
-
 using namespace That;
 
 void VM::MemDump(uint8_t *data, int size){
@@ -36,14 +34,9 @@ void VM::Run(MachineCode code, Flag::Flags flags){
     Internal::LoadOperations(&operations);
 
     offsets.push(0);
-
-    int r = 0;
-
     for(int i = 0; i < code.instructions.size(); i++){
         try {
             Process(code.instructions[i], &i);
-            r++;
-            if(r >= MAX_INS) break;
         } catch(std::string r){
             Debug::LogError(r);
             break;
@@ -53,8 +46,6 @@ void VM::Run(MachineCode code, Flag::Flags flags){
 
 void VM::Process(Instruction ins, int* current){
 
-    std::cout << "Offset stack size: " << offsets.size() << std::endl;
-    std::cout << "Stack size: " << stack.size() << std::endl;
     InstructionID tipus = ins.type;
     if(debug){
         std::map<InstructionID, std::string> table = {

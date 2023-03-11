@@ -17,17 +17,17 @@ reg_t Internal::print(reg_t* p, int size){
 
         switch((p+i)->type){
         case Type::INT:
-            Debug::LogImportant((p+i)->num);
+            Debug::LogOutput((p+i)->num);
             break;
         case Type::STRING:
             r = (p+i)->num;
             for(int j = 0; j < r; j++){
-                Debug::LogImportant((char) ((p+i)->data[j]));
+                Debug::LogOutput((char) ((p+i)->data[j]));
             }
             break;
         case Type::BOOL:
-            if(p->num == 1) Debug::LogImportant("True");
-            else Debug::LogImportant("False");
+            if(p->num == 1) Debug::LogOutput("True");
+            else Debug::LogOutput("False");
             break;
         }
     }

@@ -22,6 +22,11 @@ namespace Debug
     }
 
     template <typename T>
+    void LogOutput(T t){
+        std::cout << termcolor::color<120,255,0> << t << termcolor::reset;
+    }
+
+    template <typename T>
     void Print(T t){
         std::cout << termcolor::green << t << termcolor::reset;
     }
