@@ -14,25 +14,13 @@ while t < n {
             "STOP?";
         }
         j += 1;
+        "a";
     }
+    "DIV?";
     if divisible == 0 {
         if t == (n - 1): i;
         t += 1;
     }
     i += 1;
+    "T: " + t + " N: " + n;
 }
-## 
-int j = 0;
-while j < 10 {
-    j += 1;
-    int p = j;
-    "Entrem intern";
-    while p < 10 {
-        if p == 8: stop;
-        p;
-        p += 1;
-    }
-    "j: " + j;
-}
-"Final";
-## 

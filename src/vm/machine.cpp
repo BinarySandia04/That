@@ -129,8 +129,10 @@ void VM::Process(Instruction ins, int* current){
             // for(int i = 0; i < ins.GetA(); i++) stack.pop_back();
             //std::cout << offsets.size() << std::endl;
             //std::cout << "Miau: " << stack.size() - offsets.top() << std::endl;
-            for(int i = 0; i < stack.size() - offsets.top(); i++) stack.pop_back();
-            offsets.pop();
+            for(int j = 0; j < ins.GetA(); j++){
+                for(int i = 0; i < stack.size() - offsets.top(); i++) stack.pop_back();
+                offsets.pop();
+            }
             
             break;
         case InstructionID::CONT:

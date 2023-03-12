@@ -258,9 +258,9 @@ void Assembler::AssembleFor(Nodes::Node* para, std::vector<Instruction> *to){
 void Assembler::AssembleWhile(Nodes::Node* whil, std::vector<Instruction> *to){
     std::vector<Instruction> exp, code, total;
 
-    StartContext(&exp);
     
     AssembleExpression(whil->children[0], &exp);
+    StartContext(&exp);
     
     // Aislar
     PushInstructions(&exp, &total);
@@ -622,16 +622,14 @@ void Assembler::StartContext(std::vector<Instruction> *to){
 
 // TODO: Falta alguna manera para decir a la maquina virtual de hacer close
 void Assembler::EndContext(std::vector<Instruction> *to){
-    int n = 0;
     while(identifierStack.size() > stacks.top()){
         identifierStack.pop_back();
-        n++;
     }
 
     stacks.pop();
 
     Instruction close(InstructionID::CLOSE, ParamType::A);
-    close.SetA(n);
+    close.SetA(1);
     to->push_back(close);
 }
 
