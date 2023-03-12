@@ -13,8 +13,8 @@ using namespace That;
 
 Assembler::Assembler(Nodes::Node* ast){
     try {
-        stacks.push(0);
-        AssembleCode(ast, &instructions);
+        std::vector<int> refs;
+        AssembleCode(ast, &instructions, &refs);
     } catch(std::string r){
         Debug::LogError(r);
     }
@@ -25,14 +25,15 @@ MachineCode Assembler::GetAssembly(){
 
     machine.instructions = instructions;
     machine.constants = constants;
-    machine.regCount = regCount;
+    machine.regCount = reserves.size();
 
     return machine;
 }
 
-void Assembler::AssembleCode(Nodes::Node* node, std::vector<Instruction> *to){
+void Assembler::AssembleCode(Nodes::Node* node, std::vector<Instruction> *to, std::vector<int> *declared){
 
     // Mirem primer quines funcions hi ha al entorn i les identifiquem
+    /*
     for(int i = 0; i < node->children.size(); i++){
         Nodes::NodeType t = node->children[i]->type;
         if(t == Nodes::FUNCTION){
@@ -47,6 +48,7 @@ void Assembler::AssembleCode(Nodes::Node* node, std::vector<Instruction> *to){
             AssembleFunction(node->children[i], to);
         }
     }
+    */
 
     // Ara executem    
     for(int i = 0; i < node->children.size(); i++){
@@ -56,9 +58,9 @@ void Assembler::AssembleCode(Nodes::Node* node, std::vector<Instruction> *to){
         try {
             if(IsExpression(t)) AssembleExpression(n, to);
             else if(t == Nodes::DEF_FUNCTION) AssembleDef(n, to);
-            else if(t == Nodes::DECLARATION) AssembleDeclaration(n, to);
+            else if(t == Nodes::DECLARATION) declared->push_back(AssembleDeclaration(n, to));
             else if(t == Nodes::ASSIGNATION) AssembleAssignation(n, to);
-            else if(t == Nodes::RETURN) AssembleReturn(n, to);
+            // else if(t == Nodes::RETURN) AssembleReturn(n, to);
             else if(t == Nodes::IF) AssembleConditional(n, to);
             else if(t == Nodes::WHILE) AssembleWhile(n, to);
             else if(t == Nodes::FOR) AssembleFor(n, to);
@@ -72,6 +74,7 @@ void Assembler::AssembleCode(Nodes::Node* node, std::vector<Instruction> *to){
     
 }
 
+/*
 void Assembler::AssembleFunction(Nodes::Node* func, std::vector<Instruction> *to){
     // Tenim aqui que els fills son en ordre:
     // <nom>, <param> x nd x <param>, <codi>
@@ -105,6 +108,7 @@ void Assembler::AssembleFunction(Nodes::Node* func, std::vector<Instruction> *to
     Instruction end(InstructionID::END, ParamType::E);
     PushInstruction(end, to);
 }
+*/
 
 
 // TODO: Acabar de fer els ifs
@@ -119,6 +123,7 @@ void Assembler::AssembleConditional(Nodes::Node* cond, std::vector<Instruction> 
 
     int a = 0;
     std::vector<std::vector<Instruction>> conditions, codes;
+    std::vector<int> conditionLoc;
     for(int i = 0; i < cond->children.size(); i++){
         
         // std::cout << i << std::endl;
@@ -130,16 +135,16 @@ void Assembler::AssembleConditional(Nodes::Node* cond, std::vector<Instruction> 
         if(i % 2 == 0){ // Ultimo codigo o condicion
             if(cond->children.size() % 2 == 1 && i == cond->children.size() - 1){
                 // Aislar
-                StartContext(&code);
 
-                AssembleCode(cond->children[i], &code);
-                
-                EndContext(&code);
+                std::vector<int> cont;
+                AssembleCode(cond->children[i], &code, &cont);
+                FreeContext(&cont);
                 
                 codes.push_back(code);
                 a += code.size();
             } else {
-                AssembleExpression(cond->children[i], &condit);
+                int r = AssembleExpression(cond->children[i], &condit);
+                conditionLoc.push_back(r);
                 conditions.push_back(condit);
 
                 a += condit.size();
@@ -147,11 +152,10 @@ void Assembler::AssembleConditional(Nodes::Node* cond, std::vector<Instruction> 
             
         } else { // Codigo
             // Aislar
-            StartContext(&code);
-
-            AssembleCode(cond->children[i], &code);
-
-            EndContext(&code);
+            
+            std::vector<int> cont;
+            AssembleCode(cond->children[i], &code, &cont);
+            FreeContext(&cont);
 
             codes.push_back(code);
             a += code.size() + 1;
@@ -176,7 +180,7 @@ void Assembler::AssembleConditional(Nodes::Node* cond, std::vector<Instruction> 
             a--;
             Instruction test(InstructionID::TEST, ParamType::AB);
 
-            test.SetA(regPointer);
+            test.SetA(conditionLoc[i/2]);
             
             test.SetB(codes[(i / 2)].size() + 1);
             
@@ -199,27 +203,29 @@ void Assembler::AssembleConditional(Nodes::Node* cond, std::vector<Instruction> 
 
 void Assembler::AssembleFor(Nodes::Node* para, std::vector<Instruction> *to){
     // Assemblem primer doncs una declaració, per això, aillem
-    StartContext(to);
+    std::vector<int> cont;
 
     std::vector<Instruction> exp, inc, code, total;
     // Ponemos inicializacion y tal
-    AssembleCode(para->children[0], &total);
+    AssembleCode(para->children[0], &total, &cont);
     int decSize = total.size();
 
     int a = 0;
-    AssembleExpression(para->children[1], &exp);
+    int expLoc = AssembleExpression(para->children[1], &exp);
     a += exp.size() + 1;
 
-    AssembleCode(para->children[2], &inc);
+    AssembleCode(para->children[2], &inc, &cont);
     a += inc.size() + 1;
 
-    AssembleCode(para->children[3], &code);
+    AssembleCode(para->children[3], &code, &cont);
     a += code.size();
 
     Instruction jump(InstructionID::JUMP, ParamType::AB), 
         test(InstructionID::TEST, ParamType::AB);
-    test.SetA(regPointer);
+    test.SetA(expLoc);
     test.SetB(a - exp.size());
+
+    Free(expLoc);
 
     PushInstructions(&exp, &total);
     PushInstruction(test, &total);
@@ -229,9 +235,9 @@ void Assembler::AssembleFor(Nodes::Node* para, std::vector<Instruction> *to){
     jump.SetA(-a);
     jump.SetB(0);
 
+    FreeContext(&cont);
     PushInstruction(jump, &total);
     // std::cout << termcolor::green << "STACK: " << stack << std::endl;
-    EndContext(&total);
 
     // Val ok ara fem
     int p = total.size();
@@ -240,14 +246,12 @@ void Assembler::AssembleFor(Nodes::Node* para, std::vector<Instruction> *to){
             // Val eh hem de posar el nombre de salts fin al final ja que això és un break
             total[i].temp = 0;
             total[i].SetA(total.size() - i - 1);
-            total[i].SetB(total[i].GetB() - stacks.size());
         }
 
         if(total[i].type == InstructionID::JUMP && total[i].temp == 2){
             total[i].temp = 0;
 
             total[i].SetA(total.size() - i - inc.size() - 3);
-            total[i].SetB(total[i].GetB() - stacks.size() - 1); // Sortir del context
         }
     }
 
@@ -259,28 +263,30 @@ void Assembler::AssembleWhile(Nodes::Node* whil, std::vector<Instruction> *to){
     std::vector<Instruction> exp, code, total;
 
     
-    AssembleExpression(whil->children[0], &exp);
-    StartContext(&exp);
+    int cond = AssembleExpression(whil->children[0], &exp);
+    
+    std::vector<int> contLoc;
     
     // Aislar
     PushInstructions(&exp, &total);
 
-    AssembleCode(whil->children[1], &code);
+    AssembleCode(whil->children[1], &code, &contLoc);
 
-    EndContext(&code);
+    FreeContext(&contLoc);
 
     int n = exp.size() + code.size() + 1;
 
     Instruction test(InstructionID::TEST, ParamType::AB);
-    test.SetA(regPointer);
+    test.SetA(cond);
     test.SetB(code.size() + 2);
 
     PushInstruction(test, &total);
+
+    Free(cond);
     PushInstructions(&code, &total);
 
     Instruction jump(InstructionID::JUMP, ParamType::AB);
     jump.SetA(-n - 1);
-    jump.SetB(0);
 
     PushInstruction(jump, &total);
 
@@ -290,8 +296,6 @@ void Assembler::AssembleWhile(Nodes::Node* whil, std::vector<Instruction> *to){
             // Val eh hem de posar el nombre de salts fin al final ja que això és un break
             total[i].temp = 0;
             total[i].SetA(total.size() - i - 1);
-
-            total[i].SetB(total[i].GetB() - stacks.size()); // Sortir del context
         }
 
         if(total[i].type == InstructionID::JUMP && total[i].temp == 2){
@@ -300,14 +304,13 @@ void Assembler::AssembleWhile(Nodes::Node* whil, std::vector<Instruction> *to){
             
             // total[i].SetA(-n -1 + i);
             total[i].SetA(total.size() - i - 2);
-            
-            total[i].SetB(total[i].GetB() - stacks.size() - 1); // Sortir del context
         }
     }
 
     PushInstructions(&total, to);
 }
 
+/*
 void Assembler::AssembleReturn(Nodes::Node* ret, std::vector<Instruction> *to){
     AssembleExpression(ret->children[0], to);
 
@@ -316,11 +319,11 @@ void Assembler::AssembleReturn(Nodes::Node* ret, std::vector<Instruction> *to){
 
     PushInstruction(retu, to);
 }
+*/
 
 void Assembler::AssembleTempBreak(Nodes::Node *stop, std::vector<Instruction> *to){
     Instruction tmpStop(InstructionID::JUMP, ParamType::AB);
     tmpStop.temp = 1; // Identifier del break
-    tmpStop.SetB(stacks.size());
 
     PushInstruction(tmpStop, to);
 }
@@ -328,29 +331,39 @@ void Assembler::AssembleTempBreak(Nodes::Node *stop, std::vector<Instruction> *t
 void Assembler::AssembleTempSkip(Nodes::Node *skip, std::vector<Instruction> *to){
     Instruction tmpSkip(InstructionID::JUMP, ParamType::AB);
     tmpSkip.temp = 2; // Identifier del skip
-    tmpSkip.SetB(stacks.size());
 
     PushInstruction(tmpSkip, to);
 }
 
-void Assembler::AssembleDeclaration(Nodes::Node *dec, std::vector<Instruction> *to){
+int Assembler::AssembleDeclaration(Nodes::Node *dec, std::vector<Instruction> *to){
     // type DEC -> [EXP, TYPE]
     // Primer hauriem de fer un assemble de l'expressió
 
     // Suposo que hem de fer algo amb el type per optimitzar???
+    int d;
     try {
-        AssembleExpression(dec->children[0], to);
+        d = AssembleExpression(dec->children[0], to);
     } catch(std::string r){
         throw(r);
     }
     // Ara l'expression hauria d'estar al top del stack
-    Instruction push(InstructionID::PUSH, ParamType::AB);
-    push.SetA(regPointer);
-    push.SetB(regPointer);
+    /*
+    int n = GetNextFree();
+    reserves[n].identifier = dec->GetDataString();
+    reserves[n].isIdentifier = true;
+    reserves[n].isFree = false;
 
-    AppendReference(dec);
+    Instruction mov(InstructionID::MOVE, ParamType::AB);
+    mov.SetA(d);
+    mov.SetB(n);
+    PushInstruction(mov, to);
 
-    PushInstruction(push, to);
+    Free(d);
+    */
+    reserves[d].identifier = dec->GetDataString();
+    reserves[d].isIdentifier = true;
+    reserves[d].isFree = false;
+    return d;
 }
 
 void Assembler::AssembleAssignation(Nodes::Node* assign, std::vector<Instruction> *to){
@@ -362,18 +375,19 @@ void Assembler::AssembleAssignation(Nodes::Node* assign, std::vector<Instruction
         throw(ex);
     }
     
-    AssembleExpression(assign->children[0], to);
+    int d = AssembleExpression(assign->children[0], to);
 
     Instruction move(InstructionID::MOVE, ParamType::AB);
 
-    move.SetA(regPointer);
+    move.SetA(d);
     move.SetB(where);
+    Free(d);
 
     PushInstruction(move, to);
 
 }
 
-void Assembler::AssembleExpression(Nodes::Node *exp, std::vector<Instruction> *to){
+int Assembler::AssembleExpression(Nodes::Node *exp, std::vector<Instruction> *to){
     // Esta molt guai tenim una expression hem de fer coses
     // Podem tenir valors literals, la idea es que el resultat final el tinguem al registre que apunta el nostre punter + 1
     // Hem de tenir en compte que els registres després del punter no tenen efecte
@@ -389,37 +403,46 @@ void Assembler::AssembleExpression(Nodes::Node *exp, std::vector<Instruction> *t
             f = t;
         }*/
 
-        Instruction op(TranslateBinOpId(exp->nd), ParamType::AB);
+        Instruction op(TranslateBinOpId(exp->nd), ParamType::ABC);
         // Val si cap dels dos es valor podem cridar recursivament AssembleExpression amb un dels dos
-        AssembleExpression(f, to);
+        int storedA = AssembleExpression(f, to);
+        op.SetA(storedA);
         // Ara tenim al nostre punter f assembleat. L'augmentem i assemblem t
-        op.SetA(regPointer);
-        IncreasePointer();
-        AssembleExpression(s, to);
-        op.SetB(regPointer);
-        DecreasePointer();
+        int storedB = AssembleExpression(s, to);
+        op.SetB(storedB);
+
+        // Val ara fem free i guardem
+        int n = GetNextFree();
+        op.SetC(n);
+        Free(storedA);
+        Free(storedB);
 
         PushInstruction(op, to);
+        return n;
     }
     else if(exp->type == Nodes::NodeType::EXP_UNARY){
         Nodes::Node* f = exp->children[0];
-        Instruction op(TranslateUnOpId(exp->nd), ParamType::A);
+        Instruction op(TranslateUnOpId(exp->nd), ParamType::AB);
         // Val doncs volem al nostre punter l'expressió
-        AssembleExpression(f, to);
+        int stored = AssembleExpression(f, to);
         // I ara li apliquem la operació
-        op.SetA(regPointer);
-
+        op.SetA(stored);
+        int n = GetNextFree();
+        op.SetB(n);
         PushInstruction(op, to);
+        return n;
     } else if(IsValue(exp->type)){
         // Bueno carreguem i ja està
         Instruction loadc(InstructionID::LOADC, ParamType::AB);
-        loadc.SetA(regPointer);
+
+        int n = GetNextFree();
+        loadc.SetA(n);
         loadc.SetB(GetConstId(exp));
 
         PushInstruction(loadc, to);
-        return;
-    } else if(exp->type == Nodes::NodeType::EXP_CALL){
-        AssembleCall(exp, to);
+        return n;
+    //} else if(exp->type == Nodes::NodeType::EXP_CALL){
+        //return AssembleCall(exp, to);
     } else if(exp->type == Nodes::NodeType::REFERENCE){
         int ref;
         try {
@@ -427,23 +450,31 @@ void Assembler::AssembleExpression(Nodes::Node *exp, std::vector<Instruction> *t
         } catch(std::string ex){
             throw(ex);
         }
-        Instruction load(InstructionID::LOAD, ParamType::AB);
-        load.SetA(regPointer);
-        load.SetB(ref);
 
-        PushInstruction(load, to);
+        // Val hem de moure a un lloc lliure
+        int f = GetNextFree();
+
+        Instruction mov(InstructionID::MOVE, ParamType::AB);
+        mov.paramType = ParamType::AB;
+        mov.SetA(ref);
+        mov.SetB(f);
+        PushInstruction(mov, to);
+
+        return f;
     }
 }
 
 void Assembler::AssembleDef(Nodes::Node* def, std::vector<Instruction> *to){
     // El fill és una expression
     Instruction dif(InstructionID::DEF, ParamType::A);
-    AssembleExpression(def->children[0], to);
-    dif.SetA(regPointer);
+    int d = AssembleExpression(def->children[0], to);
+    dif.SetA(d);
+    Free(d);
 
     PushInstruction(dif, to);
 }
 
+/*
 void Assembler::AssembleCall(Nodes::Node *call, std::vector<Instruction> *to){
     // Ok suposem que call és una call.
     // Primer carreguem la funció a cridar
@@ -480,6 +511,7 @@ void Assembler::AssembleCall(Nodes::Node *call, std::vector<Instruction> *to){
 
     PushInstruction(cins, to);
 }
+*/
 
 // De moment serà una resta chunga
 InstructionID Assembler::TranslateBinOpId(int data){
@@ -488,24 +520,6 @@ InstructionID Assembler::TranslateBinOpId(int data){
 
 InstructionID Assembler::TranslateUnOpId(int data){
     return InstructionID::ADD;
-}
-
-void Assembler::AppendReference(That::Nodes::Node* ref){
-    // Suposem que ref es de tipus referència. Aleshores doncs té un string molt maco!
-    std::string id = ref->GetDataString();
-    
-    identifierStack.push_back(id);
-    
-    // std::cout << "Appended: " << id << std::endl;
-}
-
-void Assembler::IncreasePointer(){
-    regPointer++;
-    if(regPointer >= regCount) regCount = regPointer + 1;
-}
-
-void Assembler::DecreasePointer(){
-    regPointer--;
 }
 
 // TODO: Canviar això per suportar més coses
@@ -613,26 +627,7 @@ int Assembler::GetConstId(Nodes::Node *val){
     return i;
 }
 
-
-void Assembler::StartContext(std::vector<Instruction> *to){
-    Instruction cont(InstructionID::CONT, That::ParamType::A);
-    to->push_back(cont);
-    stacks.push(identifierStack.size());
-}
-
-// TODO: Falta alguna manera para decir a la maquina virtual de hacer close
-void Assembler::EndContext(std::vector<Instruction> *to){
-    while(identifierStack.size() > stacks.top()){
-        identifierStack.pop_back();
-    }
-
-    stacks.pop();
-
-    Instruction close(InstructionID::CLOSE, ParamType::A);
-    close.SetA(1);
-    to->push_back(close);
-}
-
+/*
 int Assembler::GetRefId(std::string ref){
     for(int i = identifierStack.size() - 1; i >= 0; i--){
         if(identifierStack[i] == ref){
@@ -643,4 +638,41 @@ int Assembler::GetRefId(std::string ref){
     //std::cout << ref << std::endl;
     // Error
     throw(std::string("Name Error: " + ref + " is not defined."));
+}
+*/
+
+int Assembler::GetRefId(std::string ref){
+    for(int i = 0; i < reserves.size(); i++){
+        if(reserves[i].isIdentifier && !reserves[i].isFree &&reserves[i].identifier == ref) return i;
+    }
+    std::cout << ref << " no hauria"<<  std::endl;
+    return -1;
+}
+
+int Assembler::GetNextFree(){
+    for(int i = 0; i < reserves.size(); i++){
+        if(reserves[i].isFree){
+            reserves[i].isFree = false;
+            reserves[i].isIdentifier = false;
+            return i;
+        }
+    }
+    Reservation rev;
+    reserves.push_back(rev);
+
+    int p = reserves.size() - 1;
+    reserves[p].isFree = 0;
+    reserves[p].isIdentifier = 0;
+    return p;
+}
+
+void Assembler::Free(int t){
+    if(t >= reserves.size()) throw(std::string("No"));
+    reserves[t].isFree = true;
+}
+
+void Assembler::FreeContext(std::vector<int> *v){
+    for(int i = 0; i < v->size(); i++){
+        Free((*v)[i]);
+    }
 }

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdint>
-
+#include <string>
 #include <vector>
 
 namespace That {
@@ -39,6 +39,17 @@ namespace That {
         Type type;
     };
 
+    struct Reservation {
+        std::string identifier;
+        bool isFree;
+        bool isIdentifier;
+
+        Reservation(){
+            isFree = false;
+            isIdentifier = false;
+        }
+    };
+
     enum ParamType {
         E,
         A,
@@ -47,14 +58,8 @@ namespace That {
     };
 
     enum InstructionID {
-        LOAD,
         LOADC,
-
-        PUSH, // abx
-        CLOSE, // abx
-        CONT, // -
         MOVE, // A, B
-        MOVER, // A, B
 
         CALL, // A, B, C // A(B+1, B+2, ..., B+C-1)
         DEF,

@@ -20,6 +20,7 @@ void VM::MemDump(uint8_t *data, int size){
 }
 
 void VM::Run(MachineCode code, Flag::Flags flags){
+    // return;
     currentCode = code;
 
     // Reservar memoria bonita para todo el code de machinecode
@@ -33,7 +34,6 @@ void VM::Run(MachineCode code, Flag::Flags flags){
     Internal::LoadConversions(&conversions);
     Internal::LoadOperations(&operations);
 
-    offsets.push(0);
     for(int i = 0; i < code.instructions.size(); i++){
         try {
             Process(code.instructions[i], &i);
@@ -42,6 +42,8 @@ void VM::Run(MachineCode code, Flag::Flags flags){
             break;
         }
     }
+
+    if(debug) std::cout << "SIZE: " << code.regCount << std::endl;
 }
 
 void VM::Process(Instruction ins, int* current){
@@ -49,13 +51,8 @@ void VM::Process(Instruction ins, int* current){
     InstructionID tipus = ins.type;
     if(debug){
         std::map<InstructionID, std::string> table = {
-            {LOAD, "LOAD"},
             {LOADC, "LOADC"},
-            {PUSH, "PUSH"},
-            {CLOSE, "CLOSE"},
-            {CONT, "CONT"},
             {MOVE, "MOVE"},
-            {MOVER, "MOVER"},
             {CALL, "CALL"},
             {DEF, "DEF"},
             {ICL, "ICL"},
@@ -87,23 +84,12 @@ void VM::Process(Instruction ins, int* current){
     if(ins.GetC() != INT_MIN) Debug::Log(ins.GetC()); std::cout << " " << std::endl;
     }
     
-    if(debug) StackDump();
     try {
         switch (tipus)
         {
-        case InstructionID::LOAD:
-            if(debug) std::cout << "S: " << ins.GetB() << " (+" << offsets.top() << ") -> R: " << ins.GetA() << std::endl;
-            registers[ins.GetA()] = stack[ins.GetB() + offsets.top()];
-            break;
         case InstructionID::LOADC: //A,B
             if(debug) std::cout << "C: " << ins.GetB() << " (" << currentCode.constants[ins.GetB()].data.num << ") -> R: " << ins.GetA() << std::endl;
             registers[ins.GetA()] = currentCode.constants[ins.GetB()].data;
-            break;
-        case InstructionID::PUSH:
-            for(int f = ins.GetA(), t = ins.GetB(); f <= t; f++)
-            stack.push_back(registers[f]);
-
-            // if(debug) StackDump();
             break;
         case InstructionID::DEF: // De momento es un print
             defaultFunctions[0]
@@ -116,73 +102,49 @@ void VM::Process(Instruction ins, int* current){
             break;
         case InstructionID::JUMP:
             *current += ins.GetA();
-            for(int j = 0; j < ins.GetB(); j++){
-                for(int i = 0; i < stack.size() - offsets.top(); i++) stack.pop_back();
-                offsets.pop();
-            }
             break;
         case InstructionID::MOVE:
-            stack[ins.GetB() + offsets.top()] = registers[ins.GetA()];
-            if(debug) std::cout << "S: " << ins.GetB() + offsets.top() << " <- R: " << ins.GetA() << std::endl;
+            registers[ins.GetB()] = registers[ins.GetA()];
             break;
-        case InstructionID::CLOSE:
-            // for(int i = 0; i < ins.GetA(); i++) stack.pop_back();
-            //std::cout << offsets.size() << std::endl;
-            //std::cout << "Miau: " << stack.size() - offsets.top() << std::endl;
-            for(int j = 0; j < ins.GetA(); j++){
-                for(int i = 0; i < stack.size() - offsets.top(); i++) stack.pop_back();
-                offsets.pop();
-            }
-            
-            break;
-        case InstructionID::CONT:
-            offsets.push(stack.size());
-            // stackOffset = offsets.size();
-            
-            // std::cout << "Stack size: " << offsets.size() << " | Current: " << offsets.top() << std::endl;
-            // if(debug) std::cout << "OFSET: " << offsets.top() << std::endl;
-            break;
-        // Operacions
-        // Arit
         case InstructionID::ADD:
-            registers[ins.GetA()] = Operate(Operator::OP_ADD, registers + ins.GetA(), registers + ins.GetB());
+            registers[ins.GetC()] = Operate(Operator::OP_ADD, registers + ins.GetA(), registers + ins.GetB());
             break;
         case InstructionID::MUL:
-            registers[ins.GetA()] = Operate(Operator::OP_MUL, registers + ins.GetA(), registers + ins.GetB());
+            registers[ins.GetC()] = Operate(Operator::OP_MUL, registers + ins.GetA(), registers + ins.GetB());
             break;  
         case InstructionID::SUB:
-            registers[ins.GetA()] = Operate(Operator::OP_SUB, registers + ins.GetA(), registers + ins.GetB());
+            registers[ins.GetC()] = Operate(Operator::OP_SUB, registers + ins.GetA(), registers + ins.GetB());
             break; 
         case InstructionID::DIV:
-            registers[ins.GetA()] = Operate(Operator::OP_DIV, registers + ins.GetA(), registers + ins.GetB());
+            registers[ins.GetC()] = Operate(Operator::OP_DIV, registers + ins.GetA(), registers + ins.GetB());
             break; 
         case InstructionID::MOD:
-            registers[ins.GetA()] = Operate(Operator::OP_MOD, registers + ins.GetA(), registers + ins.GetB());
+            registers[ins.GetC()] = Operate(Operator::OP_MOD, registers + ins.GetA(), registers + ins.GetB());
             break;
         // Bool
         case InstructionID::EQ:
-            registers[ins.GetA()] = Operate(Operator::OP_EQ, registers + ins.GetA(), registers + ins.GetB());
+            registers[ins.GetC()] = Operate(Operator::OP_EQ, registers + ins.GetA(), registers + ins.GetB());
             break;
         case InstructionID::NEQ:
-            registers[ins.GetA()] = Operate(Operator::OP_NEQ, registers + ins.GetA(), registers + ins.GetB());
+            registers[ins.GetC()] = Operate(Operator::OP_NEQ, registers + ins.GetA(), registers + ins.GetB());
             break;
         case InstructionID::NOT:
-            registers[ins.GetA()] = Operate(Operator::OP_NOT, registers + ins.GetA(), registers + ins.GetB());
+            registers[ins.GetC()] = Operate(Operator::OP_NOT, registers + ins.GetA(), registers + ins.GetB());
             break;
         case InstructionID::LT:
-            registers[ins.GetA()] = Operate(Operator::OP_LT, registers + ins.GetA(), registers + ins.GetB());
+            registers[ins.GetC()] = Operate(Operator::OP_LT, registers + ins.GetA(), registers + ins.GetB());
             break;
         case InstructionID::GT:
-            registers[ins.GetA()] = Operate(Operator::OP_GT, registers + ins.GetA(), registers + ins.GetB());
+            registers[ins.GetC()] = Operate(Operator::OP_GT, registers + ins.GetA(), registers + ins.GetB());
             break;
         case InstructionID::LEQ:
-            registers[ins.GetA()] = Operate(Operator::OP_LEQ, registers + ins.GetA(), registers + ins.GetB());
+            registers[ins.GetC()] = Operate(Operator::OP_LEQ, registers + ins.GetA(), registers + ins.GetB());
             break;
         case InstructionID::GEQ:
-            registers[ins.GetA()] = Operate(Operator::OP_GEQ, registers + ins.GetA(), registers + ins.GetB());
+            registers[ins.GetC()] = Operate(Operator::OP_GEQ, registers + ins.GetA(), registers + ins.GetB());
             break;
         case InstructionID::AND:
-            registers[ins.GetA()] = Operate(Operator::OP_AND, registers + ins.GetA(), registers + ins.GetB());
+            registers[ins.GetC()] = Operate(Operator::OP_AND, registers + ins.GetA(), registers + ins.GetB());
             break;
         default: // Nose excepcion supongo??? XD
             throw(std::string("Undefined instruction error " + std::to_string(tipus)));
@@ -236,11 +198,5 @@ std::string VM::GetOperationName(Operator t){
 void VM::RegDump(){
     for(int i = 0; i < currentCode.regCount; i++){
         std::cout << i << ": [" << GetTypeName(registers[i].type) << ", " << registers[i].num << "]" << std::endl;
-    }
-}
-
-void VM::StackDump(){
-    for(int i = 0; i < stack.size(); i++){
-        std::cout << termcolor::blue << i << ": [" << GetTypeName(stack[i].type) << ", " << stack[i].num << "]" << termcolor::reset << std::endl;
     }
 }
