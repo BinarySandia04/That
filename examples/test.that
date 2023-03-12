@@ -1,19 +1,38 @@
-"";
-"Primers 100 nombres primers:";
-
+# Mostra el nombre 10000 primer
+int n = 1000;
+"--- That ---";
 int t = 0;
 int i = 2;
-while t < 27 {
+while t < n {
     int divisible = 0;
-    for int j = 2; j < i; j += 1 {
+    int j = 2;
+    j;
+    while j < i {
+        "J: " + j + " I: " + i;
         if i % j == 0 {
             divisible = 1;
+            "STOP?";
         }
+        j += 1;
     }
     if divisible == 0 {
-        # i és divisible
-        i;
+        if t == (n - 1): i;
         t += 1;
     }
     i += 1;
 }
+## 
+int j = 0;
+while j < 10 {
+    j += 1;
+    int p = j;
+    "Entrem intern";
+    while p < 10 {
+        if p == 8: stop;
+        p;
+        p += 1;
+    }
+    "j: " + j;
+}
+"Final";
+## 

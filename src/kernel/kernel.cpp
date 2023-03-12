@@ -195,7 +195,7 @@ void Kernel::RunScript(std::string name, Flag::Flags flags){
     serializer.SerializeToFile("a.th", machineCode);
     serializer.SerializeFromFile("a.th", &machineCode);
     */
-
+    //exit(1);
     VM machine;
     // TODO: Hacer esto
     if(CHECK_BIT(flags, 1)){

@@ -87,6 +87,7 @@ void VM::Process(Instruction ins, int* current){
     if(ins.GetC() != INT_MIN) Debug::Log(ins.GetC()); std::cout << " " << std::endl;
     }
     
+    if(debug) StackDump();
     try {
         switch (tipus)
         {
@@ -102,7 +103,7 @@ void VM::Process(Instruction ins, int* current){
             for(int f = ins.GetA(), t = ins.GetB(); f <= t; f++)
             stack.push_back(registers[f]);
 
-            if(debug) StackDump();
+            // if(debug) StackDump();
             break;
         case InstructionID::DEF: // De momento es un print
             defaultFunctions[0]
@@ -115,6 +116,10 @@ void VM::Process(Instruction ins, int* current){
             break;
         case InstructionID::JUMP:
             *current += ins.GetA();
+            for(int j = 0; j < ins.GetB(); j++){
+                for(int i = 0; i < stack.size() - offsets.top(); i++) stack.pop_back();
+                offsets.pop();
+            }
             break;
         case InstructionID::MOVE:
             stack[ins.GetB() + offsets.top()] = registers[ins.GetA()];
@@ -125,14 +130,8 @@ void VM::Process(Instruction ins, int* current){
             //std::cout << offsets.size() << std::endl;
             //std::cout << "Miau: " << stack.size() - offsets.top() << std::endl;
             for(int i = 0; i < stack.size() - offsets.top(); i++) stack.pop_back();
-            // if(debug) std::cout << "Before: " << stackOffset << std::endl;
-            // stackOffset = offsets.top();
             offsets.pop();
             
-            //std::cout << stack.size() << std::endl;
-            //std::cout << "Stack size: " << offsets.size() << std::endl;
-            //if(debug) std::cout << "After: " << stackOffset << std::endl;
-            // if(debug) StackDump();
             break;
         case InstructionID::CONT:
             offsets.push(stack.size());

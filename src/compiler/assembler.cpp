@@ -122,7 +122,7 @@ void Assembler::AssembleConditional(Nodes::Node* cond, std::vector<Instruction> 
     for(int i = 0; i < cond->children.size(); i++){
         
         // std::cout << i << std::endl;
-        cond->children[i]->Debug();
+        // cond->children[i]->Debug();
         // std::cout << std::endl << std::endl;
 
         std::vector<Instruction> condit, code;
@@ -226,7 +226,7 @@ void Assembler::AssembleFor(Nodes::Node* para, std::vector<Instruction> *to){
     PushInstructions(&code, &total);
     PushInstructions(&inc, &total);
 
-    jump.SetA(-a + 1);
+    jump.SetA(-a);
     jump.SetB(0);
 
     PushInstruction(jump, &total);
@@ -239,15 +239,15 @@ void Assembler::AssembleFor(Nodes::Node* para, std::vector<Instruction> *to){
         if(total[i].type == InstructionID::JUMP && total[i].temp == 1){
             // Val eh hem de posar el nombre de salts fin al final ja que això és un break
             total[i].temp = 0;
-            total[i].SetA(total.size() - i);
-            total[i].SetB(stacks.top());
+            total[i].SetA(total.size() - i - 1);
+            total[i].SetB(total[i].GetB() - stacks.size());
         }
 
         if(total[i].type == InstructionID::JUMP && total[i].temp == 2){
-            // Val eh ara aixo es un continue
             total[i].temp = 0;
-            total[i].SetA(-i + decSize);
-            total[i].SetB(0);
+
+            total[i].SetA(total.size() - i - inc.size() - 3);
+            total[i].SetB(total[i].GetB() - stacks.size() - 1); // Sortir del context
         }
     }
 
@@ -289,15 +289,19 @@ void Assembler::AssembleWhile(Nodes::Node* whil, std::vector<Instruction> *to){
         if(total[i].type == InstructionID::JUMP && total[i].temp == 1){
             // Val eh hem de posar el nombre de salts fin al final ja que això és un break
             total[i].temp = 0;
-            total[i].SetA(total.size() - i);
-            total[i].SetB(stacks.top());
+            total[i].SetA(total.size() - i - 1);
+
+            total[i].SetB(total[i].GetB() - stacks.size()); // Sortir del context
         }
 
         if(total[i].type == InstructionID::JUMP && total[i].temp == 2){
             // Val eh ara aixo es un continue
             total[i].temp = 0;
-            total[i].SetA(-n - 1 + i);
-            total[i].SetB(0);
+            
+            // total[i].SetA(-n -1 + i);
+            total[i].SetA(total.size() - i - 2);
+            
+            total[i].SetB(total[i].GetB() - stacks.size() - 1); // Sortir del context
         }
     }
 
@@ -316,6 +320,7 @@ void Assembler::AssembleReturn(Nodes::Node* ret, std::vector<Instruction> *to){
 void Assembler::AssembleTempBreak(Nodes::Node *stop, std::vector<Instruction> *to){
     Instruction tmpStop(InstructionID::JUMP, ParamType::AB);
     tmpStop.temp = 1; // Identifier del break
+    tmpStop.SetB(stacks.size());
 
     PushInstruction(tmpStop, to);
 }
@@ -323,6 +328,7 @@ void Assembler::AssembleTempBreak(Nodes::Node *stop, std::vector<Instruction> *t
 void Assembler::AssembleTempSkip(Nodes::Node *skip, std::vector<Instruction> *to){
     Instruction tmpSkip(InstructionID::JUMP, ParamType::AB);
     tmpSkip.temp = 2; // Identifier del skip
+    tmpSkip.SetB(stacks.size());
 
     PushInstruction(tmpSkip, to);
 }
