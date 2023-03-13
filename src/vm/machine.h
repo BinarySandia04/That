@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <vector>
 #include <map>
+#include <unordered_map>
 #include <stack>
 
 #include "internal.h"
@@ -24,14 +25,14 @@ namespace That {
             std::vector<That::reg_t (*)(That::reg_t*, int)> defaultFunctions;
             std::vector<That::reg_t (*)(That::reg_t*, int)> internalFunctions;
             std::map<std::tuple<Type, Type>, That::reg_t (*)(That::reg_t*, That::reg_t*)> conversions;
-            std::map<std::tuple<Operator, Type, Type>, reg_t (*)(reg_t*, reg_t*)> operations;
+            std::unordered_map<unsigned int, void (*)(reg_t*, reg_t*, reg_t*)> operations;
 
             MachineCode currentCode;
 
             void MemDump(uint8_t *data, int size);
 
             void Process(Instruction ins, int* current);
-            reg_t Operate(Operator op, reg_t* a, reg_t* b);
+            void Operate(Operator op, reg_t* a, reg_t* b, reg_t *c);
 
             std::string GetTypeName(Type t);
             std::string GetOperationName(Operator t);

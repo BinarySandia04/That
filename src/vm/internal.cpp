@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <map>
+#include <unordered_map>
 #include <tuple>
 
 using namespace That;
@@ -50,34 +51,42 @@ void Internal::LoadConversions(std::map<std::tuple<Type, Type>, That::reg_t (*)(
     // conv->insert({{0, 0}, })
 }
 
+unsigned int Internal::HashOperation(Operator op, Type a, Type b){
+    unsigned int o = op;
+    unsigned int ua = a;
+    unsigned int ub = b;
+    return o << 16 | ua << 8 | ub;
+}
+
 // 
-void Internal::LoadOperations(std::map<std::tuple<Operator, Type, Type>, reg_t (*)(reg_t*, reg_t*)> *ops){
-    ops->insert({{Operator::OP_ADD, Type::INT, Type::INT}, Operations::IntIntSum});
-    ops->insert({{Operator::OP_ADD, Type::STRING, Type::STRING}, Operations::StrStrSum});
-    ops->insert({{Operator::OP_ADD, Type::INT, Type::STRING}, Operations::IntStrSum});
-    ops->insert({{Operator::OP_ADD, Type::STRING, Type::INT}, Operations::StrIntSum});
+void Internal::LoadOperations(std::unordered_map<unsigned int, void (*)(reg_t*, reg_t*, reg_t*)> *ops){
 
-    ops->insert({{Operator::OP_MUL, Type::INT, Type::INT}, Operations::IntIntMul});
-    ops->insert({{Operator::OP_MUL, Type::STRING, Type::INT}, Operations::StrIntMul});
-    ops->insert({{Operator::OP_MUL, Type::INT, Type::STRING}, Operations::IntStrMul});
+    (*ops)[HashOperation(Operator::OP_ADD, Type::INT, Type::INT)] = Operations::IntIntSum;
+    (*ops)[HashOperation(Operator::OP_ADD, Type::STRING, Type::STRING)] = Operations::StrStrSum;
+    (*ops)[HashOperation(Operator::OP_ADD, Type::INT, Type::STRING)] = Operations::IntStrSum;
+    (*ops)[HashOperation(Operator::OP_ADD, Type::STRING, Type::INT)] = Operations::StrIntSum;
 
-    ops->insert({{Operator::OP_SUB, Type::INT, Type::INT}, Operations::IntIntSub});
+    (*ops)[HashOperation(Operator::OP_MUL, Type::INT, Type::INT)] = Operations::IntIntMul;
+    (*ops)[HashOperation(Operator::OP_MUL, Type::STRING, Type::INT)] = Operations::StrIntMul;
+    (*ops)[HashOperation(Operator::OP_MUL, Type::INT, Type::STRING)] = Operations::IntStrMul;
 
-    ops->insert({{Operator::OP_DIV, Type::INT, Type::INT}, Operations::IntIntDiv});
+    (*ops)[HashOperation(Operator::OP_SUB, Type::INT, Type::INT)] = Operations::IntIntSub;
 
-    ops->insert({{Operator::OP_MOD, Type::INT, Type::INT}, Operations::IntIntMod});
+    (*ops)[HashOperation(Operator::OP_DIV, Type::INT, Type::INT)] = Operations::IntIntDiv;
 
-    ops->insert({{Operator::OP_LT, Type::INT, Type::INT}, Operations::IntIntLt});
+    (*ops)[HashOperation(Operator::OP_MOD, Type::INT, Type::INT)] = Operations::IntIntMod;
 
-    ops->insert({{Operator::OP_LEQ, Type::INT, Type::INT}, Operations::IntIntLeq});
+    (*ops)[HashOperation(Operator::OP_LT, Type::INT, Type::INT)] = Operations::IntIntLt;
 
-    ops->insert({{Operator::OP_GT, Type::INT, Type::INT}, Operations::IntIntGt});
+    (*ops)[HashOperation(Operator::OP_LEQ, Type::INT, Type::INT)] = Operations::IntIntLeq;
+
+    (*ops)[HashOperation(Operator::OP_GT, Type::INT, Type::INT)] = Operations::IntIntGt;
     
-    ops->insert({{Operator::OP_GEQ, Type::INT, Type::INT}, Operations::IntIntGeq});
+    (*ops)[HashOperation(Operator::OP_GEQ, Type::INT, Type::INT)] = Operations::IntIntGeq;
 
-    ops->insert({{Operator::OP_EQ, Type::INT, Type::INT}, Operations::IntIntEq});
+    (*ops)[HashOperation(Operator::OP_EQ, Type::INT, Type::INT)] = Operations::IntIntEq;
     
-    ops->insert({{Operator::OP_NEQ, Type::INT, Type::INT}, Operations::IntIntNeq});
+    (*ops)[HashOperation(Operator::OP_NEQ, Type::INT, Type::INT)] = Operations::IntIntNeq;
 
-    ops->insert({{Operator::OP_AND, Type::BOOL, Type::BOOL}, Operations::BoolBoolAnd});
+    (*ops)[HashOperation(Operator::OP_AND, Type::BOOL, Type::BOOL)] = Operations::BoolBoolAnd;
 }

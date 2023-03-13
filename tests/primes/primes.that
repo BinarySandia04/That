@@ -1,5 +1,5 @@
 # Mostra el nombre 10000 primer
-int n = 2000;
+int n = 5000;
 "--- That ---";
 int t = 0;
 int i = 2;

@@ -1,6 +1,6 @@
 # Mostra el nombre 10000 primer
 print("--- PYTHON ---")
-n = 2000
+n = 5000
 t = 0
 i = 2
 while(t < n):

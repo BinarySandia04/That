@@ -1,4 +1,19 @@
-
-for int i = 0; i < 10; i += 1 {
-    i;
+# Mostra el nombre 10000 primer
+int n = 100;
+"--- That ---";
+int t = 0;
+int i = 2;
+while t < n {
+    int divisible = 0;
+    for int j = 2; j < i; j += 1 {
+        if i % j == 0 {
+            divisible = 1;
+            stop;
+        }
+    }
+    if divisible == 0 {
+        if t == (n - 1): i;
+        t += 1;
+    }
+    i += 1;
 }

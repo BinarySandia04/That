@@ -4,33 +4,33 @@
 
 namespace That {
     namespace Operations {
-        reg_t IntIntSum(reg_t* a, reg_t* b);
-        reg_t StrStrSum(reg_t* a, reg_t* b);
-        reg_t IntStrSum(reg_t* a, reg_t* b);
-        reg_t StrIntSum(reg_t* a, reg_t* b);
+        void IntIntSum(reg_t* a, reg_t* b, reg_t *c);
+        void StrStrSum(reg_t* a, reg_t* b, reg_t *c);
+        void IntStrSum(reg_t* a, reg_t* b, reg_t *c);
+        void StrIntSum(reg_t* a, reg_t* b, reg_t *c);
         
-        reg_t IntIntMul(reg_t* a, reg_t* b);
-        reg_t IntStrMul(reg_t* a, reg_t* b);
-        reg_t StrIntMul(reg_t* a, reg_t* b);
+        void IntIntMul(reg_t* a, reg_t* b, reg_t *c);
+        void IntStrMul(reg_t* a, reg_t* b, reg_t *c);
+        void StrIntMul(reg_t* a, reg_t* b, reg_t *c);
 
-        reg_t IntIntSub(reg_t* a, reg_t* b);
+        void IntIntSub(reg_t* a, reg_t* b, reg_t *c);
 
-        reg_t IntIntDiv(reg_t* a, reg_t* b);
+        void IntIntDiv(reg_t* a, reg_t* b, reg_t *c);
 
-        reg_t IntIntMod(reg_t* a, reg_t* b);
+        void IntIntMod(reg_t* a, reg_t* b, reg_t *c);
 
-        reg_t IntIntLt(reg_t* a, reg_t* b);
+        void IntIntLt(reg_t* a, reg_t* b, reg_t *c);
         
-        reg_t IntIntLeq(reg_t* a, reg_t* b);
+        void IntIntLeq(reg_t* a, reg_t* b, reg_t *c);
 
-        reg_t IntIntGt(reg_t* a, reg_t* b);
+        void IntIntGt(reg_t* a, reg_t* b, reg_t *c);
 
-        reg_t IntIntGeq(reg_t* a, reg_t* b);
+        void IntIntGeq(reg_t* a, reg_t* b, reg_t *c);
 
-        reg_t IntIntEq(reg_t* a, reg_t* b);
+        void IntIntEq(reg_t* a, reg_t* b, reg_t *c);
     
-        reg_t IntIntNeq(reg_t* a, reg_t* b);
+        void IntIntNeq(reg_t* a, reg_t* b, reg_t *c);
 
-        reg_t BoolBoolAnd(reg_t* a, reg_t *b);
+        void BoolBoolAnd(reg_t* a, reg_t *b, reg_t *c);
     }
 }
