@@ -2,7 +2,7 @@
 
 int main(){
     printf("--- C ---\n");
-    int n = 5000;
+    int n = 2000;
     int t = 0;
     int i = 2;
     while(t < n){
