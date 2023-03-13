@@ -43,12 +43,10 @@ namespace That {
         std::string identifier;
         bool isFree;
         bool isIdentifier;
-        int hasConstant;
 
         Reservation(){
             isFree = false;
             isIdentifier = false;
-            hasConstant = -1;
         }
     };
 

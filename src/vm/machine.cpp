@@ -25,9 +25,6 @@ void VM::Run(MachineCode code, Flag::Flags flags){
 
     // Reservar memoria bonita para todo el code de machinecode
     registers = new reg_t[code.regCount];
-    constants = new reg_t[code.constants.size()];
-
-    for(int i = 0; i < code.constants.size(); i++) constants[i] = code.constants[i].data;
 
     debug = CHECK_BIT(flags, 1);
 
@@ -36,10 +33,6 @@ void VM::Run(MachineCode code, Flag::Flags flags){
     Internal::LoadInternalFunctions(&internalFunctions);
     Internal::LoadConversions(&conversions);
     Internal::LoadOperations(&operations);
-    if(debug){
-        std::cout << "SIZE: " << code.regCount << std::endl;
-        return;
-    }
 
     for(int i = 0; i < code.instructions.size(); i++){
         try {
@@ -50,12 +43,13 @@ void VM::Run(MachineCode code, Flag::Flags flags){
         }
     }
 
+    if(debug) std::cout << "SIZE: " << code.regCount << std::endl;
 }
 
 void VM::Process(Instruction ins, int* current){
 
     InstructionID tipus = ins.type;
-    
+    /*
     if(debug){
         std::map<InstructionID, std::string> table = {
             {LOADC, "LOADC"},
@@ -90,14 +84,14 @@ void VM::Process(Instruction ins, int* current){
     if(ins.GetB() != INT_MIN) Debug::Log(ins.GetB()); std::cout << " ";
     if(ins.GetC() != INT_MIN) Debug::Log(ins.GetC()); std::cout << " " << std::endl;
     }
+    */
     
-    int i;
     try {
         switch (tipus)
         {
         case InstructionID::LOADC: //A,B
             // if(debug) std::cout << "C: " << ins.GetB() << " (" << currentCode.constants[ins.GetB()].data.num << ") -> R: " << ins.GetA() << std::endl;
-            registers[ins.GetA()] = constants[ins.GetB()];
+            registers[ins.GetA()] = currentCode.constants[ins.GetB()].data;
             break;
         case InstructionID::DEF: // De momento es un print
             defaultFunctions[0](registers + ins.GetA(), 1);

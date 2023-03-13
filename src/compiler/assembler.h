@@ -20,7 +20,7 @@ namespace That {
             void AssembleCode(Nodes::Node* node, std::vector<Instruction> *to, std::vector<int> *declared);
             void AssembleFunction(Nodes::Node* func, std::vector<Instruction> *to);
             int AssembleDeclaration(Nodes::Node* ident, std::vector<Instruction> *to);
-            int AssembleExpression(Nodes::Node* exp, std::vector<Instruction> *to, int desired);
+            int AssembleExpression(Nodes::Node* exp, std::vector<Instruction> *to);
             // int AssembleCall(Nodes::Node* call, std::vector<Instruction> *to);
             void AssembleDef(Nodes::Node* call, std::vector<Instruction> *to);
             void AssembleAssignation(Nodes::Node* assign, std::vector<Instruction> *to);

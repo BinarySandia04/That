@@ -2,7 +2,7 @@
 
 int main(){
     printf("--- C ---\n");
-    int n = 1000;
+    int n = 5000;
     int t = 0;
     int i = 2;
     while(t < n){
@@ -11,6 +11,7 @@ int main(){
         while(j < i){
             if(i % j == 0){
                 divisible = 1;
+                break;
             }
             j++;
         }
