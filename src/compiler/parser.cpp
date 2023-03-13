@@ -489,6 +489,7 @@ void Parser::GetAssignation(int from, int to, Nodes::Node** writeNode){
 
     if(this->tokens[from-1].type != Token::TokenType::A_ASSIGMENT){
         // Es una operació cal operar ara mateix!!!
+        // TODO: Optimitzar aquesta cosa que aixo necessita el seu propi node
         Nodes::Node *op = new Nodes::Node(Nodes::NodeType::EXP_BINARY);
         Nodes::Node *ref = new Nodes::Node(Nodes::NodeType::REFERENCE);
         

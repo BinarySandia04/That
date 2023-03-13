@@ -56,7 +56,7 @@ void Assembler::AssembleCode(Nodes::Node* node, std::vector<Instruction> *to, st
         Nodes::NodeType t = n->type;
         
         try {
-            if(IsExpression(t)) AssembleExpression(n, to);
+            if(IsExpression(t)) AssembleExpression(n, to, -1);
             else if(t == Nodes::DEF_FUNCTION) AssembleDef(n, to);
             else if(t == Nodes::DECLARATION) declared->push_back(AssembleDeclaration(n, to));
             else if(t == Nodes::ASSIGNATION) AssembleAssignation(n, to);
@@ -143,7 +143,7 @@ void Assembler::AssembleConditional(Nodes::Node* cond, std::vector<Instruction> 
                 codes.push_back(code);
                 a += code.size();
             } else {
-                int r = AssembleExpression(cond->children[i], &condit);
+                int r = AssembleExpression(cond->children[i], &condit, -1);
                 conditionLoc.push_back(r);
                 conditions.push_back(condit);
 
@@ -194,8 +194,9 @@ void Assembler::AssembleConditional(Nodes::Node* cond, std::vector<Instruction> 
             a--;
             Instruction jmp(InstructionID::JUMP, ParamType::AB);
             jmp.SetA(a);
-            jmp.SetB(0);
-            PushInstruction(jmp, to);
+            
+            // std::cout << "J4: " << a << std::endl;
+            if(a != 0) PushInstruction(jmp, to);
         }
     }
     
@@ -211,7 +212,7 @@ void Assembler::AssembleFor(Nodes::Node* para, std::vector<Instruction> *to){
     int decSize = total.size();
 
     int a = 0;
-    int expLoc = AssembleExpression(para->children[1], &exp);
+    int expLoc = AssembleExpression(para->children[1], &exp, -1);
     a += exp.size() + 1;
 
     AssembleCode(para->children[2], &inc, &cont);
@@ -233,7 +234,7 @@ void Assembler::AssembleFor(Nodes::Node* para, std::vector<Instruction> *to){
     PushInstructions(&inc, &total);
 
     jump.SetA(-a);
-    jump.SetB(0);
+    // std::cout << "J5: " << -a << std::endl;
 
     FreeContext(&cont);
     PushInstruction(jump, &total);
@@ -246,12 +247,14 @@ void Assembler::AssembleFor(Nodes::Node* para, std::vector<Instruction> *to){
             // Val eh hem de posar el nombre de salts fin al final ja que això és un break
             total[i].temp = 0;
             total[i].SetA(total.size() - i - 1);
+            // std::cout << "J6: " << total.size() - i - 1 << std::endl;
         }
 
         if(total[i].type == InstructionID::JUMP && total[i].temp == 2){
             total[i].temp = 0;
 
             total[i].SetA(total.size() - i - inc.size() - 3);
+            // std::cout << "J7: " << total.size() - i - inc.size() - 3 << std::endl;
         }
     }
 
@@ -263,7 +266,7 @@ void Assembler::AssembleWhile(Nodes::Node* whil, std::vector<Instruction> *to){
     std::vector<Instruction> exp, code, total;
 
     
-    int cond = AssembleExpression(whil->children[0], &exp);
+    int cond = AssembleExpression(whil->children[0], &exp, -1);
     
     std::vector<int> contLoc;
     
@@ -271,6 +274,7 @@ void Assembler::AssembleWhile(Nodes::Node* whil, std::vector<Instruction> *to){
     PushInstructions(&exp, &total);
 
     AssembleCode(whil->children[1], &code, &contLoc);
+    int s = code.size();
 
     FreeContext(&contLoc);
 
@@ -287,6 +291,7 @@ void Assembler::AssembleWhile(Nodes::Node* whil, std::vector<Instruction> *to){
 
     Instruction jump(InstructionID::JUMP, ParamType::AB);
     jump.SetA(-n - 1);
+    // std::cout << "J1: " << -n - 1 << std::endl;
 
     PushInstruction(jump, &total);
 
@@ -296,6 +301,7 @@ void Assembler::AssembleWhile(Nodes::Node* whil, std::vector<Instruction> *to){
             // Val eh hem de posar el nombre de salts fin al final ja que això és un break
             total[i].temp = 0;
             total[i].SetA(total.size() - i - 1);
+            // std::cout << "J2: " << total.size() - i - 1 << std::endl;
         }
 
         if(total[i].type == InstructionID::JUMP && total[i].temp == 2){
@@ -304,6 +310,7 @@ void Assembler::AssembleWhile(Nodes::Node* whil, std::vector<Instruction> *to){
             
             // total[i].SetA(-n -1 + i);
             total[i].SetA(total.size() - i - 2);
+            // std::cout << "J3: " << total.size() - i - 2 << std::endl;
         }
     }
 
@@ -342,7 +349,7 @@ int Assembler::AssembleDeclaration(Nodes::Node *dec, std::vector<Instruction> *t
     // Suposo que hem de fer algo amb el type per optimitzar???
     int d;
     try {
-        d = AssembleExpression(dec->children[0], to);
+        d = AssembleExpression(dec->children[0], to, -1);
     } catch(std::string r){
         throw(r);
     }
@@ -363,6 +370,7 @@ int Assembler::AssembleDeclaration(Nodes::Node *dec, std::vector<Instruction> *t
     reserves[d].identifier = dec->GetDataString();
     reserves[d].isIdentifier = true;
     reserves[d].isFree = false;
+    reserves[d].hasConstant = -1;
     return d;
 }
 
@@ -375,19 +383,21 @@ void Assembler::AssembleAssignation(Nodes::Node* assign, std::vector<Instruction
         throw(ex);
     }
     
-    int d = AssembleExpression(assign->children[0], to);
+    int d = AssembleExpression(assign->children[0], to, where);
 
-    Instruction move(InstructionID::MOVE, ParamType::AB);
+    if(d != where){
+        Instruction move(InstructionID::MOVE, ParamType::AB);
 
-    move.SetA(d);
-    move.SetB(where);
-    Free(d);
+        move.SetA(d);
+        move.SetB(where);
+        Free(d);
 
-    PushInstruction(move, to);
+        PushInstruction(move, to);
+    }
 
 }
 
-int Assembler::AssembleExpression(Nodes::Node *exp, std::vector<Instruction> *to){
+int Assembler::AssembleExpression(Nodes::Node *exp, std::vector<Instruction> *to, int desired){
     // Esta molt guai tenim una expression hem de fer coses
     // Podem tenir valors literals, la idea es que el resultat final el tinguem al registre que apunta el nostre punter + 1
     // Hem de tenir en compte que els registres després del punter no tenen efecte
@@ -405,15 +415,23 @@ int Assembler::AssembleExpression(Nodes::Node *exp, std::vector<Instruction> *to
 
         Instruction op(TranslateBinOpId(exp->nd), ParamType::ABC);
         // Val si cap dels dos es valor podem cridar recursivament AssembleExpression amb un dels dos
-        int storedA = AssembleExpression(f, to);
+        int storedA = AssembleExpression(f, to, -1);
         op.SetA(storedA);
         // Ara tenim al nostre punter f assembleat. L'augmentem i assemblem t
-        int storedB = AssembleExpression(s, to);
+        int storedB = AssembleExpression(s, to, -1);
         op.SetB(storedB);
 
         // Val ara fem free i guardem
-        int n = GetNextFree();
+        int n;
+        if(desired != -1){
+            if(reserves[desired].isFree) n = desired;
+            else n = GetNextFree();
+        } else n = GetNextFree();
+
         op.SetC(n);
+        
+        reserves[n].hasConstant = -1;
+
         Free(storedA);
         Free(storedB);
 
@@ -424,20 +442,36 @@ int Assembler::AssembleExpression(Nodes::Node *exp, std::vector<Instruction> *to
         Nodes::Node* f = exp->children[0];
         Instruction op(TranslateUnOpId(exp->nd), ParamType::AB);
         // Val doncs volem al nostre punter l'expressió
-        int stored = AssembleExpression(f, to);
+        int stored = AssembleExpression(f, to, -1);
         // I ara li apliquem la operació
         op.SetA(stored);
-        int n = GetNextFree();
+        int n;
+        if(desired != -1){
+            if(reserves[desired].isFree) n = desired;
+            else n = GetNextFree();
+        } else n = GetNextFree();
         op.SetB(n);
+        
+        reserves[n].hasConstant = -1;
         PushInstruction(op, to);
         return n;
     } else if(IsValue(exp->type)){
         // Bueno carreguem i ja està
-        Instruction loadc(InstructionID::LOADC, ParamType::AB);
+        int constId = GetConstId(exp);
+        // Val mirem si cal posar un loadc
+        
+        for(int i = 0; i < reserves.size(); i++){
+            if(reserves[i].hasConstant == constId){
+                // std::cout << "SI! " << constId << std::endl;
+                return i;
+            }
+        }
 
+        Instruction loadc(InstructionID::LOADC, ParamType::AB);
         int n = GetNextFree();
+        reserves[n].hasConstant = constId;
         loadc.SetA(n);
-        loadc.SetB(GetConstId(exp));
+        loadc.SetB(constId);
 
         PushInstruction(loadc, to);
         return n;
@@ -467,7 +501,7 @@ int Assembler::AssembleExpression(Nodes::Node *exp, std::vector<Instruction> *to
 void Assembler::AssembleDef(Nodes::Node* def, std::vector<Instruction> *to){
     // El fill és una expression
     Instruction dif(InstructionID::DEF, ParamType::A);
-    int d = AssembleExpression(def->children[0], to);
+    int d = AssembleExpression(def->children[0], to, -1);
     dif.SetA(d);
     Free(d);
 
@@ -643,7 +677,7 @@ int Assembler::GetRefId(std::string ref){
 
 int Assembler::GetRefId(std::string ref){
     for(int i = 0; i < reserves.size(); i++){
-        if(reserves[i].isIdentifier && !reserves[i].isFree &&reserves[i].identifier == ref) return i;
+        if(reserves[i].isIdentifier && !reserves[i].isFree && reserves[i].identifier == ref) return i;
     }
     std::cout << ref << " no hauria"<<  std::endl;
     return -1;
@@ -654,6 +688,7 @@ int Assembler::GetNextFree(){
         if(reserves[i].isFree){
             reserves[i].isFree = false;
             reserves[i].isIdentifier = false;
+            reserves[i].hasConstant = -1;
             return i;
         }
     }
@@ -663,6 +698,7 @@ int Assembler::GetNextFree(){
     int p = reserves.size() - 1;
     reserves[p].isFree = 0;
     reserves[p].isIdentifier = 0;
+    reserves[p].hasConstant = -1;
     return p;
 }
 

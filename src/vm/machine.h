@@ -19,12 +19,14 @@ namespace That {
             void Run(MachineCode code, Flag::Flags flags);
         private:
             reg_t* registers;
+            reg_t* constants;
             // std::vector<reg_t> stack;
 
             // std::stack<int> offsets;
             std::vector<That::reg_t (*)(That::reg_t*, int)> defaultFunctions;
             std::vector<That::reg_t (*)(That::reg_t*, int)> internalFunctions;
             std::map<std::tuple<Type, Type>, That::reg_t (*)(That::reg_t*, That::reg_t*)> conversions;
+
             std::unordered_map<unsigned int, void (*)(reg_t*, reg_t*, reg_t*)> operations;
 
             MachineCode currentCode;
