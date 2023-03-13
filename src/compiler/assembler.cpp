@@ -195,7 +195,8 @@ void Assembler::AssembleConditional(Nodes::Node* cond, std::vector<Instruction> 
             Instruction jmp(InstructionID::JUMP, ParamType::AB);
             jmp.SetA(a);
             jmp.SetB(0);
-            PushInstruction(jmp, to);
+            
+            if(a != 0) PushInstruction(jmp, to);
         }
     }
     
