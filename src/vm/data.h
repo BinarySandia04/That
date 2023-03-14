@@ -12,6 +12,7 @@ namespace That {
         REAL,
         STRING,
         BOOL,
+        FUNCTION,
         _NULL,
     };
 
@@ -32,12 +33,7 @@ namespace That {
         OP_AND,
         OP_OR,
     };
-
-    struct reg_t {  
-        int num;
-        uint8_t *data;
-        Type type;
-    };
+    
 
     struct Reservation {
         std::string identifier;
@@ -111,6 +107,15 @@ namespace That {
             ParamType paramType;
         private:
             int a, b, c;
+    };
+
+    struct reg_t {
+        int num;
+        union {
+            uint8_t *data;
+            Instruction *instructions;
+        };
+        Type type;
     };
 
     struct Constant {

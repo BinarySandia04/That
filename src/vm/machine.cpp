@@ -19,13 +19,8 @@ void VM::MemDump(uint8_t *data, int size){
     return;
 }
 
-void VM::Run(MachineCode code, Flag::Flags flags){
-    // return;
-    currentCode = code;
-
-    // Reservar memoria bonita para todo el code de machinecode
-    registers = new reg_t[code.regCount];
-
+VM::VM(Flag::Flags flags){
+    this->flags = flags;
     debug = CHECK_BIT(flags, 1);
 
     // Carreguem funcions internes
@@ -33,10 +28,16 @@ void VM::Run(MachineCode code, Flag::Flags flags){
     Internal::LoadInternalFunctions(&internalFunctions);
     Internal::LoadConversions(&conversions);
     Internal::LoadOperations(&operations);
+}
+
+void VM::Run(MachineCode code){
+    // return;
+    reg_t* registers;
+    registers = new reg_t[code.regCount];
 
     for(int i = 0; i < code.instructions.size(); i++){
         try {
-            Process(code.instructions[i], &i);
+            Process(code.instructions[i], &i, &code.constants, registers);
         } catch(std::string r){
             Debug::LogError(r);
             break;
@@ -44,9 +45,10 @@ void VM::Run(MachineCode code, Flag::Flags flags){
     }
 
     if(debug) std::cout << "SIZE: " << code.regCount << std::endl;
+    delete registers;
 }
 
-void VM::Process(Instruction ins, int* current){
+void VM::Process(Instruction ins, int* current, std::vector<Constant> *constants, reg_t* registers){
 
     InstructionID tipus = ins.type;
     /*
@@ -91,7 +93,7 @@ void VM::Process(Instruction ins, int* current){
         {
         case InstructionID::LOADC: //A,B
             // if(debug) std::cout << "C: " << ins.GetB() << " (" << currentCode.constants[ins.GetB()].data.num << ") -> R: " << ins.GetA() << std::endl;
-            registers[ins.GetA()] = currentCode.constants[ins.GetB()].data;
+            registers[ins.GetA()] = (*constants)[ins.GetB()].data;
             break;
         case InstructionID::DEF: // De momento es un print
             defaultFunctions[0](registers + ins.GetA(), 1);
@@ -197,8 +199,8 @@ std::string VM::GetOperationName(Operator t){
     return m[t];
 }
 
-void VM::RegDump(){
-    for(int i = 0; i < currentCode.regCount; i++){
-        std::cout << i << ": [" << GetTypeName(registers[i].type) << ", " << registers[i].num << "]" << std::endl;
+void VM::RegDump(reg_t* regs, int s){
+    for(int i = 0; i < s; i++){
+        std::cout << i << ": [" << GetTypeName(regs[i].type) << ", " << regs[i].num << "]" << std::endl;
     }
 }

@@ -191,13 +191,12 @@ void Kernel::RunScript(std::string name, Flag::Flags flags){
     serializer.SerializeFromFile("a.th", &machineCode);
     */
     //exit(1);
-    VM machine;
+    VM machine(flags);
     // TODO: Hacer esto
     if(CHECK_BIT(flags, 1)){
         std::cout << termcolor::red << termcolor::bold << "EXEC:" << termcolor::reset << std::endl;
     }
-    machine.Run(machineCode, flags);
-
+    machine.Run(machineCode);
 
     delete ast;
 }
