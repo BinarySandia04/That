@@ -109,6 +109,10 @@ void VM::Process(Instruction ins, int* current, std::vector<Constant> *constants
         case InstructionID::MOVE:
             registers[ins.GetB()] = registers[ins.GetA()];
             break;
+        case InstructionID::CALL: // A: func, B --- C: params
+            // A veure aqui caldria eh aconseguir la funció i constants de A i doncs eecutar recursivament i tal
+            break;
+
         case InstructionID::ADD:
             Operate(Operator::OP_ADD, registers + ins.GetA(), registers + ins.GetB(), registers + ins.GetC());
             break;

@@ -19,10 +19,14 @@ Això encara està en obres. Acabaré el README quan tingui temps. Com m'agrada 
 
 Aquesta llista pot canviar en un futur. La idea es com més o menys seràn les versions (m'estic flipant molt amb això)
 
-### Fase de desenvolupament
+### Fase de desenvolupament (pre v1.0)
 - [X] Acabar de completar l'assamblador (v0.3)
-- [ ] Acabar de completar la màquina virtual (v0.4)
+- [X] Acabar de completar la màquina virtual (v0.4)
 - [ ] Solucionar bugs i optimitzar (v0.5)
+- [ ] Donar suport a grans nombres (v0.6)
+- [ ] Fer que sigui un llenguatge totalment estable i bàsic (v0.7)
+- [ ] Poder importar llibreries (v0.8)
+- [ ] Fer documentació (v0.9)
 
 ### Futur
 - [ ] Fer una versió estable del llenguatge i una petita documentació (v1.0)
