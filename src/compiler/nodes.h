@@ -54,6 +54,7 @@ namespace That {
                 std::vector<Node*> children;
                 NodeType type;
 
+                bool allocable = false;
                 int nd;
                 union data {
                     int integer;
@@ -62,7 +63,6 @@ namespace That {
                 } data;
 
                 void Debug();
-                void Free();
 
                 void SetDataString(std::string s);
                 std::string GetDataString();

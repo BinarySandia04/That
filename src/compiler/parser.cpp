@@ -577,7 +577,7 @@ int Parser::GetNext(int from, int lim, Token::TokenType type){
             if(from > tokens.size()){
                 throw std::string("Syntax error: Unexpected token");
             }
-            t = this->tokens[from].type;
+            if(from < this->tokens.size()) t = this->tokens[from].type;
 
             // Es podrien agafar excepcions si j < 0
         } while(j > 0);
@@ -636,6 +636,7 @@ void Parser::GetLiteral(int index, Nodes::Node** writeNode){
                 }
 
                 Arit::GetNumber(conv, &(lit->data.bytes), &(lit->nd));
+                lit->allocable = true;
                 
                 *writeNode = lit;
             }
@@ -649,7 +650,10 @@ void Parser::GetLiteral(int index, Nodes::Node** writeNode){
         case Token::L_STRING:
             lit->type = Nodes::NodeType::VAL_STRING;
             lit->nd = token.value.size();
+            
             lit->data.bytes = new char[lit->nd];
+            lit->allocable = true;
+
             for(int i = 0; i < lit->nd; i++){
                 lit->data.bytes[i] = token.value[i];
             }

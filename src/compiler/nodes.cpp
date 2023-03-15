@@ -10,15 +10,22 @@ using namespace That;
 Nodes::Node::Node(NodeType type){
     this->type = type;
     this->children.reserve(1);
+    this->allocable = false;
 }
 
 Nodes::Node::Node(){
     this->type = NodeType::NODE;
     this->children.reserve(1);
+    this->allocable = false;
 }
 
 Nodes::Node::~Node(){
     // std::cout << "Miau" << std::endl;
+    if(allocable) delete[] data.bytes;
+    for(int i = 0; i < children.size(); i++){
+        delete children[i];
+    }
+
 }
 
 void Nodes::Node::Debug(){
@@ -61,15 +68,10 @@ void Nodes::Node::Debug(){
     std::cout << " ]";
 }
 
-void Nodes::Node::Free(){
-    for(int i = 0; i < children.size(); i++){
-        children[i]->Free();
-    }
-}
-
 void Nodes::Node::SetDataString(std::string s){
     this->nd = s.size();
     this->data.bytes = new char[this->nd];
+    this->allocable = true;
     for(int i = 0; i < s.size(); i++) this->data.bytes[i] = s[i];
 }
 

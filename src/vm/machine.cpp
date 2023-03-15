@@ -45,7 +45,7 @@ void VM::Run(MachineCode code){
     }
 
     if(debug) std::cout << "SIZE: " << code.regCount << std::endl;
-    delete registers;
+    delete[] registers;
 }
 
 void VM::Process(Instruction ins, int* current, std::vector<Constant> *constants, reg_t* registers){
