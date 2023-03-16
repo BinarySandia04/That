@@ -37,11 +37,27 @@ std::string Reinterpreter::GetCodeBlock(Nodes::Node *node){
 }
 
 std::string Reinterpreter::AssembleExpression(Nodes::Node *n){
-    return "";
+    if(n->type == Nodes::NodeType::EXP_BINARY){
+        Nodes::Node* f = n->children[0], *s = n->children[1], *t;
+
+        std::string storedA = AssembleExpression(f);
+        std::string storedB = AssembleExpression(s);
+
+        return '(' + storedA + '+' + storedB + ')';
+    }
+    else if(n->type == Nodes::NodeType::EXP_UNARY){
+        Nodes::Node* f = n->children[0];
+        std::string stored = AssembleExpression(f);
+        return "-" + stored; // TODO: Acabar això
+    } else if(n->IsValue()){
+        return std::to_string(n->nd); // TODO: Esto
+    } else if(n->type == Nodes::NodeType::REFERENCE){
+        return n->GetDataString();
+    }
 }
 
 std::string Reinterpreter::AssembleDef(Nodes::Node *n){
-    return "";
+    return "std::cout << " + AssembleExpression(n->children[0]) + ";";
 }
 
 std::string Reinterpreter::AssembleDeclaration(Nodes::Node *n){
