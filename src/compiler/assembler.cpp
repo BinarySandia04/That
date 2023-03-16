@@ -56,7 +56,7 @@ void Assembler::AssembleCode(Nodes::Node* node, std::vector<Instruction> *to, st
         Nodes::NodeType t = n->type;
         
         try {
-            if(IsExpression(t)) AssembleExpression(n, to);
+            if(n->IsExpression()) AssembleExpression(n, to);
             else if(t == Nodes::DEF_FUNCTION) AssembleDef(n, to);
             else if(t == Nodes::DECLARATION) declared->push_back(AssembleDeclaration(n, to));
             else if(t == Nodes::ASSIGNATION) AssembleAssignation(n, to);
@@ -431,7 +431,7 @@ int Assembler::AssembleExpression(Nodes::Node *exp, std::vector<Instruction> *to
         op.SetB(n);
         PushInstruction(op, to);
         return n;
-    } else if(IsValue(exp->type)){
+    } else if(exp->IsValue()){
         // Bueno carreguem i ja està
         Instruction loadc(InstructionID::LOADC, ParamType::AB);
 
@@ -520,23 +520,6 @@ InstructionID Assembler::TranslateBinOpId(int data){
 
 InstructionID Assembler::TranslateUnOpId(int data){
     return InstructionID::ADD;
-}
-
-// TODO: Canviar això per suportar més coses
-bool Assembler::IsValue(Nodes::NodeType t){
-    return (t == Nodes::NodeType::VAL_BOOLEAN ||
-    t == Nodes::NodeType::VAL_INT ||
-    t == Nodes::NodeType::VAL_BIGINT ||
-    t == Nodes::NodeType::VAL_NULL ||
-    t == Nodes::NodeType::VAL_REAL ||
-    t == Nodes::NodeType::VAL_STRING);
-}
-
-bool Assembler::IsExpression(Nodes::NodeType t){
-    return (IsValue(t) ||
-    t == Nodes::NodeType::EXP_BINARY ||
-    t == Nodes::NodeType::EXP_UNARY ||
-    t == Nodes::NodeType::EXP_CALL);
 }
 
 void Assembler::PushInstruction(Instruction ins, std::vector<Instruction> *where){

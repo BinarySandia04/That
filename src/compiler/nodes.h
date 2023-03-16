@@ -64,6 +64,9 @@ namespace That {
 
                 void Debug();
 
+                bool IsValue();
+                bool IsExpression();
+
                 void SetDataString(std::string s);
                 std::string GetDataString();
         };

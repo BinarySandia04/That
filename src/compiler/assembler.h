@@ -39,9 +39,6 @@ namespace That {
             InstructionID TranslateBinOpId(int data);
             InstructionID TranslateUnOpId(int data);
 
-            bool IsValue(Nodes::NodeType t);
-            bool IsExpression(Nodes::NodeType t);
-
             // void IncreasePointer();
             // void DecreasePointer();
             void Free(int t);

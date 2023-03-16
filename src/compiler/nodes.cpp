@@ -75,6 +75,22 @@ void Nodes::Node::SetDataString(std::string s){
     for(int i = 0; i < s.size(); i++) this->data.bytes[i] = s[i];
 }
 
+bool Nodes::Node::IsExpression(){
+    return (IsValue() ||
+    this->type == Nodes::NodeType::EXP_BINARY ||
+    this->type == Nodes::NodeType::EXP_UNARY ||
+    this->type == Nodes::NodeType::EXP_CALL);
+}
+
+bool Nodes::Node::IsValue(){
+    return (this->type == Nodes::NodeType::VAL_BOOLEAN ||
+    this->type == Nodes::NodeType::VAL_INT ||
+    this->type == Nodes::NodeType::VAL_BIGINT ||
+    this->type == Nodes::NodeType::VAL_NULL ||
+    this->type == Nodes::NodeType::VAL_REAL ||
+    this->type == Nodes::NodeType::VAL_STRING);
+}
+
 std::string Nodes::Node::GetDataString(){
     std::string s = "";
     for(int i = 0; i < this->nd; i++) s += this->data.bytes[i];

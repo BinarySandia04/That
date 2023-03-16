@@ -145,9 +145,9 @@ void Kernel::RunScript(std::string name, Flag::Flags flags){
     if(CHECK_BIT(flags, 2)){
         // Compilem a C++
         // std::cout << termcolor::color<255,122,0> << "Compiling..." << std::endl;
-        Reinterpreter reinterpreter(ast);
+        Reinterpreter reinterpreter;
 
-        std::cout << reinterpreter.GetCode() << std::endl;
+        std::cout << reinterpreter.GetCode(ast) << std::endl;
 
     } else {
         // Interpretem        
