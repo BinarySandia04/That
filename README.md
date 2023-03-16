@@ -64,7 +64,14 @@ s'executen instruccions, i després (si existeix) es crida a una funció main. E
 el punt d'entrada de Python, bastant similar. Aquesta linea per exemple mostra un 2
 ##
 
-print(2);
+2;
+
+# Importar alguna cosa
+import 'math';
+
+# Importar alguna cosa a un objecte (moduls suposo?)
+module Math = import 'math';
+# Math.sin(3); # Mostra ~0.14112
 
 # Per declarar variables cal indicar el tipus
 int a;
@@ -78,19 +85,19 @@ a = b + b * 50 - 3;
 # Ara farem una funció. Si no té paràmetres i no retorna res, nomes cal posar la keyword func:
 
 func hola {
-  print("Hola!");
+  "Hola!";
 }
 
 # Si una funció obte paràmetres s'introdueixen després del nom seguit de ':', indicant el tipus i el nom del paràmetre al costat:
 
 func salutacio: string a, string b {
-  print(a, "saluda a", b);
+  a, "saluda a", b;
 }
 
 # Si una funció ha de retornar algo s'escriu "=>" abans del '{' i després el tipus de retorn:
 
 func suma: int a, int b => int {
-  print("Anem a sumar", a, "i", b);
+  "Anem a sumar", a, "i", b;
   return a + b;
 }
 
@@ -99,27 +106,24 @@ func tres => int {
 }
 
 # Per executar funcions també és com altres llenguatges:
-print("Tres més dos és", suma(tres(), 2));
+"Tres més dos és", suma(tres(), 2);
 
-# També existeixen condicionals
+# També existeixen condicionals. Es poden compactificar
 if q {
-  print("Q és True");
+  "Q és True";
   if tres() == 3 {
-    print("tres és 3");
-  } else if suma(2,2) == 4 {
-    print("2+2 = 4");
-  } else {
-    print("Això no és possible!");
+    "tres és 3";
+  } else if suma(2,2) == 4: "2+2 = 4";
+    else {
+    "Això no és possible!";
   }
-} else {
-  print("Q és False");
-}
+} else: print("Q és False");
 
 # Els bucles whiles també son com altres llenguatges
 print("Comptem fins a 10!");
 int i = 1;
 while i <= 10 {
-  print(i);
+  i;
   i += 1;
 }
 
@@ -130,19 +134,13 @@ while i < 100 {
     i += 3;
     skip;
   }
-  if i % 3 == 0 {
-    print(i);
-  }
-  if i % 23 == 0 {
-    break;
-  }
+  if i % 3 == 0: i;
+  if i % 23 == 0: break;
   i += 1;
 }
 
 # També existeix el bucle for, que és un while compacte, igual que els altres llenguatges:
-for int j = 0; j < i; j += 1 {
-  print(j * i);
-}
+for int j = 0; j < i; j += 1: print(j * i);
 ```
 
 ## Dependències
