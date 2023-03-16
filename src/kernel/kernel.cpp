@@ -16,6 +16,7 @@
 #include "../version.h"
 #include "../flags/flags.h"
 #include "../headers/debug.hpp"
+#include "../reinterpret/reinterpreter.h"
 
 using namespace That;
 
@@ -140,63 +141,69 @@ void Kernel::RunScript(std::string name, Flag::Flags flags){
     }
 
     Assembler assembler(ast);
-    MachineCode machineCode = assembler.GetAssembly();
-    
-    if(CHECK_BIT(flags, 1)){
-        std::cout << termcolor::red << termcolor::bold << "ASM:" << termcolor::reset << std::endl;
-        // Ara doncs fem debug de les instruccions
-        std::map<InstructionID, std::string> ins = {
-            {LOADC, "LOADC"},
-            {MOVE, "MOVE"},
-            {CALL, "CALL"},
-            {DEF, "DEF"},
-            {ICL, "ICL"},
-            {RET, "RET"},
-            {ADD, "ADD"},
-            {SUB, "SUB"},
-            {MUL, "MUL"},
-            {DIV, "DIV"},
-            {MOD, "MOD"},
-            {AND, "AND"},
-            {OR, "OR"},
-            {NOT, "NOT"},
-            {EQ, "EQ"},
-            {NEQ, "NEQ"},
-            {GT, "GT"},
-            {LT, "LT"},
-            {GEQ, "GEQ"},
-            {LEQ, "LEQ"},
-            {TO, "TO"},
-            {END, "END"},
-            {JUMP, "JUMP"},
-            {TEST, "TEST"},
-            {HALT, "HALT"},
-        };
 
-        for(int i = 0; i < machineCode.instructions.size(); i++){
-            std::cout << termcolor::color<255,125,0> << "(" << i << ") " << termcolor::reset;
-            std::cout << ins[machineCode.instructions[i].type] << " ";
-            // std::cout << "= " << machineCode.instructions[i].type << " ";
-            if(machineCode.instructions[i].GetA() != INT32_MIN) std::cout << machineCode.instructions[i].GetA() << " ";
-            if(machineCode.instructions[i].GetB() != INT32_MIN) std::cout << machineCode.instructions[i].GetB() << " ";
-            if(machineCode.instructions[i].GetC() != INT32_MIN) std::cout << machineCode.instructions[i].GetC() << " ";
+    if(CHECK_BIT(flags, 2)){
+        // Compilem a C++
+        // std::cout << termcolor::color<255,122,0> << "Compiling..." << std::endl;
+        Reinterpreter reinterpreter(ast);
+
+        std::cout << reinterpreter.GetCode() << std::endl;
+
+    } else {
+        // Interpretem        
+        MachineCode machineCode = assembler.GetAssembly();
+        
+        if(CHECK_BIT(flags, 1)){
+            std::cout << termcolor::red << termcolor::bold << "ASM:" << termcolor::reset << std::endl;
+            // Ara doncs fem debug de les instruccions
+            std::map<InstructionID, std::string> ins = {
+                {LOADC, "LOADC"},
+                {MOVE, "MOVE"},
+                {CALL, "CALL"},
+                {DEF, "DEF"},
+                {ICL, "ICL"},
+                {RET, "RET"},
+                {ADD, "ADD"},
+                {SUB, "SUB"},
+                {MUL, "MUL"},
+                {DIV, "DIV"},
+                {MOD, "MOD"},
+                {AND, "AND"},
+                {OR, "OR"},
+                {NOT, "NOT"},
+                {EQ, "EQ"},
+                {NEQ, "NEQ"},
+                {GT, "GT"},
+                {LT, "LT"},
+                {GEQ, "GEQ"},
+                {LEQ, "LEQ"},
+                {TO, "TO"},
+                {END, "END"},
+                {JUMP, "JUMP"},
+                {TEST, "TEST"},
+                {HALT, "HALT"},
+            };
+
+            for(int i = 0; i < machineCode.instructions.size(); i++){
+                std::cout << termcolor::color<255,125,0> << "(" << i << ") " << termcolor::reset;
+                std::cout << ins[machineCode.instructions[i].type] << " ";
+                // std::cout << "= " << machineCode.instructions[i].type << " ";
+                if(machineCode.instructions[i].GetA() != INT32_MIN) std::cout << machineCode.instructions[i].GetA() << " ";
+                if(machineCode.instructions[i].GetB() != INT32_MIN) std::cout << machineCode.instructions[i].GetB() << " ";
+                if(machineCode.instructions[i].GetC() != INT32_MIN) std::cout << machineCode.instructions[i].GetC() << " ";
+                std::cout << std::endl;
+            }
             std::cout << std::endl;
         }
-        std::cout << std::endl;
+        //exit(1);
+        VM machine(flags);
+        // TODO: Hacer esto
+        if(CHECK_BIT(flags, 1)){
+            std::cout << termcolor::red << termcolor::bold << "EXEC:" << termcolor::reset << std::endl;
+        }
+        machine.Run(machineCode);
+
     }
-    
-    /*
-    Serializer serializer;
-    serializer.SerializeToFile("a.th", machineCode);
-    serializer.SerializeFromFile("a.th", &machineCode);
-    */
-    //exit(1);
-    VM machine(flags);
-    // TODO: Hacer esto
-    if(CHECK_BIT(flags, 1)){
-        std::cout << termcolor::red << termcolor::bold << "EXEC:" << termcolor::reset << std::endl;
-    }
-    machine.Run(machineCode);
 
     delete ast;
 }

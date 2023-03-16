@@ -14,8 +14,9 @@ namespace That {
     namespace Flag {
         enum Flags {
             RUN = 0,
-            ASSEMBLY = 1,
-            DEBUG = 1 << 1,
+            ASSEMBLY = 1, // Genera .th, assembly del vm
+            DEBUG = 1 << 1, // Cosa de debug
+            COMPILE = 1 << 2, // Genera codi en C++ i compila un binari
         };
 
         struct RunInfo {
