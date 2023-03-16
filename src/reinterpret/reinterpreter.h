@@ -22,5 +22,9 @@ namespace That {
             std::string AssembleFor(Nodes::Node *n);
             std::string AssembleTempBreak(Nodes::Node *n);
             std::string AssembleTempSkip(Nodes::Node *n);
+
+
+            std::string GetOperationGraphic(int n);
+            std::string GetLiteralValue(Nodes::Node *val);
     };
 }

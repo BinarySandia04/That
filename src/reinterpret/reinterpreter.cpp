@@ -3,6 +3,7 @@
 #include <string>
 #include <iostream>
 
+#include "../vm/data.h"
 #include "../compiler/nodes.h"
 
 using namespace That;
@@ -43,21 +44,21 @@ std::string Reinterpreter::AssembleExpression(Nodes::Node *n){
         std::string storedA = AssembleExpression(f);
         std::string storedB = AssembleExpression(s);
 
-        return '(' + storedA + '+' + storedB + ')';
+        return '(' + storedA + GetOperationGraphic((int) n->nd) + storedB + ')';
     }
     else if(n->type == Nodes::NodeType::EXP_UNARY){
         Nodes::Node* f = n->children[0];
         std::string stored = AssembleExpression(f);
-        return "-" + stored; // TODO: Acabar això
+        return GetOperationGraphic((int) n->nd) + stored; // TODO: Acabar això
     } else if(n->IsValue()){
-        return std::to_string(n->nd); // TODO: Esto
+        return GetLiteralValue(n);
     } else if(n->type == Nodes::NodeType::REFERENCE){
         return n->GetDataString();
     }
 }
 
 std::string Reinterpreter::AssembleDef(Nodes::Node *n){
-    return "std::cout << " + AssembleExpression(n->children[0]) + ";";
+    return "std::cout << " + AssembleExpression(n->children[0]) + " << std::endl;";
 }
 
 std::string Reinterpreter::AssembleDeclaration(Nodes::Node *n){
@@ -86,4 +87,57 @@ std::string Reinterpreter::AssembleTempBreak(Nodes::Node *n){
 
 std::string Reinterpreter::AssembleTempSkip(Nodes::Node *n){
     return "";
+}
+
+std::string Reinterpreter::GetOperationGraphic(int op){
+    Nodes::OpType oper = (Nodes::OpType) (op - 5);
+    switch (oper)
+    {
+    case Nodes::OpType::ADD:
+        return "+";
+        break;
+    case Nodes::OpType::SUBTRACT:
+        return "-";
+        break;
+    case Nodes::OpType::MULT:
+        return "*";
+        break;
+    case Nodes::OpType::DIV:
+        return "/";
+        break;
+    case Nodes::OpType::MOD:
+        return "%";
+        break;
+    default:
+        break;
+    }
+}
+
+std::string Reinterpreter::GetLiteralValue(Nodes::Node *val){
+    std::string s;
+    int i = 0;
+    switch (val->type)
+    {
+    case Nodes::VAL_INT:
+        return std::to_string(val->data.integer);
+        break;
+    case Nodes::VAL_NULL:
+        return "NULL";
+        break;
+    case Nodes::VAL_BOOLEAN:
+        if(val->nd) return "true";
+        return "false";
+        break;
+    case Nodes::VAL_STRING:
+        s = "\"";
+        for(i = 0; i < val->nd; i++){
+            s += (char) val->data.bytes[i];
+        }
+        s += "\"";
+        return s;
+        break;
+    default:
+        break;
+    }
+    return std::to_string(val->data.integer); // TODO: Esto
 }

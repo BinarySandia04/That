@@ -39,7 +39,8 @@ namespace That {
             ADD,
             SUBTRACT,
             MULT,
-            DIV
+            DIV,
+            MOD
         };
 
         class Node {
