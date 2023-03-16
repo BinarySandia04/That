@@ -88,6 +88,23 @@ func hola {
   "Hola!";
 }
 
+# Si una funció no retorna res no crida a la funció predeterminada (print)
+func prova: int a, int b {
+  int c = a + b;
+}
+
+prova(2, 3); # Executa prova, pero no mostra res per pantalla
+
+# Les funcions són de primer ordre
+func que: int a, int b, int c {
+  func sumaC: int t => int {
+    return t + c;
+  }
+
+  return sumaC(a) + sumaC(b);
+}
+que(2,3,4); # 13
+
 # Si una funció obte paràmetres s'introdueixen després del nom seguit de ':', indicant el tipus i el nom del paràmetre al costat:
 
 func salutacio: string a, string b {
