@@ -4,7 +4,7 @@
 
   <h1 align="center">That</h1>
     <p align="center">
-    Un llenguatge de programació programable interpretat petit i senzill
+    Un llenguatge de programació programable que no et complica la vida
     <br />
     <a href="https://git.aranroig.com/BinarySandia04/that/issues">Informa d'un error</a>
 </p>
