@@ -16,22 +16,21 @@ namespace That {
         _NULL,
     };
 
-    enum Operator {
+    enum OpType {
         OP_ADD,
-        OP_SUB,
+        OP_SUBTRACT,
         OP_MUL,
         OP_DIV,
         OP_MOD,
-
-        OP_NOT,
-        OP_EQ,
-        OP_NEQ,
-        OP_GT,
         OP_LT,
-        OP_GEQ,
+        OP_GT,
         OP_LEQ,
+        OP_GEQ,
+        OP_NEQ,
+        OP_EQ,
         OP_AND,
         OP_OR,
+        OP_NOT
     };
     
 

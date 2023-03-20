@@ -32,10 +32,10 @@ namespace That {
             void MemDump(uint8_t *data, int size);
 
             void Process(Instruction ins, int* current, std::vector<Constant> *constants, reg_t* registers);
-            void Operate(Operator op, reg_t* a, reg_t* b, reg_t *c);
+            void Operate(OpType op, reg_t* a, reg_t* b, reg_t *c);
 
             std::string GetTypeName(Type t);
-            std::string GetOperationName(Operator t);
+            std::string GetOperationName(OpType t);
 
             bool debug;
 

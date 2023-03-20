@@ -34,6 +34,10 @@ Aquesta llista pot canviar en un futur. La idea es com més o menys seràn les v
 - [ ] Completar les llibreries estandard per That (v3.0)
 - [ ] Multithreading i altres coses molt a futur (v4.0)
 
+## Possibles noms per That
+No m'agrada el nom de That. Aquí apuntare noms guais que podrien molar
+- Wyrm
+
 ## Raons per las quals That hauria d'existir
 
 En un futur m'agradaria que That tingui les següents "features" (molt guais):

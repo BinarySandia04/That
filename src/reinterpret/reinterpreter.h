@@ -26,5 +26,6 @@ namespace That {
 
             std::string GetOperationGraphic(int n);
             std::string GetLiteralValue(Nodes::Node *val);
+            std::string GetType(Nodes::Node *t);
     };
 }

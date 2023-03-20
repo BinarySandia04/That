@@ -21,6 +21,6 @@ namespace That {
         void LoadConversions(std::map<std::tuple<Type, Type>, That::reg_t (*)(That::reg_t*, That::reg_t*)> *conv);
         void LoadOperations(std::unordered_map<unsigned int, void (*)(reg_t*, reg_t*, reg_t*)> *ops);
     
-        unsigned int HashOperation(Operator op, Type a, Type b);
+        unsigned int HashOperation(OpType op, Type a, Type b);
     }
 }

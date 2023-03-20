@@ -318,7 +318,7 @@ void Parser::GetCodeFunction(Nodes::Node **root, int from, int *end){
         if(!IsOf(types, this->tokens[from].type)) {
             throw std::string("Syntax error: Expected return type");
         };
-        int typeId = (int) this->tokens[from].type;
+        int typeId = GetTypeFromToken((int) this->tokens[from].type);
         
         type->nd = typeId;
         from++;
@@ -365,7 +365,7 @@ void Parser::GetFunctionParameter(int from, int to, Nodes::Node **writeNode){
     // En principi to - from = 1
     Nodes::Node *param = new Nodes::Node(Nodes::NodeType::PARAMETER), *typeNode = new Nodes::Node(Nodes::NodeType::TYPE);
     param->SetDataString(this->tokens[to].value);
-    typeNode->nd = (int) this->tokens[from].type;
+    typeNode->nd = GetTypeFromToken((int) this->tokens[from].type);
     param->children.push_back(typeNode);
 
     *writeNode = param;
@@ -380,7 +380,7 @@ void Parser::GetCodeLine(Nodes::Node *root, int from, int to){
     if(IsOf(types, this->tokens[from].type)){
         // Aqui podriem optimitzar memòria
         Nodes::Node *typeNode = new Nodes::Node(Nodes::NodeType::TYPE);
-        typeNode->nd = (int) this->tokens[from].type; // Hauriem de tenir una taula amb tipus més endavant?
+        typeNode->nd = GetTypeFromToken((int) this->tokens[from].type); // Hauriem de tenir una taula amb tipus més endavant?
 
         // Vale ok podem ara llegir el nom de la variable i tal
         from++;
@@ -764,7 +764,7 @@ void Parser::GetExpression(int from, int to, Nodes::Node** writeNode){
                 // Ei és una operació unaria!
                 op = new Nodes::Node(Nodes::NodeType::EXP_UNARY);
 
-                op->nd = (int) opOrder[i][k];
+                op->nd = (int) GetOpFromToken(opOrder[i][k]);
 
                 try {
                     GetExpression(from+1, to, &first);
@@ -782,7 +782,7 @@ void Parser::GetExpression(int from, int to, Nodes::Node** writeNode){
                 op = new Nodes::Node(Nodes::NodeType::EXP_BINARY);
 
                 // Aqui suposo que s'haura de passar per algun map
-                op->nd = (int) opOrder[i][k];
+                op->nd = (int) GetOpFromToken(opOrder[i][k]);
                 
                 try {
                     GetExpression(from, n - 1, &first);
@@ -869,4 +869,71 @@ bool Parser::ContainsAssignation(int from, int to){
         if(IsOf(assignations, this->tokens[i].type)) return true;
     }
     return false;
+}
+
+/*
+T_INT,                  // int          X
+T_REAL,                 // real         X
+T_STRING,               // string       X
+T_BOOLEAN,              // bool         X
+*/
+
+Type Parser::GetTypeFromToken(int t){
+    switch(t){
+        case 1:
+            return Type::INT;
+            break;
+        case 2:
+            return Type::REAL;
+            break;
+        case 3:
+            return Type::STRING;
+            break;
+        case 4:
+            return Type::BOOL;
+            break;
+        default:
+            return Type::_NULL;
+    }
+}
+
+OpType Parser::GetOpFromToken(Token::TokenType t){
+    switch(t){
+        case Token::S_PLUS:
+            return OpType::OP_ADD;
+        case Token::S_SUBTRACT:
+            return OpType::OP_SUBTRACT;
+        case Token::S_MULTIPLY:
+            return OpType::OP_MUL;
+        case Token::S_DIVIDE:
+            return OpType::OP_DIV;
+        case Token::S_MODULO:
+            return OpType::OP_MOD;
+        case Token::S_NOT:
+            return OpType::OP_NOT;
+        case Token::S_OR:
+            return OpType::OP_OR;
+        case Token::S_AND:
+            return OpType::OP_AND;
+        case Token::C_EQUAL:
+            return OP_EQ;
+        case Token::C_NOT_EQUAL:
+            return OP_NEQ;
+        case Token::C_GREATER_THAN:
+            return OP_GT;
+        case Token::C_LESSER_THAN:
+            return OP_LT;
+        case Token::C_LESSER_EQUAL_THAN:
+            return OP_LEQ;
+        case Token::C_GREATER_EQUAL_THAN:
+            return OP_GEQ;
+    }
+
+    /* {Token::S_MODULO},
+                {Token::S_MULTIPLY, Token::S_DIVIDE},
+                {Token::S_PLUS, Token::S_SUBTRACT},
+                {Token::C_GREATER_THAN, Token::C_LESSER_THAN, Token::S_NOT},
+                {Token::C_NOT_EQUAL, Token::C_EQUAL, Token::C_GREATER_EQUAL_THAN, Token::C_LESSER_EQUAL_THAN,
+                Token::S_AND, Token::S_OR}
+    */
 }

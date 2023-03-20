@@ -35,14 +35,6 @@ namespace That {
             VAL_NULL
         };
 
-        enum OpType {
-            ADD,
-            SUBTRACT,
-            MULT,
-            DIV,
-            MOD
-        };
-
         class Node {
 
             public:

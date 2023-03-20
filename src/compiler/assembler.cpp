@@ -513,9 +513,39 @@ void Assembler::AssembleCall(Nodes::Node *call, std::vector<Instruction> *to){
 }
 */
 
-// De moment serà una resta chunga
+// De moment serà un switch chungo
 InstructionID Assembler::TranslateBinOpId(int data){
-    return (InstructionID) ((int) InstructionID::ADD + data - 5);
+    OpType t = (OpType) data;
+    switch(t){
+        case OpType::OP_ADD:
+            return InstructionID::ADD;
+        case OpType::OP_SUBTRACT:
+            return InstructionID::SUB;
+        case OpType::OP_MUL:
+            return InstructionID::MUL;
+        case OpType::OP_DIV:
+            return InstructionID::DIV;
+        case OpType::OP_MOD:
+            return InstructionID::MOD;
+        case OpType::OP_NOT:
+            return InstructionID::NOT;
+        case OpType::OP_OR:
+            return InstructionID::OR;
+        case OpType::OP_AND:
+            return InstructionID::AND;
+        case OpType::OP_EQ:
+            return InstructionID::EQ;
+        case OpType::OP_NEQ:
+            return InstructionID::NEQ;
+        case OpType::OP_GT:
+            return InstructionID::GT;
+        case OpType::OP_LT:
+            return InstructionID::LT;
+        case OpType::OP_GEQ:
+            return InstructionID::GEQ;
+        case OpType::OP_LEQ:
+            return InstructionID::LEQ;
+    }
 }
 
 InstructionID Assembler::TranslateUnOpId(int data){

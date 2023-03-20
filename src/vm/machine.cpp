@@ -114,44 +114,44 @@ void VM::Process(Instruction ins, int* current, std::vector<Constant> *constants
             break;
 
         case InstructionID::ADD:
-            Operate(Operator::OP_ADD, registers + ins.GetA(), registers + ins.GetB(), registers + ins.GetC());
+            Operate(OpType::OP_ADD, registers + ins.GetA(), registers + ins.GetB(), registers + ins.GetC());
             break;
         case InstructionID::MUL:
-            Operate(Operator::OP_MUL, registers + ins.GetA(), registers + ins.GetB(), registers + ins.GetC());
+            Operate(OpType::OP_MUL, registers + ins.GetA(), registers + ins.GetB(), registers + ins.GetC());
             break;  
         case InstructionID::SUB:
-            Operate(Operator::OP_SUB, registers + ins.GetA(), registers + ins.GetB(), registers + ins.GetC());
+            Operate(OpType::OP_SUBTRACT, registers + ins.GetA(), registers + ins.GetB(), registers + ins.GetC());
             break; 
         case InstructionID::DIV:
-            Operate(Operator::OP_DIV, registers + ins.GetA(), registers + ins.GetB(), registers + ins.GetC());
+            Operate(OpType::OP_DIV, registers + ins.GetA(), registers + ins.GetB(), registers + ins.GetC());
             break; 
         case InstructionID::MOD:
-            Operate(Operator::OP_MOD, registers + ins.GetA(), registers + ins.GetB(), registers + ins.GetC());
+            Operate(OpType::OP_MOD, registers + ins.GetA(), registers + ins.GetB(), registers + ins.GetC());
             break;
         // Bool
         case InstructionID::EQ:
-            Operate(Operator::OP_EQ, registers + ins.GetA(), registers + ins.GetB(), registers + ins.GetC());
+            Operate(OpType::OP_EQ, registers + ins.GetA(), registers + ins.GetB(), registers + ins.GetC());
             break;
         case InstructionID::NEQ:
-            Operate(Operator::OP_NEQ, registers + ins.GetA(), registers + ins.GetB(), registers + ins.GetC());
+            Operate(OpType::OP_NEQ, registers + ins.GetA(), registers + ins.GetB(), registers + ins.GetC());
             break;
         case InstructionID::NOT:
-            Operate(Operator::OP_NOT, registers + ins.GetA(), registers + ins.GetB(), registers + ins.GetC());
+            Operate(OpType::OP_NOT, registers + ins.GetA(), registers + ins.GetB(), registers + ins.GetC());
             break;
         case InstructionID::LT:
-            Operate(Operator::OP_LT, registers + ins.GetA(), registers + ins.GetB(), registers + ins.GetC());
+            Operate(OpType::OP_LT, registers + ins.GetA(), registers + ins.GetB(), registers + ins.GetC());
             break;
         case InstructionID::GT:
-            Operate(Operator::OP_GT, registers + ins.GetA(), registers + ins.GetB(), registers + ins.GetC());
+            Operate(OpType::OP_GT, registers + ins.GetA(), registers + ins.GetB(), registers + ins.GetC());
             break;
         case InstructionID::LEQ:
-            Operate(Operator::OP_LEQ, registers + ins.GetA(), registers + ins.GetB(), registers + ins.GetC());
+            Operate(OpType::OP_LEQ, registers + ins.GetA(), registers + ins.GetB(), registers + ins.GetC());
             break;
         case InstructionID::GEQ:
-            Operate(Operator::OP_GEQ, registers + ins.GetA(), registers + ins.GetB(), registers + ins.GetC());
+            Operate(OpType::OP_GEQ, registers + ins.GetA(), registers + ins.GetB(), registers + ins.GetC());
             break;
         case InstructionID::AND:
-            Operate(Operator::OP_AND, registers + ins.GetA(), registers + ins.GetB(), registers + ins.GetC());
+            Operate(OpType::OP_AND, registers + ins.GetA(), registers + ins.GetB(), registers + ins.GetC());
             break;
         default: // Nose excepcion supongo??? XD
             throw(std::string("Undefined instruction error " + std::to_string(tipus)));
@@ -164,7 +164,7 @@ void VM::Process(Instruction ins, int* current, std::vector<Constant> *constants
     // if(debug) RegDump();
 }
 
-void VM::Operate(Operator op, reg_t* a, reg_t* b, reg_t *c){
+void VM::Operate(OpType op, reg_t* a, reg_t* b, reg_t *c){
     //if(operations.count({op, a->type, b->type})){
     operations[Internal::HashOperation(op, a->type, b->type)](a, b, c);
     return;
@@ -183,10 +183,10 @@ std::string VM::GetTypeName(Type t){
     return m[t];
 }
 
-std::string VM::GetOperationName(Operator t){
-    std::map<Operator, std::string> m = {
+std::string VM::GetOperationName(OpType t){
+    std::map<OpType, std::string> m = {
         {OP_ADD,       "+"},
-        {OP_SUB,    "-"},
+        {OP_SUBTRACT,    "-"},
         {OP_MUL,      "*"},
         {OP_DIV,    "/"},
         {OP_MOD,      "%"},

@@ -4,6 +4,7 @@
 
 #include "lexer.h"
 #include "nodes.h"
+#include "../vm/data.h"
 
 namespace That {
 
@@ -81,5 +82,8 @@ namespace That {
             bool ContainsAssignation(int from, int to);
 
             bool IsOf( std::vector<Token::TokenType> list, Token::TokenType type);
+            
+            Type GetTypeFromToken(int t);
+            OpType GetOpFromToken(Token::TokenType t);
     };
 }
