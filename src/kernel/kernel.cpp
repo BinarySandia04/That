@@ -16,7 +16,8 @@
 #include "../version.h"
 #include "../flags/flags.h"
 #include "../headers/debug.hpp"
-#include "../reinterpret/reinterpreter.h"
+#include "../builder/reinterpreter.h"
+#include "../builder/builder.h"
 
 using namespace That;
 
@@ -146,8 +147,7 @@ void Kernel::RunScript(std::string name, Flag::Flags flags){
         // Compilem a C++
         // std::cout << termcolor::color<255,122,0> << "Compiling..." << std::endl;
         Reinterpreter reinterpreter;
-
-        std::cout << reinterpreter.GetCode(ast) << std::endl;
+        Builder::BuildCode(reinterpreter.GetCode(ast), Builder::GetExeName(name));
 
     } else {
         // Interpretem        

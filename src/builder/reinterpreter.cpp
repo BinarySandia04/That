@@ -9,7 +9,6 @@
 using namespace That;
 
 std::string Reinterpreter::GetCode(Nodes::Node* node){
-    std::cout << "Hola" << std::endl;
     return "#include <bits/stdc++.h>\nint main(){" + GetCodeBlock(node) + "}";
 }
 

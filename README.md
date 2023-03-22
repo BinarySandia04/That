@@ -11,6 +11,12 @@
 <p align="center">
   <a href="https://git.aranroig.com/BinarySandia04/that">Pàgina web del repositori</a>
 </p>
+<p align="center">
+<img src="https://img.shields.io/github/repo-size/BinarySandia04/That-mirror?color=%23fff&label=Repo%20size&style=for-the-badge">
+<img src="https://img.shields.io/github/languages/code-size/BinarySandia04/That-mirror?color=%23ccc&style=for-the-badge">
+<img src="https://img.shields.io/github/v/tag/BinarySandia04/That-mirror?color=%23a5dff2&label=Version&style=for-the-badge">
+<img src="https://img.shields.io/github/downloads/BinarySandia04/That-mirror/total?style=for-the-badge">
+</p>
 
 ## Coses
 Això encara està en obres. Acabaré el README quan tingui temps. Com m'agrada fer amb tots els projectes que mai acabo, aqui poso una llista amb coses per fer:
@@ -168,6 +174,7 @@ for int j = 0; j < i; j += 1: print(j * i);
 
 Les marcades amb un (*) necessiten ser instalades manualment per l'usuari final. (Podria fer un instalador potser).
 
-- [CMake](https://cmake.org/)*
+- [CMake](https://cmake.org/)* (En cas que es vulgui compilar)
+- [SWIG](https://www.swig.org/)
 - [GMP - The GNU Multiple Precision Arithmetic Library](https://gmplib.org/)
 - [MPFR](https://www.mpfr.org/)

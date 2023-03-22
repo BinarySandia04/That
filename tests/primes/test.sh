@@ -1,8 +1,11 @@
 #!/bin/bash
-cd ../../
-./build.sh
-cd tests/primes/
 g++ primes.cpp -Wall -ansi -lm -o c-primes.exe
-time ../../build/src/That -a primes.that
+./That -c primes.that
+echo "--- That (I) ---"
+time ./That primes.that
+echo "--- That (C) ---"
+time ./primes
+echo "--- Python ---"
 time python3 primes.py
+echo "--- C++ ---"
 time ./c-primes.exe
