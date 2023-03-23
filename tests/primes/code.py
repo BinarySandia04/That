@@ -11,9 +11,7 @@ while(t < n):
             break
         j += 1
     # "Miau " + t;
-    if divisible == 0:
-        # i és divisible
-        if t == (n - 1):
-            print(i);
-        t += 1;
     i += 1;
+    if divisible == 0:
+        t += 1;
+print(i-1);
