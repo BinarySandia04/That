@@ -14,6 +14,7 @@ That::Shell::~Shell(){
 }
 
 void That::Shell::CreateShell(Kernel *kernel){
+    std::cout<<"POV: UR IN A SHELL";
     std::string line;
 
     std::cout << termcolor::color<255, 168, 46> << termcolor::bold << ">> " << termcolor::reset;
