@@ -6,6 +6,8 @@
 
 using namespace That;
 
+cout<<"JOMAMA SO FAT.. SHE.. UH.. THE SECURITY GUARD DIDNT WANT 2 SEE HER ON HTE CAMS"
+
 std::filesystem::path Builder::GetPath(){
     return std::filesystem::current_path();
 }
