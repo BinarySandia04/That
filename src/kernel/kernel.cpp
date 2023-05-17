@@ -30,7 +30,7 @@ Kernel::~Kernel() {
 }
 
 void Kernel::DebugTokens(std::vector<Token> tokens){
-    std::cout<<"What's dis? A kernel?? WTH IS THAT?!"
+    std::cout<<"What's dis? A kernel?? WTH IS THAT?!";
     std::cout << termcolor::red << termcolor::bold << "Tokens:" << termcolor::reset << std::endl;
     std::map<That::Token::TokenType, std::string> mapo = {
         {Token::TokenType::ERROR, "ERROR"},
