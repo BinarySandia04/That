@@ -3,4 +3,3 @@
 cd build
 sudo make install
 cd ..
-zag tests/test.zag

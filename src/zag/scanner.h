@@ -10,17 +10,21 @@ namespace Zag {
 
 class Scanner {
 public:
-  Scanner(std::string code);
+  Scanner(std::string, std::string);
   void ScanTokens(std::vector<Token> *tokens);
 
 private:
   std::vector<Token> *tokens;
   std::string source;
+  std::string fileName;
 
   static std::unordered_map<std::string, TokenType> keywords;
 
   int start;
   int current;
+
+  int line;
+  int column;
 
   bool AtEnd();
   char Advance();

@@ -3,14 +3,19 @@
 
 #include "scanner.h"
 #include "token.h"
-#include "zag.h"
+#include "error.h"
 
 using namespace Zag;
 
-Scanner::Scanner(std::string code) {
+Scanner::Scanner(std::string code, std::string fileName) {
   source = code;
+  this->fileName = fileName;
+
   start = 0;
   current = 0;
+
+  line = 1;
+  column = 0;
 }
 
 void Scanner::ScanTokens(std::vector<Token> *tokens) {
@@ -21,7 +26,7 @@ void Scanner::ScanTokens(std::vector<Token> *tokens) {
     ScanToken();
   }
 
-  tokens->push_back(Token(END_OF_FILE, "", "", current));
+  tokens->push_back(Token(TOKEN_END_OF_FILE, "", "", current));
 }
 
 bool Scanner::AtEnd() { return current >= source.size(); }
@@ -32,51 +37,50 @@ void Scanner::ScanToken() {
 
   switch (c) {
   case '(':
-    AddToken(LEFT_PAREN);
+    AddToken(TOKEN_LEFT_PAREN);
     break;
   case ')':
-    AddToken(RIGHT_PAREN);
+    AddToken(TOKEN_RIGHT_PAREN);
     break;
   case '{':
-    AddToken(LEFT_BRACE);
+    AddToken(TOKEN_LEFT_BRACE);
     break;
   case '}':
-    AddToken(RIGHT_BRACE);
+    AddToken(TOKEN_RIGHT_BRACE);
     break;
   case ',':
-    AddToken(COMMA);
+    AddToken(TOKEN_COMMA);
     break;
   case '.':
     if (Match('.'))
-      AddToken(DOT_DOT);
+      AddToken(TOKEN_DOT_DOT);
     else if (!IsDigit(Peek())) {
-      AddToken(DOT);
+      AddToken(TOKEN_DOT);
     }
     break;
   case ';':
-    AddToken(SEMICOLON);
+    AddToken(TOKEN_SEMICOLON);
     break;
   case '|':
-    AddToken(Match('|') ? PIPE_PIPE : PIPE);
+    AddToken(Match('|') ? TOKEN_PIPE_PIPE : TOKEN_PIPE);
     break;
   case '!':
-    AddToken(Match('=') ? BANG_EQUAL : BANG);
+    AddToken(Match('=') ? TOKEN_BANG_EQUAL : TOKEN_BANG);
     break;
   case '=':
-    AddToken(Match('=') ? EQUAL_EQUAL : EQUAL);
+    AddToken(Match('=') ? TOKEN_EQUAL_EQUAL : TOKEN_EQUAL);
     return;
   case '<':
-    AddToken(Match('=') ? LESSER_EQUAL : LESSER);
+    AddToken(Match('=') ? TOKEN_LESSER_EQUAL : TOKEN_LESSER);
     break;
   case '>':
-    AddToken(Match('=') ? GREATER_EQUAL : GREATER);
+    AddToken(Match('=') ? TOKEN_GREATER_EQUAL : TOKEN_GREATER);
     break;
   case '/':
     if (Match('/')) {
       while (Peek() != '\n' && !AtEnd())
         Advance();
     } else if(Match('*')){
-      std::cout << "Hola" << std::endl;
       while((Peek() != '*' || PeekNext() != '/') && !AtEnd()){
         Advance();
       }
@@ -85,7 +89,7 @@ void Scanner::ScanToken() {
       Advance();
       Advance();
     } else {
-      AddToken(SLASH);
+      AddToken(TOKEN_SLASH);
     }
     break;
   case ' ':
@@ -107,8 +111,7 @@ void Scanner::ScanToken() {
     } else if (IsAlpha(c)) {
       Identifier();
     } else {
-      std::cout << c << std::endl;
-      throw(Error(current, "Unexpected character"));
+      throw(Error(current, 1, std::string("Unexpected character '") + c + "'", fileName));
     }
   }
 }
@@ -131,7 +134,7 @@ bool Scanner::Match(char expected) {
   if (source[current] != expected)
     return false;
 
-  current++;
+  Advance();
   return true;
 }
 
@@ -147,14 +150,14 @@ void Scanner::GetString() {
   }
 
   if (AtEnd()) {
-    throw(Error(current, "String not terminated"));
+    throw(Error(start, current - start, "String not terminated", fileName));
     return;
   }
 
   // The " remaining
   Advance();
 
-  AddToken(STRING, source.substr(start + 1, current - start - 2));
+  AddToken(TOKEN_STRING, source.substr(start + 1, current - start - 2));
 }
 
 bool Scanner::IsDigit(char c) { return IsDigitNumber(c) || c == '.'; }
@@ -168,7 +171,7 @@ void Scanner::Number() {
       Advance();
   }
 
-  AddToken(NUMBER, source.substr(start, current - start));
+  AddToken(TOKEN_NUMBER, source.substr(start, current - start));
 }
 
 bool Scanner::IsDigitNumber(char c) { return c >= '0' && c <= '9'; }
@@ -192,22 +195,22 @@ void Scanner::Identifier() {
   std::string text = source.substr(start, current - start);
   
   TokenType type = keywords[text];
-  if(type) type = IDENTIFIER;
+  if(type) type = TOKEN_IDENTIFIER;
 
   AddToken(type);
 }
 
 std::unordered_map<std::string, TokenType> Scanner::keywords {
-  {"if", IF},
-  {"else", ELSE},
-  {"elif", ELIF},
-  {"for", FOR},
-  {"fn", FN},
-  {"this", THIS},
-  {"super", SUPER},
-  {"none", NONE},
-  {"return", RETURN},
-  {"class", CLASS},
-  {"true", TRUE},
-  {"false", FALSE}
+  {"if", TOKEN_IF},
+  {"else", TOKEN_ELSE},
+  {"elif", TOKEN_ELIF},
+  {"for", TOKEN_FOR},
+  {"fn", TOKEN_FN},
+  {"this", TOKEN_THIS},
+  {"super", TOKEN_SUPER},
+  {"none", TOKEN_NONE},
+  {"return", TOKEN_RETURN},
+  {"class", TOKEN_CLASS},
+  {"true", TOKEN_TRUE},
+  {"false", TOKEN_FALSE}
 };

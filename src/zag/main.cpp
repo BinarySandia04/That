@@ -6,7 +6,7 @@
 
 #include "main.h"
 #include "scanner.h"
-#include "zag.h"
+#include "error.h"
 
 #include "libs/termcolor.hpp"
 #include "libs/toml.hpp"
@@ -21,11 +21,7 @@ int main(int argc, char *argv[]) {
   if (argc > 2) {
     std::cout << termcolor::red << "Usage: zag <script>" << termcolor::reset;
   } else if (argc == 2) {
-    try {
-      RunFile(std::string(argv[1]));
-    } catch (Error error) {
-      error.Print();
-    }
+    RunFile(std::string(argv[1]));
   } else {
     std::cout << termcolor::cyan << "Zag shell" << termcolor::reset
               << std::endl;
@@ -46,9 +42,9 @@ void RunFile(std::string name) {
       }
 
       try {
-        Run(code);
+        Run(code, name);
       } catch (Error error) {
-        throw(error);
+        error.Print(code);
       }
     } else {
       throw(std::string("Error opening file " + name));
@@ -66,9 +62,9 @@ void RunShell() {
   std::getline(std::cin, line);
   do {
     try {
-      Run(line);
+      Run(line, "");
     } catch (Error error) {
-      error.Print();
+      error.Print(line);
     }
 
     std::cout << termcolor::green << "> " << termcolor::reset;
@@ -77,8 +73,8 @@ void RunShell() {
   } while (std::getline(std::cin, line));
 }
 
-void Run(std::string code) {
-  Scanner scanner = Scanner(code);
+void Run(std::string code, std::string fileName) {
+  Scanner scanner = Scanner(code, fileName);
   std::vector<Token> tokens;
   scanner.ScanTokens(&tokens);
 
