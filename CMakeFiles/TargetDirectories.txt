@@ -1,0 +1,14 @@
+/home/arans/Pro/Zag/build/CMakeFiles/version.dir
+/home/arans/Pro/Zag/build/CMakeFiles/edit_cache.dir
+/home/arans/Pro/Zag/build/CMakeFiles/rebuild_cache.dir
+/home/arans/Pro/Zag/build/CMakeFiles/list_install_components.dir
+/home/arans/Pro/Zag/build/CMakeFiles/install.dir
+/home/arans/Pro/Zag/build/CMakeFiles/install/local.dir
+/home/arans/Pro/Zag/build/CMakeFiles/install/strip.dir
+/home/arans/Pro/Zag/build/src/zag/CMakeFiles/zag.dir
+/home/arans/Pro/Zag/build/src/zag/CMakeFiles/edit_cache.dir
+/home/arans/Pro/Zag/build/src/zag/CMakeFiles/rebuild_cache.dir
+/home/arans/Pro/Zag/build/src/zag/CMakeFiles/list_install_components.dir
+/home/arans/Pro/Zag/build/src/zag/CMakeFiles/install.dir
+/home/arans/Pro/Zag/build/src/zag/CMakeFiles/install/local.dir
+/home/arans/Pro/Zag/build/src/zag/CMakeFiles/install/strip.dir

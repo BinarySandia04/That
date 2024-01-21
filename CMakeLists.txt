@@ -32,7 +32,8 @@ FILE(WRITE ${CMAKE_BINARY_DIR}/version.cmake
 ADD_CUSTOM_TARGET(
     version
     ${CMAKE_COMMAND} -D SRC=${CMAKE_BINARY_DIR}/version.h.in
-                     -D DST=${CMAKE_BINARY_DIR}/version-g.h
+                     -D DST=${CMAKE_BINARY_DIR}/version.h
+                     -D GIT_EXECUTABLE=${GIT_EXECUTABLE}
                      -P ${CMAKE_BINARY_DIR}/version.cmake
 )
 

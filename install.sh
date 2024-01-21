@@ -1,7 +1,6 @@
 #!/bin/bash
 ./build.sh
-cd ..
 cd build
 sudo make install
 cd ..
-cd scripts
+zag tests/test.zag

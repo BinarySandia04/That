@@ -1,0 +1,16 @@
+// Aixo es un comentari i hauria de ser ignorat
+
+patata = 4.3;
+pastanaga = .9;
+hola = 2;
+
+/* Aixo es un comentario
+en
+bloque
+i també
+s'hauria
+de ignorar
+""""""""""""""""""""
+*/
+
+miau < 4;

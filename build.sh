@@ -1,7 +1,7 @@
 #!/bin/bash
-cd ..
-sudo rm -R build
-mkdir build
+sudo rm -R build 2>/dev/null
+mkdir build 2>/dev/null
+
 cd build
 cmake ../
 cmake --build . -j 8

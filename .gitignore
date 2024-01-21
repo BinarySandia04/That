@@ -1,7 +1,6 @@
 build/
 _build/
 .vscode/
-*.zag
 *.exe
 .cache/
 .clangd
