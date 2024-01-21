@@ -6,6 +6,7 @@ namespace Zag {
 
 class Error {
 public:
+  Error();
   Error(int, int, std::string, std::string);
   void Print(std::string);
   void PrintInline();
@@ -13,6 +14,8 @@ public:
   void PrintErrorSourceLine(std::string, int, int, int);
 
 private:
+  bool fired;
+
   int position;
   int length;
   std::string content;

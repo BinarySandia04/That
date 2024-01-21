@@ -5,18 +5,22 @@
 #include <unordered_map>
 
 #include "token.h"
+#include "error.h"
 
 namespace Zag {
 
 class Scanner {
 public:
   Scanner(std::string, std::string);
-  void ScanTokens(std::vector<Token> *tokens);
+  bool ScanTokens(std::vector<Token> *tokens, Error *error);
 
 private:
   std::vector<Token> *tokens;
   std::string source;
   std::string fileName;
+
+  Error error;
+  bool panic;
 
   static std::unordered_map<std::string, TokenType> keywords;
 
@@ -41,6 +45,8 @@ private:
   bool IsAlpha(char);
   bool IsAlphaNumeric(char);
   void Identifier();
+
+  void Panic(Error);
 };
 
 } // namespace Zag

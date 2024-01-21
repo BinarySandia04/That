@@ -6,6 +6,7 @@
 
 #include "main.h"
 #include "scanner.h"
+#include "parser.h"
 #include "error.h"
 
 #include "libs/termcolor.hpp"
@@ -18,6 +19,7 @@ void RunShell();
 void Run(std::string code);
 
 int main(int argc, char *argv[]) {
+
   if (argc > 2) {
     std::cout << termcolor::red << "Usage: zag <script>" << termcolor::reset;
   } else if (argc == 2) {
@@ -74,9 +76,23 @@ void RunShell() {
 }
 
 void Run(std::string code, std::string fileName) {
+
+  Error error;
+
   Scanner scanner = Scanner(code, fileName);
   std::vector<Token> tokens;
-  scanner.ScanTokens(&tokens);
+
+  if(!scanner.ScanTokens(&tokens, &error)){
+    error.Print(code); 
+    return;
+  }
+
+  Parser parser(fileName);
+  Node* ast = new Node(NODE_SPACE, NODE_BLOCK);
+  if(!parser.GenerateAST(&tokens, &ast, &error)){
+    error.Print(code);
+    return;
+  }
 
   for (int i = 0; i < tokens.size(); i++) {
     std::cout << termcolor::yellow << tokens[i].ToString() << termcolor::reset

@@ -8,7 +8,12 @@
 
 using namespace Zag;
 
+Error::Error(){
+  fired = false;
+}
+
 Error::Error(int position, int length, std::string content, std::string fileName) {
+  fired = true;
   this->position = position;
   this->length = length;
   this->content = content;
@@ -92,7 +97,7 @@ void Error::SetLineNum(std::string source) {
   int column = 0;
 
   if (position >= source.size()) {
-    std::cout << termcolor::red << termcolor::bold << "Internal Error"
+    std::cout << termcolor::red << termcolor::bold << "Internal Error "
               << termcolor::reset;
     std::cout << "Bad formatted error. Aborting" << termcolor::reset
               << std::endl;

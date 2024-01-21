@@ -1,8 +1,8 @@
 #!/bin/bash
-sudo rm -R build 2>/dev/null
-mkdir build 2>/dev/null
+sudo rm -R .build 2>/dev/null
+mkdir .build 2>/dev/null
 
-cd build
+cd .build
 cmake ../
 cmake --build . -j 8
 cd ..

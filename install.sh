@@ -1,5 +1,5 @@
 #!/bin/bash
 ./build.sh
-cd build
+cd .build
 sudo make install
 cd ..

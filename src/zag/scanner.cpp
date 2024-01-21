@@ -1,14 +1,16 @@
-#include <unordered_map>
 #include <iostream>
+#include <unordered_map>
 
+#include "error.h"
 #include "scanner.h"
 #include "token.h"
-#include "error.h"
 
 using namespace Zag;
 
 Scanner::Scanner(std::string code, std::string fileName) {
   source = code;
+  
+  this->panic = false;
   this->fileName = fileName;
 
   start = 0;
@@ -18,15 +20,23 @@ Scanner::Scanner(std::string code, std::string fileName) {
   column = 0;
 }
 
-void Scanner::ScanTokens(std::vector<Token> *tokens) {
+bool Scanner::ScanTokens(std::vector<Token> *tokens, Error *error) {
   this->tokens = tokens;
 
-  while (!AtEnd()) {
+  while (!AtEnd() && !panic) {
     start = current;
     ScanToken();
   }
 
+  *error = this->error;
   tokens->push_back(Token(TOKEN_END_OF_FILE, "", "", current));
+
+  return !panic; 
+}
+
+void Scanner::Panic(Error err){
+  panic = true;
+  error = err;
 }
 
 bool Scanner::AtEnd() { return current >= source.size(); }
@@ -54,12 +64,36 @@ void Scanner::ScanToken() {
   case '.':
     if (Match('.'))
       AddToken(TOKEN_DOT_DOT);
-    else if (!IsDigit(Peek())) {
+    else if (!IsDigit(Peek()))
       AddToken(TOKEN_DOT);
-    }
     break;
   case ';':
     AddToken(TOKEN_SEMICOLON);
+    break;
+  case '&':
+    AddToken(Match('&') ? TOKEN_AMP_AMP : TOKEN_AMP);
+    break;
+  case '+':
+    if (Match('='))
+      AddToken(TOKEN_PLUS_EQUAL);
+    else if (Match('+'))
+      AddToken(TOKEN_PLUS_PLUS);
+    else
+      AddToken(TOKEN_PLUS);
+    break;
+  case '-':
+    if (Match('='))
+      AddToken(TOKEN_MINUS_EQUAL);
+    else if (Match('-'))
+      AddToken(TOKEN_MINUS_MINUS);
+    else
+      AddToken(TOKEN_MINUS);
+    break;
+  case '*':
+    if (Match('='))
+      AddToken(TOKEN_STAR_EQUAL);
+    else
+      AddToken(TOKEN_STAR);
     break;
   case '|':
     AddToken(Match('|') ? TOKEN_PIPE_PIPE : TOKEN_PIPE);
@@ -68,7 +102,9 @@ void Scanner::ScanToken() {
     AddToken(Match('=') ? TOKEN_BANG_EQUAL : TOKEN_BANG);
     break;
   case '=':
-    AddToken(Match('=') ? TOKEN_EQUAL_EQUAL : TOKEN_EQUAL);
+    if(Match('=')) AddToken(TOKEN_EQUAL_EQUAL);
+    else if(Match('>')) AddToken(TOKEN_ARROW);
+    else AddToken(TOKEN_EQUAL);
     return;
   case '<':
     AddToken(Match('=') ? TOKEN_LESSER_EQUAL : TOKEN_LESSER);
@@ -80,8 +116,8 @@ void Scanner::ScanToken() {
     if (Match('/')) {
       while (Peek() != '\n' && !AtEnd())
         Advance();
-    } else if(Match('*')){
-      while((Peek() != '*' || PeekNext() != '/') && !AtEnd()){
+    } else if (Match('*')) {
+      while ((Peek() != '*' || PeekNext() != '/') && !AtEnd()) {
         Advance();
       }
 
@@ -106,13 +142,13 @@ void Scanner::ScanToken() {
     break;
   default:
     // Other checks
-    if (IsDigit(c)) {
+    if (IsDigit(c))
       Number();
-    } else if (IsAlpha(c)) {
+    else if (IsAlpha(c))
       Identifier();
-    } else {
-      throw(Error(current, 1, std::string("Unexpected character '") + c + "'", fileName));
-    }
+    else
+      Panic(Error(current, 1, std::string("Unexpected character '") + c + "'",
+                  fileName));
   }
 }
 
@@ -120,7 +156,7 @@ void Scanner::AddToken(TokenType type) { AddToken(type, ""); }
 
 void Scanner::AddToken(TokenType type, std::string content) {
   std::string text = source.substr(start, current - start);
-  tokens->push_back(Token(type, text, content, current));
+  tokens->push_back(Token(type, text, content, start + 1));
 }
 
 char Scanner::Advance() {
@@ -150,7 +186,7 @@ void Scanner::GetString() {
   }
 
   if (AtEnd()) {
-    throw(Error(start, current - start, "String not terminated", fileName));
+    Panic(Error(start, current - start, "String not terminated", fileName));
     return;
   }
 
@@ -193,24 +229,16 @@ void Scanner::Identifier() {
     Advance();
 
   std::string text = source.substr(start, current - start);
-  
+
   TokenType type = keywords[text];
-  if(type) type = TOKEN_IDENTIFIER;
+  if (type)
+    type = TOKEN_IDENTIFIER;
 
   AddToken(type);
 }
 
-std::unordered_map<std::string, TokenType> Scanner::keywords {
-  {"if", TOKEN_IF},
-  {"else", TOKEN_ELSE},
-  {"elif", TOKEN_ELIF},
-  {"for", TOKEN_FOR},
-  {"fn", TOKEN_FN},
-  {"this", TOKEN_THIS},
-  {"super", TOKEN_SUPER},
-  {"none", TOKEN_NONE},
-  {"return", TOKEN_RETURN},
-  {"class", TOKEN_CLASS},
-  {"true", TOKEN_TRUE},
-  {"false", TOKEN_FALSE}
-};
+std::unordered_map<std::string, TokenType> Scanner::keywords{
+    {"if", TOKEN_IF},       {"else", TOKEN_ELSE}, {"elif", TOKEN_ELIF},
+    {"for", TOKEN_FOR},     {"fn", TOKEN_FN},     {"this", TOKEN_THIS},
+    {"super", TOKEN_SUPER}, {"none", TOKEN_NONE}, {"ret", TOKEN_RETURN},
+    {"class", TOKEN_CLASS}, {"true", TOKEN_TRUE}, {"false", TOKEN_FALSE}};
