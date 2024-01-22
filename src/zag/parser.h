@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <initializer_list>
 
 #include "token.h"
 #include "error.h"
@@ -13,31 +14,29 @@ enum NodeType {
   NODE_OP_BIN,
   NODE_OP_UN,
   NODE_ASSIGN,
-  NODE_LITERAL,
-  LITERAL,
-};
-
-enum NodeFunction {
   NODE_EXPRESSION,
-  NODE_BLOCK
+  NODE_TRUE_VAL,
+  NODE_FALSE_VAL,
+  NODE_NONE_VAL,
+  NODE_NUMBER_VAL,
+  NODE_STRING_VAL,
 };
-
-class Expression {};
-
-class BinaryExpression : Expression {};
 
 class Node {
   public:
     NodeType type;
-    NodeFunction function;
 
     std::vector<Node*> children;
     std::vector<Node*> arguments;
 
     std::string data;
 
-    Node(NodeType, NodeFunction);
-    Node(NodeType, NodeFunction, std::string);
+    Node(NodeType);
+    Node(NodeType, std::string);
+
+    void Debug(int);
+  private:
+    void PrintTabs(int);
 };
 
 class Parser {
@@ -53,15 +52,31 @@ private:
 
   TokenType PeekType();
   Token Peek();
+
+  TokenType AdvancePeekType();
+
+  TokenType PreviousType();
+
   Token Advance();
 
   bool Match(TokenType);
+  bool MatchAny(std::initializer_list<TokenType>);
+
   void EnterPanic(int, int, std::string);
   void EnterPanic(Token, std::string);
   void Expect(TokenType, std::string);
 
-  void PopulateSpace(Node*);
-  void Consume(Node *);
+  void PopulateSpace(Node**);
+  void Consume(Node **);
+
+
+  void Primary(Node **);
+  void Unary(Node **);
+  void Factor(Node **);
+  void Term(Node **);
+  void Comparison(Node **);
+  void Equality(Node **);
+  void Expression(Node **);
 
   std::vector<Token> *tokens;
 };

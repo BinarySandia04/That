@@ -64,6 +64,7 @@ enum TokenType {
   TOKEN_SUPER, // super
   TOKEN_THIS, // this
   TOKEN_CLASS, // class
+  TOKEN_SET, // set
 
   TOKEN_TRUE, // true
   TOKEN_FALSE, // false

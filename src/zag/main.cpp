@@ -87,15 +87,18 @@ void Run(std::string code, std::string fileName) {
     return;
   }
 
+  for (int i = 0; i < tokens.size(); i++) {
+    std::cout << termcolor::yellow << tokens[i].ToString() << termcolor::reset
+              << std::endl;
+  }
+
   Parser parser(fileName);
-  Node* ast = new Node(NODE_SPACE, NODE_BLOCK);
+  Node* ast = new Node(NODE_SPACE);
   if(!parser.GenerateAST(&tokens, &ast, &error)){
     error.Print(code);
     return;
   }
 
-  for (int i = 0; i < tokens.size(); i++) {
-    std::cout << termcolor::yellow << tokens[i].ToString() << termcolor::reset
-              << std::endl;
-  }
+  ast->Debug(0);
+
 }

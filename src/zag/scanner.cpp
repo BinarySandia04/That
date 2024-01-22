@@ -241,4 +241,5 @@ std::unordered_map<std::string, TokenType> Scanner::keywords{
     {"if", TOKEN_IF},       {"else", TOKEN_ELSE}, {"elif", TOKEN_ELIF},
     {"for", TOKEN_FOR},     {"fn", TOKEN_FN},     {"this", TOKEN_THIS},
     {"super", TOKEN_SUPER}, {"none", TOKEN_NONE}, {"ret", TOKEN_RETURN},
-    {"class", TOKEN_CLASS}, {"true", TOKEN_TRUE}, {"false", TOKEN_FALSE}};
+    {"class", TOKEN_CLASS}, {"true", TOKEN_TRUE}, {"false", TOKEN_FALSE},
+    {"set", TOKEN_SET}};

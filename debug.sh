@@ -1,5 +1,5 @@
 #!/bin/bash
-# sudo rm -R build 2>/dev/null
+sudo rm -R .build 2>/dev/null
 
 export CC=/usr/bin/clang
 export CXX=/usr/bin/clang++
