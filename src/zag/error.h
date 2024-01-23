@@ -22,10 +22,13 @@ private:
   std::string fileName;
 
   // Setted when printing the error
-  void SetLineNum(std::string);
+  void SetLineNum();
+  void CountLines();
+
   std::string source;
   int line;
   int column;
+  int lineCount;
 };
 
 } // namespace Zag

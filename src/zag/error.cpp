@@ -4,7 +4,7 @@
 #include <iostream>
 #include <cmath>
 
-#define ZAG_ERROR_PADDING_LINES 1
+#define ERROR_PADDING 1
 
 using namespace Zag;
 
@@ -18,11 +18,14 @@ Error::Error(int position, int length, std::string content, std::string fileName
   this->length = length;
   this->content = content;
   this->fileName = fileName;
+  this->lineCount = 0;
 }
 
 void Error::Print(std::string source) {
 
-  SetLineNum(source);
+  this->source = source;
+  CountLines();
+  SetLineNum();
 
   std::cout << termcolor::bold << this->fileName << ":" << line << ":" << column << termcolor::reset << " ";
   std::cout << termcolor::red << termcolor::bold << "Error: " << termcolor::reset;
@@ -32,11 +35,26 @@ void Error::Print(std::string source) {
 }
 
 void Error::PrintInline(){
-  for(int i = ZAG_ERROR_PADDING_LINES; i > 0; i--){
+
+  int above = ERROR_PADDING;
+  int below = ERROR_PADDING;
+
+  if(lineCount < 2 * ERROR_PADDING + 1){
+    above = line - 1;
+    below = 2 * ERROR_PADDING - line;
+  } else if(line - above < 0){
+    above += line - above;
+    below -= line - above;
+  } else if((lineCount - line) - below < 0){
+    below += lineCount - line;
+    above -= lineCount - line;
+  }
+
+  for(int i = above; i > 0; i--){
     PrintSourceLine(source, line - i);
   }
   PrintErrorSourceLine(source, line, column, length);
-  for(int i = 1; i <= ZAG_ERROR_PADDING_LINES; i++){
+  for(int i = 1; i <= below; i++){
     PrintSourceLine(source, line + i);
   }
 }
@@ -91,17 +109,17 @@ void Error::PrintErrorSourceLine(std::string source, int line, int column, int l
   std::cout << source.substr(start + column + length - 1, end - start - column - length + 1) << std::endl;
 }
 
-void Error::SetLineNum(std::string source) {
-  this->source = source;
+void Error::SetLineNum() {
   int line = 1;
   int column = 0;
 
   if (position >= source.size()) {
-    std::cout << termcolor::red << termcolor::bold << "Internal Error "
-              << termcolor::reset;
-    std::cout << "Bad formatted error. Aborting" << termcolor::reset
-              << std::endl;
-    exit(1);
+    position = source.size() + 1;
+
+    std::string hangling = "~ <- HERE";
+
+    source = source + hangling;
+    length = hangling.size();
   }
 
   for (int i = 0; i < position; i++) {
@@ -115,3 +133,8 @@ void Error::SetLineNum(std::string source) {
   this->line = line;
   this->column = column;
 }
+
+void Error::CountLines(){
+  for(int i = 0; i < source.size(); i++) if(source[i] == '\n') lineCount++;
+}
+

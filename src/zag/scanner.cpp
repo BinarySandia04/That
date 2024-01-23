@@ -230,9 +230,10 @@ void Scanner::Identifier() {
 
   std::string text = source.substr(start, current - start);
 
-  TokenType type = keywords[text];
-  if (type)
-    type = TOKEN_IDENTIFIER;
+  TokenType type;
+  if (keywords.count(text) > 0)
+    type = keywords[text];
+  else type = TOKEN_IDENTIFIER;
 
   AddToken(type);
 }

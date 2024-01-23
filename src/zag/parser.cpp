@@ -12,6 +12,8 @@ Parser::Parser(std::string fileName) {
   panic = false;
 }
 
+Node::Node() { this->type = NODE_UNDEF; }
+
 Node::Node(NodeType type) { this->type = type; }
 
 Node::Node(NodeType type, std::string data) {
@@ -28,12 +30,12 @@ void Node::Debug(int tabs) {
   std::cout << "data: " << data << std::endl;
   PrintTabs(tabs);
   std::cout << "childs: " << children.size() << std::endl;
-  PrintTabs(tabs);
-  std::cout << "children: [";
-  for (int i = 0; i < children.size(); i++) {
-    children[i]->Debug(tabs + 1);
-    if (i < children.size() - 1)
-      std::cout << "," << std::endl;
+  if (children.size() > 0) {
+    PrintTabs(tabs);
+    std::cout << "children: [" << std::endl;
+    for (int i = 0; i < children.size(); i++) {
+      children[i]->Debug(tabs + 1);
+    }
   }
   PrintTabs(tabs);
   std::cout << "]}" << std::endl;
@@ -95,6 +97,7 @@ void Parser::EnterPanic(int offset, int size, std::string content) {
 }
 
 void Parser::EnterPanic(Token token, std::string content) {
+  if(token.type == TOKEN_END_OF_FILE) EnterPanic(token.offset, 1, content);
   EnterPanic(token.offset, token.lexeme.size(), content);
 }
 
@@ -103,6 +106,10 @@ void Parser::Expect(TokenType type, std::string content) {
     EnterPanic(Peek(), content);
   else
     Advance();
+}
+
+bool Parser::AtEnd(){
+  return current >= tokens->size() || PeekType() == TOKEN_END_OF_FILE;
 }
 
 bool Parser::GenerateAST(std::vector<Token> *tokens, Node **tree, Error *err) {
@@ -126,13 +133,75 @@ void Parser::PopulateSpace(Node **root) {
   }
 }
 
+void Parser::ConsumeEmpty(){
+  while(Match(TOKEN_SEMICOLON));
+}
+
 void Parser::Consume(Node **block) {
-  Node *line = new Node(NODE_EXPRESSION);
-  Expression(&line);
+  Node *line = new Node();
+
+  Statement(&line);
+
+  ConsumeEmpty();
 
   (*block)->children.push_back(line);
+}
 
-  Advance();
+void Parser::Block(Node **block){
+  (*block)->type = NODE_BLOCK;
+  Expect(TOKEN_LEFT_BRACE, "Expected '{' at the start of a block");
+
+  while(!Match(TOKEN_RIGHT_BRACE)){
+    if(AtEnd()){
+      EnterPanic(Peek(), "Expected '}' for closing block");
+      return;
+    }
+    Consume(block);
+    if(panic) return;
+  }
+}
+
+void Parser::Statement(Node **node){
+  if(Match(TOKEN_IF)){
+    If(node);
+    return;
+  }
+
+  Expression(node);
+
+}
+
+void Parser::If(Node **node){
+  // We already matched if. Now we consume the expression and the if block
+  (*node)->type = NODE_IF;
+
+  Node *condition = new Node();
+  Expression(&condition);
+
+  Node *block = new Node();
+  Block(&block);
+
+  (*node)->children.push_back(block); 
+  (*node)->arguments.push_back(condition);
+
+  // We match else if
+  while(Match(TOKEN_ELIF)){
+    condition = new Node();
+    Expression(&condition);
+
+    block = new Node();
+    Block(&block);
+
+    (*node)->arguments.push_back(condition);
+    (*node)->children.push_back(block);
+  }
+
+  // If there is an else we also catch it
+  if(Match(TOKEN_ELSE)){
+    block = new Node();
+    Block(&block);
+    (*node)->children.push_back(block);
+  }
 }
 
 void Parser::Primary(Node **exp) {

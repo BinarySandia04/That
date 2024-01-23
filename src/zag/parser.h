@@ -9,8 +9,11 @@
 namespace Zag {
 
 enum NodeType {
+  NODE_UNDEF,
   NODE_SPACE,
+  NODE_BLOCK,
   NODE_FUNCTION,
+  NODE_IF,
   NODE_OP_BIN,
   NODE_OP_UN,
   NODE_ASSIGN,
@@ -31,6 +34,7 @@ class Node {
 
     std::string data;
 
+    Node();
     Node(NodeType);
     Node(NodeType, std::string);
 
@@ -62,13 +66,14 @@ private:
   bool Match(TokenType);
   bool MatchAny(std::initializer_list<TokenType>);
 
+  void ConsumeEmpty();
   void EnterPanic(int, int, std::string);
   void EnterPanic(Token, std::string);
   void Expect(TokenType, std::string);
+  bool AtEnd();
 
   void PopulateSpace(Node**);
   void Consume(Node **);
-
 
   void Primary(Node **);
   void Unary(Node **);
@@ -77,6 +82,10 @@ private:
   void Comparison(Node **);
   void Equality(Node **);
   void Expression(Node **);
+
+  void Statement(Node **);
+  void If(Node **);
+  void Block(Node **);
 
   std::vector<Token> *tokens;
 };
