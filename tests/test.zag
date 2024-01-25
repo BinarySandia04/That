@@ -1,6 +1,20 @@
-// Aixo es un comentari i hauria de ser ignorat
 if 3 == 4 {
   3 + 5
+  if 5 == 6 {
+    5
+  }
 } else {
   4 + 5
 }
+
+==========
+9
+33
+
+3
+3
+3
+3
+3
+3
+3

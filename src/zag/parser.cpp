@@ -204,6 +204,10 @@ void Parser::If(Node **node){
   }
 }
 
+void Parser::For(Node **node){
+
+}
+
 void Parser::Primary(Node **exp) {
   Token t = Peek();
   switch (t.type) {

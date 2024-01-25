@@ -85,6 +85,7 @@ private:
 
   void Statement(Node **);
   void If(Node **);
+  void For(Node **);
   void Block(Node **);
 
   std::vector<Token> *tokens;
