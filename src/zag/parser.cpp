@@ -97,7 +97,8 @@ void Parser::EnterPanic(int offset, int size, std::string content) {
 }
 
 void Parser::EnterPanic(Token token, std::string content) {
-  if(token.type == TOKEN_END_OF_FILE) EnterPanic(token.offset, 1, content);
+  if (token.type == TOKEN_END_OF_FILE)
+    EnterPanic(token.offset, 1, content);
   EnterPanic(token.offset, token.lexeme.size(), content);
 }
 
@@ -108,7 +109,7 @@ void Parser::Expect(TokenType type, std::string content) {
     Advance();
 }
 
-bool Parser::AtEnd(){
+bool Parser::AtEnd() {
   return current >= tokens->size() || PeekType() == TOKEN_END_OF_FILE;
 }
 
@@ -133,8 +134,9 @@ void Parser::PopulateSpace(Node **root) {
   }
 }
 
-void Parser::ConsumeEmpty(){
-  while(Match(TOKEN_SEMICOLON));
+void Parser::ConsumeEmpty() {
+  while (Match(TOKEN_SEMICOLON))
+    ;
 }
 
 void Parser::Consume(Node **block) {
@@ -147,31 +149,51 @@ void Parser::Consume(Node **block) {
   (*block)->children.push_back(line);
 }
 
-void Parser::Block(Node **block){
+void Parser::Block(Node **block) {
   (*block)->type = NODE_BLOCK;
-  Expect(TOKEN_LEFT_BRACE, "Expected '{' at the start of a block");
 
-  while(!Match(TOKEN_RIGHT_BRACE)){
-    if(AtEnd()){
-      EnterPanic(Peek(), "Expected '}' for closing block");
+  // Expect(TOKEN_LEFT_BRACE, "Expected '{' at the start of a block");
+
+  if (Match(TOKEN_LEFT_BRACE)) {
+    while (!Match(TOKEN_RIGHT_BRACE)) {
+      if (AtEnd()) {
+        EnterPanic(Peek(), "Expected '}' for closing block");
+        return;
+      }
+      Consume(block);
+      if (panic)
+        return;
+    }
+  } else if (Match(TOKEN_DOUBLE_DOTS)) {
+    if (AtEnd()) {
+      EnterPanic(Peek(), "Expected statement after one-liner block");
       return;
     }
     Consume(block);
-    if(panic) return;
+    if (panic)
+      return;
+  } else if (Match(TOKEN_SEMICOLON)) {
+    // Empty block
+    return;
+  } else {
+    EnterPanic(Peek(), "Expected '{' or ':' at the start of block");
   }
 }
 
-void Parser::Statement(Node **node){
-  if(Match(TOKEN_IF)){
+void Parser::Statement(Node **node) {
+  if (Match(TOKEN_IF)) {
     If(node);
+    return;
+  }
+  if (Match(TOKEN_LUP)) {
+    Lup(node);
     return;
   }
 
   Expression(node);
-
 }
 
-void Parser::If(Node **node){
+void Parser::If(Node **node) {
   // We already matched if. Now we consume the expression and the if block
   (*node)->type = NODE_IF;
 
@@ -181,11 +203,11 @@ void Parser::If(Node **node){
   Node *block = new Node();
   Block(&block);
 
-  (*node)->children.push_back(block); 
+  (*node)->children.push_back(block);
   (*node)->arguments.push_back(condition);
 
   // We match else if
-  while(Match(TOKEN_ELIF)){
+  while (Match(TOKEN_EIF)) {
     condition = new Node();
     Expression(&condition);
 
@@ -197,30 +219,63 @@ void Parser::If(Node **node){
   }
 
   // If there is an else we also catch it
-  if(Match(TOKEN_ELSE)){
+  if (Match(TOKEN_ELS)) {
     block = new Node();
     Block(&block);
     (*node)->children.push_back(block);
   }
 }
 
-void Parser::For(Node **node){
+bool Parser::CheckIdentifierList() { return false; }
 
+bool Parser::CheckBlock(){
+  return PeekType() == TOKEN_LEFT_BRACE || PeekType() == TOKEN_DOUBLE_DOTS || PeekType() == TOKEN_SEMICOLON;
+}
+
+void Parser::Lup(Node **lup) {
+  // Assume that we matched it
+  (*lup)->type = NODE_LUP;
+
+  (*lup)->data = "";
+  // We get the lup name
+  if (PeekType() == TOKEN_CONST) {
+    (*lup)->data = Peek().literal;
+    Advance();
+  }
+
+  // We cehck if we have an identifier list
+  if (CheckIdentifierList()) {
+
+  } else {
+    // We have our expression
+    if (!CheckBlock()) {
+      Node *exp = new Node(NODE_EXPRESSION);
+      Expression(&exp);
+
+      (*lup)->arguments.push_back(exp);
+    }
+  }
+
+  // We get the inner block
+  Node *block = new Node();
+  Block(&block);
+
+  (*lup)->children.push_back(block);
 }
 
 void Parser::Primary(Node **exp) {
   Token t = Peek();
   switch (t.type) {
-  case TOKEN_TRUE:
-    (*exp)->type = NODE_TRUE_VAL;
+  case TOKEN_YEP:
+    (*exp)->type = NODE_YEP_VAL;
     Advance();
     break;
-  case TOKEN_FALSE:
-    (*exp)->type = NODE_FALSE_VAL;
+  case TOKEN_NOP:
+    (*exp)->type = NODE_NOP_VAL;
     Advance();
     break;
-  case TOKEN_NONE:
-    (*exp)->type = NODE_NONE_VAL;
+  case TOKEN_NIL:
+    (*exp)->type = NODE_NIL_VAL;
     Advance();
     break;
   case TOKEN_NUMBER:
@@ -230,6 +285,11 @@ void Parser::Primary(Node **exp) {
     break;
   case TOKEN_STRING:
     (*exp)->type = NODE_STRING_VAL;
+    (*exp)->data = t.literal;
+    Advance();
+    break;
+  case TOKEN_IDENTIFIER:
+    (*exp)->type = NODE_IDENTIFIER;
     (*exp)->data = t.literal;
     Advance();
     break;

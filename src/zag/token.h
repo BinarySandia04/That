@@ -53,22 +53,22 @@ enum TokenType {
   TOKEN_IDENTIFIER, // hola 36
   TOKEN_STRING, // "gola" 37
   TOKEN_NUMBER, // 89.3 38
+  TOKEN_CONST, // 'Hola
 
   // Keywords
   TOKEN_IF, // if 39
-  TOKEN_ELIF, // elif 40
-  TOKEN_ELSE, // else 41
+  TOKEN_EIF, // elif 40
+  TOKEN_ELS, // else 41
   TOKEN_FN, // fn 42
-  TOKEN_FOR, // for 43
-  TOKEN_RETURN, // ret 44
-  TOKEN_SUPER, // super 45
-  TOKEN_THIS, // this 46
-  TOKEN_CLASS, // class 47
-  TOKEN_SET, // set 48
+  TOKEN_LUP, // for 43
+  TOKEN_RET, // ret 44
+  TOKEN_SUP, // super 45
+  TOKEN_DIS, // this 46
+  TOKEN_KIN, // class 47
 
-  TOKEN_TRUE, // true 49
-  TOKEN_FALSE, // false 50
-  TOKEN_NONE, // none 51
+  TOKEN_YEP, // true 49
+  TOKEN_NOP, // false 50
+  TOKEN_NIL, // none 51
 
   // End of file
   TOKEN_END_OF_FILE // eof 52

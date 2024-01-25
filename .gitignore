@@ -4,3 +4,4 @@ _build/
 *.exe
 .cache/
 .clangd
+test.zag

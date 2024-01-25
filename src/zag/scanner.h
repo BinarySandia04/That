@@ -39,8 +39,10 @@ private:
   char Peek();
   char PeekNext();
   void GetString();
+  void GetConstant();
   bool IsDigit(char);
   bool IsDigitNumber(char);
+  bool IsEmpty(char);
   void Number();
   bool IsAlpha(char);
   bool IsAlphaNumeric(char);

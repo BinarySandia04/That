@@ -13,16 +13,19 @@ enum NodeType {
   NODE_SPACE,
   NODE_BLOCK,
   NODE_FUNCTION,
+  NODE_ARGS,
   NODE_IF,
+  NODE_LUP,
   NODE_OP_BIN,
   NODE_OP_UN,
   NODE_ASSIGN,
   NODE_EXPRESSION,
-  NODE_TRUE_VAL,
-  NODE_FALSE_VAL,
-  NODE_NONE_VAL,
+  NODE_YEP_VAL,
+  NODE_NOP_VAL,
+  NODE_NIL_VAL,
   NODE_NUMBER_VAL,
   NODE_STRING_VAL,
+  NODE_IDENTIFIER,
 };
 
 class Node {
@@ -72,6 +75,9 @@ private:
   void Expect(TokenType, std::string);
   bool AtEnd();
 
+  bool CheckIdentifierList();
+  bool CheckBlock();
+
   void PopulateSpace(Node**);
   void Consume(Node **);
 
@@ -85,7 +91,7 @@ private:
 
   void Statement(Node **);
   void If(Node **);
-  void For(Node **);
+  void Lup(Node **);
   void Block(Node **);
 
   std::vector<Token> *tokens;

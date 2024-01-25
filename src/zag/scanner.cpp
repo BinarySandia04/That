@@ -9,7 +9,7 @@ using namespace Zag;
 
 Scanner::Scanner(std::string code, std::string fileName) {
   source = code;
-  
+
   this->panic = false;
   this->fileName = fileName;
 
@@ -31,10 +31,10 @@ bool Scanner::ScanTokens(std::vector<Token> *tokens, Error *error) {
   *error = this->error;
   tokens->push_back(Token(TOKEN_END_OF_FILE, "", "", current));
 
-  return !panic; 
+  return !panic;
 }
 
-void Scanner::Panic(Error err){
+void Scanner::Panic(Error err) {
   panic = true;
   error = err;
 }
@@ -66,6 +66,9 @@ void Scanner::ScanToken() {
       AddToken(TOKEN_DOT_DOT);
     else if (!IsDigit(Peek()))
       AddToken(TOKEN_DOT);
+    break;
+  case ':':
+    AddToken(Match(':') ? TOKEN_DOUBLE_DOUBLE_DOTS : TOKEN_DOUBLE_DOTS);
     break;
   case ';':
     AddToken(TOKEN_SEMICOLON);
@@ -102,9 +105,12 @@ void Scanner::ScanToken() {
     AddToken(Match('=') ? TOKEN_BANG_EQUAL : TOKEN_BANG);
     break;
   case '=':
-    if(Match('=')) AddToken(TOKEN_EQUAL_EQUAL);
-    else if(Match('>')) AddToken(TOKEN_ARROW);
-    else AddToken(TOKEN_EQUAL);
+    if (Match('='))
+      AddToken(TOKEN_EQUAL_EQUAL);
+    else if (Match('>'))
+      AddToken(TOKEN_ARROW);
+    else
+      AddToken(TOKEN_EQUAL);
     return;
   case '<':
     AddToken(Match('=') ? TOKEN_LESSER_EQUAL : TOKEN_LESSER);
@@ -139,6 +145,9 @@ void Scanner::ScanToken() {
 
   case '"':
     GetString();
+    break;
+  case '\'':
+    GetConstant();
     break;
   default:
     // Other checks
@@ -196,6 +205,14 @@ void Scanner::GetString() {
   AddToken(TOKEN_STRING, source.substr(start + 1, current - start - 2));
 }
 
+void Scanner::GetConstant() {
+  while (!IsEmpty(Peek()) && !AtEnd() && IsAlpha(Peek())) {
+    Advance();
+  }
+
+  AddToken(TOKEN_CONST, source.substr(start + 1, current - start - 1));
+}
+
 bool Scanner::IsDigit(char c) { return IsDigitNumber(c) || c == '.'; }
 
 void Scanner::Number() {
@@ -211,6 +228,10 @@ void Scanner::Number() {
 }
 
 bool Scanner::IsDigitNumber(char c) { return c >= '0' && c <= '9'; }
+
+bool Scanner::IsEmpty(char c) {
+  return c == ' ' || c == '\n' || c == '\t' || c == '\r';
+}
 
 char Scanner::PeekNext() {
   if (current + 1 >= source.size())
@@ -231,16 +252,18 @@ void Scanner::Identifier() {
   std::string text = source.substr(start, current - start);
 
   TokenType type;
-  if (keywords.count(text) > 0)
+  if (keywords.count(text) > 0){
     type = keywords[text];
-  else type = TOKEN_IDENTIFIER;
-
-  AddToken(type);
+    AddToken(type);
+  }
+  else {
+    type = TOKEN_IDENTIFIER;
+    AddToken(type, text);
+  }
 }
 
 std::unordered_map<std::string, TokenType> Scanner::keywords{
-    {"if", TOKEN_IF},       {"else", TOKEN_ELSE}, {"elif", TOKEN_ELIF},
-    {"for", TOKEN_FOR},     {"fn", TOKEN_FN},     {"this", TOKEN_THIS},
-    {"super", TOKEN_SUPER}, {"none", TOKEN_NONE}, {"ret", TOKEN_RETURN},
-    {"class", TOKEN_CLASS}, {"true", TOKEN_TRUE}, {"false", TOKEN_FALSE},
-    {"set", TOKEN_SET}};
+    {"if", TOKEN_IF},   {"els", TOKEN_ELS}, {"eif", TOKEN_EIF},
+    {"lup", TOKEN_LUP}, {"fn", TOKEN_FN},   {"dis", TOKEN_DIS},
+    {"sup", TOKEN_SUP}, {"nil", TOKEN_NIL}, {"ret", TOKEN_RET},
+    {"kin", TOKEN_KIN}, {"yep", TOKEN_YEP}, {"nop", TOKEN_NOP}};
