@@ -2,9 +2,9 @@
  <p align="center">
   <img src="logo.png" alt="Logo" width="80" height="80">
 
-  <h1 align="center">Wyrm</h1>
+  <h1 align="center">Zag</h1>
     <p align="center">
-    The most powerful programming language
+    The most powerful and dumbest programming language
     <br />
     <a href="https://git.aranroig.com/BinarySandia04/Wyrm/issues">Informa d'un error</a>
 </p>
@@ -20,6 +20,7 @@
 
 ## Coses
 Això encara està en obres. Acabaré el README quan tingui temps. Com m'agrada fer amb tots els projectes que mai acabo, aqui poso una llista amb coses per fer:
+
 
 ## Roadmap
 Aquesta llista pot canviar en un futur. La idea es com més o menys seràn les versions (m'estic flipant molt amb això)
