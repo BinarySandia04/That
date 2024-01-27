@@ -46,14 +46,18 @@ void Node::PrintTabs(int tabs) {
     std::cout << "\t";
 }
 
-Token Parser::Peek() {
-  if (current < tokens->size())
-    return (*tokens)[current];
+Token Parser::Peek() { return PeekN(0); }
+
+TokenType Parser::PeekType() { return PeekNType(0); }
+
+Token Parser::PeekN(int n) {
+  if (current + n < tokens->size())
+    return (*tokens)[current + n];
   else
     return (*tokens)[tokens->size() - 1];
 }
 
-TokenType Parser::PeekType() { return Peek().type; }
+TokenType Parser::PeekNType(int n) { return PeekN(n).type; }
 
 Token Parser::Advance() {
   if (current < tokens->size()) {
@@ -108,6 +112,8 @@ void Parser::Expect(TokenType type, std::string content) {
   else
     Advance();
 }
+
+void Parser::Panic(std::string content) { EnterPanic(Peek(), content); }
 
 bool Parser::AtEnd() {
   return current >= tokens->size() || PeekType() == TOKEN_END_OF_FILE;
@@ -189,8 +195,35 @@ void Parser::Statement(Node **node) {
     Lup(node);
     return;
   }
+  if (CheckAssignation()) {
+    Assignation(node);
+    return;
+  }
 
   Expression(node);
+}
+
+void Parser::Assignation(Node **assignation) {
+  (*assignation)->type = NODE_ASSIGNATION;
+
+  // 2 childs: var name and type
+  // 1 arg: declared type
+
+  // Passed after CheckAssignation ==> TOKEN_IDENTIFIER, TOKEN_EQUAL, ...
+  //                                         ^
+  //                                         |
+
+  Node *identifier = new Node(NODE_IDENTIFIER);
+  (*identifier).data = Peek().literal;
+  Advance();
+  Expect(TOKEN_EQUAL, "Expected '='");
+
+  // Now we expect an expression afer the equal
+  Node *expression = new Node(NODE_EXPRESSION);
+  Expression(&expression);
+
+  (*assignation)->children.push_back(identifier);
+  (*assignation)->children.push_back(expression);
 }
 
 void Parser::If(Node **node) {
@@ -226,11 +259,16 @@ void Parser::If(Node **node) {
   }
 }
 
-bool Parser::CheckIdentifierList() { return false; }
-
-bool Parser::CheckBlock(){
-  return PeekType() == TOKEN_LEFT_BRACE || PeekType() == TOKEN_DOUBLE_DOTS || PeekType() == TOKEN_SEMICOLON;
+bool Parser::CheckBlock() {
+  return PeekType() == TOKEN_LEFT_BRACE || PeekType() == TOKEN_DOUBLE_DOTS ||
+         PeekType() == TOKEN_SEMICOLON;
 }
+
+bool Parser::CheckAssignation() {
+  return PeekType() == TOKEN_IDENTIFIER && PeekNType(1) == TOKEN_EQUAL;
+}
+
+bool Parser::CheckIterator() { return false; }
 
 void Parser::Lup(Node **lup) {
   // Assume that we matched it
@@ -243,17 +281,15 @@ void Parser::Lup(Node **lup) {
     Advance();
   }
 
-  // We cehck if we have an identifier list
-  if (CheckIdentifierList()) {
-
-  } else {
+  if (CheckIterator()) {
+    // iterator form
+  } else if (!CheckBlock()) {
+    // while form
     // We have our expression
-    if (!CheckBlock()) {
-      Node *exp = new Node(NODE_EXPRESSION);
-      Expression(&exp);
+    Node *exp = new Node(NODE_EXPRESSION);
+    Expression(&exp);
 
-      (*lup)->arguments.push_back(exp);
-    }
+    (*lup)->arguments.push_back(exp);
   }
 
   // We get the inner block
@@ -261,6 +297,17 @@ void Parser::Lup(Node **lup) {
   Block(&block);
 
   (*lup)->children.push_back(block);
+}
+
+// Will expand in the future
+void Parser::Type(Node **type) {
+  (*type)->type = NODE_TYPE;
+
+  if (PeekType() == TOKEN_IDENTIFIER) {
+    (*type)->data = Peek().literal;
+  } else {
+    Panic("Expected type identifier");
+  }
 }
 
 void Parser::Primary(Node **exp) {
@@ -301,7 +348,7 @@ void Parser::Primary(Node **exp) {
     break;
   }
   default:
-    EnterPanic(t, "Unexpected primary type");
+    Panic("Unexpected primary type");
     break;
   }
 }
