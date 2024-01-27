@@ -1,6 +1,8 @@
 #include <initializer_list>
 #include <iostream>
+#include <random>
 
+#include "node.h"
 #include "parser.h"
 #include "token.h"
 
@@ -10,40 +12,6 @@ Parser::Parser(std::string fileName) {
   this->fileName = fileName;
   current = 0;
   panic = false;
-}
-
-Node::Node() { this->type = NODE_UNDEF; }
-
-Node::Node(NodeType type) { this->type = type; }
-
-Node::Node(NodeType type, std::string data) {
-  this->type = type;
-  this->data = data;
-}
-
-void Node::Debug(int tabs) {
-  PrintTabs(tabs);
-  std::cout << "{" << std::endl;
-  PrintTabs(tabs);
-  std::cout << "type: " << type << std::endl;
-  PrintTabs(tabs);
-  std::cout << "data: " << data << std::endl;
-  PrintTabs(tabs);
-  std::cout << "childs: " << children.size() << std::endl;
-  if (children.size() > 0) {
-    PrintTabs(tabs);
-    std::cout << "children: [" << std::endl;
-    for (int i = 0; i < children.size(); i++) {
-      children[i]->Debug(tabs + 1);
-    }
-  }
-  PrintTabs(tabs);
-  std::cout << "]}" << std::endl;
-}
-
-void Node::PrintTabs(int tabs) {
-  for (int i = 0; i < tabs; i++)
-    std::cout << "\t";
 }
 
 Token Parser::Peek() { return PeekN(0); }
@@ -206,23 +174,46 @@ void Parser::Statement(Node **node) {
 void Parser::Assignation(Node **assignation) {
   (*assignation)->type = NODE_ASSIGNATION;
 
-  // 2 childs: var name and type
+  // 2 childs: var name and value
   // 1 arg: declared type
 
   // Passed after CheckAssignation ==> TOKEN_IDENTIFIER, TOKEN_EQUAL, ...
   //                                         ^
   //                                         |
+  bool typed = false;
+  std::cout << Peek().lexeme << std::endl;
 
   Node *identifier = new Node(NODE_IDENTIFIER);
   (*identifier).data = Peek().literal;
+  (*assignation)->children.push_back(identifier);
+
   Advance();
-  Expect(TOKEN_EQUAL, "Expected '='");
+  // We check if the assignation is typed
+  if (Match(TOKEN_DOUBLE_DOTS)) {
+    Node *type = new Node(NODE_TYPE);
+    Type(&type);
+    (*assignation)->arguments.push_back(type);
+    typed = true;
+  }
+
+  // If it is not, we must provide an equality
+  if (!typed) {
+    Expect(TOKEN_EQUAL, "Expected '='");
+    if (panic)
+      return;
+  }
+  // It if is typed and we do not have an equal we ended the statement
+  if (typed) {
+    if (PeekType() != TOKEN_EQUAL) {
+      return;
+    }
+    Advance();
+  }
 
   // Now we expect an expression afer the equal
   Node *expression = new Node(NODE_EXPRESSION);
   Expression(&expression);
 
-  (*assignation)->children.push_back(identifier);
   (*assignation)->children.push_back(expression);
 }
 
@@ -265,7 +256,8 @@ bool Parser::CheckBlock() {
 }
 
 bool Parser::CheckAssignation() {
-  return PeekType() == TOKEN_IDENTIFIER && PeekNType(1) == TOKEN_EQUAL;
+  return PeekType() == TOKEN_IDENTIFIER &&
+         (PeekNType(1) == TOKEN_EQUAL || PeekNType(1) == TOKEN_DOUBLE_DOTS);
 }
 
 bool Parser::CheckIterator() { return false; }
@@ -303,8 +295,40 @@ void Parser::Lup(Node **lup) {
 void Parser::Type(Node **type) {
   (*type)->type = NODE_TYPE;
 
+  if(PeekType() == TOKEN_STAR){
+    (*type)->data = "*";
+    Advance();
+    return;
+  }
+
   if (PeekType() == TOKEN_IDENTIFIER) {
     (*type)->data = Peek().literal;
+    Advance();
+    // Now we get recursive type defs ( i.e List<Int> )
+
+    if (Match(TOKEN_LESSER)) {
+      do {
+        if (PeekType() == TOKEN_IDENTIFIER || PeekType() == TOKEN_STAR) {
+          Node *subType = new Node;
+          bool isStar = PeekType() == TOKEN_STAR;
+          Type(&subType);
+
+          (*type)->children.push_back(subType);
+          if(!isStar) Advance();
+        }
+        if (AtEnd()) {
+          Panic("Reached end of file before closing type definition");
+          return;
+        }
+
+        if (Match(TOKEN_GREATER)) {
+          break;
+        }
+      } while (Match(TOKEN_COMMA));
+
+      // All good if we get here
+      return;
+    }
   } else {
     Panic("Expected type identifier");
   }

@@ -58,6 +58,12 @@ void Scanner::ScanToken() {
   case '}':
     AddToken(TOKEN_RIGHT_BRACE);
     break;
+  case '[':
+    AddToken(TOKEN_LEFT_BRACKET);
+    break;
+  case ']':
+    AddToken(TOKEN_RIGHT_BRACKET);
+    break;
   case ',':
     AddToken(TOKEN_COMMA);
     break;
