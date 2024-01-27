@@ -39,6 +39,7 @@ enum TokenType {
   TOKEN_BANG_EQUAL, // !=
   TOKEN_EQUAL, // =
   TOKEN_EQUAL_EQUAL, // ==
+  TOKEN_DEFINITION,
   TOKEN_GREATER, // > 
   TOKEN_GREATER_EQUAL, // >=
   TOKEN_LESSER, // <
@@ -67,6 +68,7 @@ enum TokenType {
   TOKEN_SUP, // sup
   TOKEN_DIS, // dis
   TOKEN_KIN, // kin
+  TOKEN_GET, // get
 
   TOKEN_YEP, // yep
   TOKEN_NOP, // nop

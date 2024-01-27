@@ -20,8 +20,17 @@ void Node::Debug(int tabs) {
   std::cout << "type: " << type << std::endl;
   PrintTabs(tabs);
   std::cout << "data: " << data << std::endl;
+  
+  if (arguments.size() > 0) {
+    PrintTabs(tabs);
+    std::cout << "args: [" << std::endl;
+    for (int i = 0; i < arguments.size(); i++) {
+      arguments[i]->Debug(tabs + 1);
+    }
+  }
   PrintTabs(tabs);
-  std::cout << "args: " << arguments.size() << std::endl;
+  std::cout << "]}" << std::endl;
+
   PrintTabs(tabs);
   std::cout << "childs: " << children.size() << std::endl;
   if (children.size() > 0) {

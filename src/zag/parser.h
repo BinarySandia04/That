@@ -56,12 +56,17 @@ private:
   void Comparison(Node **);
   void Equality(Node **);
   void Expression(Node **);
+  void Array(Node **);
 
   void Assignation(Node **);
   void Statement(Node **);
   void If(Node **);
   void Lup(Node **);
   void Block(Node **);
+  void Fn(Node **);
+  void Ret(Node **);
+  void Kin(Node **);
+  void Get(Node **);
 
   std::vector<Token> *tokens;
 };

@@ -1,6 +1,5 @@
 #include <initializer_list>
 #include <iostream>
-#include <random>
 
 #include "node.h"
 #include "parser.h"
@@ -21,6 +20,8 @@ TokenType Parser::PeekType() { return PeekNType(0); }
 Token Parser::PeekN(int n) {
   if (current + n < tokens->size())
     return (*tokens)[current + n];
+  else if(current + n < 0)
+    return (*tokens)[0];
   else
     return (*tokens)[tokens->size() - 1];
 }
@@ -81,7 +82,7 @@ void Parser::Expect(TokenType type, std::string content) {
     Advance();
 }
 
-void Parser::Panic(std::string content) { EnterPanic(Peek(), content); }
+void Parser::Panic(std::string content) { EnterPanic(PeekN(-1), content); }
 
 bool Parser::AtEnd() {
   return current >= tokens->size() || PeekType() == TOKEN_END_OF_FILE;
@@ -102,7 +103,9 @@ bool Parser::GenerateAST(std::vector<Token> *tokens, Node **tree, Error *err) {
 
 void Parser::PopulateSpace(Node **root) {
   while (PeekType() != TOKEN_END_OF_FILE) {
+    
     Consume(root);
+
     if (panic)
       return;
   }
@@ -161,6 +164,14 @@ void Parser::Statement(Node **node) {
   }
   if (Match(TOKEN_LUP)) {
     Lup(node);
+    return;
+  }
+  if(Match(TOKEN_FN)){
+    Fn(node);
+    return;
+  }
+  if(Match(TOKEN_RET)){
+    Ret(node);
     return;
   }
   if (CheckAssignation()) {
@@ -291,7 +302,43 @@ void Parser::Lup(Node **lup) {
   (*lup)->children.push_back(block);
 }
 
-// Will expand in the future
+// TODO
+void Parser::Fn(Node **fun){
+  (*fun)->type = NODE_FUNCTION;
+  // First of all we expect an identifier
+  if(PeekType() != TOKEN_IDENTIFIER){
+    Panic("Expected an identifier after 'fn'");
+    return;
+  }
+
+  (*fun)->data = Peek().literal;
+  Advance();
+
+  // We expect an argument list
+
+}
+
+void Parser::Ret(Node **ret){
+  (*ret)->type = NODE_RET;
+  // As Lua does, we expect the following expressions to be for the return
+  if(PeekType() == TOKEN_RIGHT_BRACE) return; // No chance for confusion here 
+  do {
+    Node *exp = new Node(NODE_EXPRESSION);
+    Expression(&exp);
+    (*ret)->children.push_back(exp);
+  } while(Match(TOKEN_COMMA));
+}
+
+// TODO
+void Parser::Kin(Node **kin){
+
+}
+
+// TODO
+void Parser::Get(Node **get){
+
+}
+
 void Parser::Type(Node **type) {
   (*type)->type = NODE_TYPE;
 
@@ -307,6 +354,10 @@ void Parser::Type(Node **type) {
     // Now we get recursive type defs ( i.e List<Int> )
 
     if (Match(TOKEN_LESSER)) {
+      if(Match(TOKEN_GREATER)){
+        Panic("Expected type inside <>");
+        return;
+      }
       do {
         if (PeekType() == TOKEN_IDENTIFIER || PeekType() == TOKEN_STAR) {
           Node *subType = new Node;
@@ -364,6 +415,10 @@ void Parser::Primary(Node **exp) {
     (*exp)->data = t.literal;
     Advance();
     break;
+  case TOKEN_LEFT_BRACKET:
+    Advance();
+    Array(exp);
+    break;
   case TOKEN_LEFT_PAREN: {
     // Nested expression
     Advance();
@@ -374,6 +429,27 @@ void Parser::Primary(Node **exp) {
   default:
     Panic("Unexpected primary type");
     break;
+  }
+}
+
+void Parser::Array(Node **array){
+  (*array)->type = NODE_ARRAY;
+  while(PeekType() != TOKEN_RIGHT_BRACKET){
+    Node* exp = new Node();
+    Expression(&exp);
+    (*array)->children.push_back(exp);
+
+    if(!Match(TOKEN_COMMA)){
+      if(PeekType() == TOKEN_RIGHT_BRACKET){
+        Advance();
+        return;
+      }
+    }
+      
+    if(AtEnd()){
+      Panic("Unclosed right bracket for listable");
+      return;
+    }
   }
 }
 

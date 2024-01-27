@@ -74,7 +74,12 @@ void Scanner::ScanToken() {
       AddToken(TOKEN_DOT);
     break;
   case ':':
-    AddToken(Match(':') ? TOKEN_DOUBLE_DOUBLE_DOTS : TOKEN_DOUBLE_DOTS);
+    if(Match(':'))
+      AddToken(TOKEN_DOUBLE_DOUBLE_DOTS);
+    else if(Match('='))
+      AddToken(TOKEN_DEFINITION);
+    else
+      AddToken(TOKEN_DOUBLE_DOTS);
     break;
   case ';':
     AddToken(TOKEN_SEMICOLON);
@@ -89,6 +94,9 @@ void Scanner::ScanToken() {
       AddToken(TOKEN_PLUS_PLUS);
     else
       AddToken(TOKEN_PLUS);
+    break;
+  case '@':
+    AddToken(TOKEN_AT);
     break;
   case '-':
     if (Match('='))
@@ -268,8 +276,10 @@ void Scanner::Identifier() {
   }
 }
 
-std::unordered_map<std::string, TokenType> Scanner::keywords{
+std::unordered_map<std::string, TokenType> Scanner::keywords {
     {"if", TOKEN_IF},   {"els", TOKEN_ELS}, {"eif", TOKEN_EIF},
     {"lup", TOKEN_LUP}, {"fn", TOKEN_FN},   {"dis", TOKEN_DIS},
     {"sup", TOKEN_SUP}, {"nil", TOKEN_NIL}, {"ret", TOKEN_RET},
-    {"kin", TOKEN_KIN}, {"yep", TOKEN_YEP}, {"nop", TOKEN_NOP}};
+    {"kin", TOKEN_KIN}, {"yep", TOKEN_YEP}, {"nop", TOKEN_NOP},
+    {"get", TOKEN_GET} 
+};
