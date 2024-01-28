@@ -40,6 +40,7 @@ private:
   char PeekNext();
   void GetString();
   void GetConstant();
+  bool ValidConst(char);
   bool IsDigit(char);
   bool IsDigitNumber(char);
   bool IsEmpty(char);

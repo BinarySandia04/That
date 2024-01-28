@@ -103,7 +103,7 @@ bool Parser::GenerateAST(std::vector<Token> *tokens, Node **tree, Error *err) {
 
 void Parser::PopulateSpace(Node **root) {
   while (PeekType() != TOKEN_END_OF_FILE) {
-
+    
     Consume(root);
 
     if (panic)
@@ -176,6 +176,10 @@ void Parser::Statement(Node **node) {
   }
   if(Match(TOKEN_BRK)){
     Brk(node);
+    return;
+  }
+  if(Match(TOKEN_GET)){
+    Get(node);
     return;
   }
   if (CheckAssignation()) {
@@ -375,6 +379,12 @@ void Parser::Ret(Node **ret) {
 
 void Parser::Brk(Node **brk){
   (*brk)->type = NODE_BRK;
+
+  if (PeekType() == TOKEN_CONST) {
+    (*brk)->data = Peek().literal;
+    Advance();
+  }
+
   if(Match(TOKEN_IF)){
     Node* exp = new Node(NODE_EXPRESSION);
     Expression(&exp);
@@ -385,8 +395,20 @@ void Parser::Brk(Node **brk){
 // TODO
 void Parser::Kin(Node **kin) {}
 
-// TODO
-void Parser::Get(Node **get) {}
+void Parser::Get(Node **get) {
+  (*get)->type = NODE_GET;
+  // We put lexemes because we want to distinct const and string (local and global)
+  if(PeekType() == TOKEN_CONST){
+    (*get)->data = Peek().lexeme;
+    Advance();
+  }
+  else if(PeekType() == TOKEN_STRING){
+    (*get)->data = Peek().lexeme;
+    Advance();
+  } else {
+    Panic("Expected constant or string for get");
+  }
+}
 
 void Parser::Type(Node **type) {
   (*type)->type = NODE_TYPE;
@@ -539,13 +561,16 @@ void Parser::Interval(Node **interval) {
 }
 
 void Parser::Unary(Node **exp) {
-  if (MatchAny({TOKEN_BANG, TOKEN_MINUS})) {
+  if (MatchAny({TOKEN_BANG, TOKEN_MINUS, TOKEN_SLASH})) {
     TokenType opToken = PreviousType();
     (*exp)->type = NODE_OP_UN;
 
     switch (opToken) {
     case TOKEN_BANG:
       (*exp)->data = "!";
+      break;
+    case TOKEN_SLASH:
+      (*exp)->data = "/";
       break;
     default:
       (*exp)->data = "-";

@@ -220,11 +220,15 @@ void Scanner::GetString() {
 }
 
 void Scanner::GetConstant() {
-  while (!IsEmpty(Peek()) && !AtEnd() && IsAlpha(Peek())) {
+  while (!IsEmpty(Peek()) && !AtEnd() && (IsAlpha(Peek()) || ValidConst(Peek()))) {
     Advance();
   }
 
   AddToken(TOKEN_CONST, source.substr(start + 1, current - start - 1));
+}
+
+bool Scanner::ValidConst(char c){
+  return c == '/';
 }
 
 bool Scanner::IsDigit(char c) { return IsDigitNumber(c) || c == '.'; }
