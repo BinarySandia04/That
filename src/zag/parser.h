@@ -57,6 +57,8 @@ private:
   void Equality(Node **);
   void Expression(Node **);
   void Array(Node **);
+  void LupIterators(Node **);
+  void Interval(Node **);
 
   void Assignation(Node **);
   void Statement(Node **);
@@ -65,6 +67,7 @@ private:
   void Block(Node **);
   void Fn(Node **);
   void Ret(Node **);
+  void Brk(Node **);
   void Kin(Node **);
   void Get(Node **);
 

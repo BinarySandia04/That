@@ -64,6 +64,7 @@ enum TokenType {
   TOKEN_ELS, // els
   TOKEN_FN, // fn
   TOKEN_LUP, // for
+  TOKEN_BRK, // brk
   TOKEN_RET, // ret
   TOKEN_SUP, // sup
   TOKEN_DIS, // dis

@@ -281,5 +281,5 @@ std::unordered_map<std::string, TokenType> Scanner::keywords {
     {"lup", TOKEN_LUP}, {"fn", TOKEN_FN},   {"dis", TOKEN_DIS},
     {"sup", TOKEN_SUP}, {"nil", TOKEN_NIL}, {"ret", TOKEN_RET},
     {"kin", TOKEN_KIN}, {"yep", TOKEN_YEP}, {"nop", TOKEN_NOP},
-    {"get", TOKEN_GET} 
+    {"get", TOKEN_GET}, {"brk", TOKEN_BRK} 
 };

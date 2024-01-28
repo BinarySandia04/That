@@ -20,7 +20,7 @@ TokenType Parser::PeekType() { return PeekNType(0); }
 Token Parser::PeekN(int n) {
   if (current + n < tokens->size())
     return (*tokens)[current + n];
-  else if(current + n < 0)
+  else if (current + n < 0)
     return (*tokens)[0];
   else
     return (*tokens)[tokens->size() - 1];
@@ -103,7 +103,7 @@ bool Parser::GenerateAST(std::vector<Token> *tokens, Node **tree, Error *err) {
 
 void Parser::PopulateSpace(Node **root) {
   while (PeekType() != TOKEN_END_OF_FILE) {
-    
+
     Consume(root);
 
     if (panic)
@@ -166,12 +166,16 @@ void Parser::Statement(Node **node) {
     Lup(node);
     return;
   }
-  if(Match(TOKEN_FN)){
+  if (Match(TOKEN_FN)) {
     Fn(node);
     return;
   }
-  if(Match(TOKEN_RET)){
+  if (Match(TOKEN_RET)) {
     Ret(node);
+    return;
+  }
+  if(Match(TOKEN_BRK)){
+    Brk(node);
     return;
   }
   if (CheckAssignation()) {
@@ -192,7 +196,6 @@ void Parser::Assignation(Node **assignation) {
   //                                         ^
   //                                         |
   bool typed = false;
-  std::cout << Peek().lexeme << std::endl;
 
   Node *identifier = new Node(NODE_IDENTIFIER);
   (*identifier).data = Peek().literal;
@@ -271,7 +274,25 @@ bool Parser::CheckAssignation() {
          (PeekNType(1) == TOKEN_EQUAL || PeekNType(1) == TOKEN_DOUBLE_DOTS);
 }
 
-bool Parser::CheckIterator() { return false; }
+bool Parser::CheckIterator() {
+  // IDENTIFIER COMMA IDENTIFIER COMMA IDENTIFIER .... PIPE
+  int a = 0;
+  while (PeekNType(a) == TOKEN_IDENTIFIER) {
+    a += 1;
+    if (PeekNType(a) == TOKEN_END_OF_FILE)
+      Panic("Unexpected EOF");
+
+    if (PeekNType(a) != TOKEN_COMMA && PeekNType(a) != TOKEN_PIPE)
+      return false;
+    if (PeekNType(a) == TOKEN_PIPE)
+      return true;
+    a += 1;
+
+    if (PeekNType(a) == TOKEN_END_OF_FILE)
+      Panic("Unexpected EOF");
+  }
+  return false;
+}
 
 void Parser::Lup(Node **lup) {
   // Assume that we matched it
@@ -286,13 +307,35 @@ void Parser::Lup(Node **lup) {
 
   if (CheckIterator()) {
     // iterator form
+    Node *iterators = new Node(NODE_LUP_ITERATORS);
+    LupIterators(&iterators);
+    (*lup)->arguments.push_back(iterators);
   } else if (!CheckBlock()) {
     // while form
     // We have our expression
-    Node *exp = new Node(NODE_EXPRESSION);
-    Expression(&exp);
+    if (CheckAssignation()) {
+      // for mode
+      Node *n = new Node(NODE_ASSIGNATION);
+      Assignation(&n);
+      (*lup)->arguments.push_back(n);
 
-    (*lup)->arguments.push_back(exp);
+      Expect(TOKEN_PIPE, "Expected '|' after lupfor initial assignation");
+
+      n = new Node(NODE_EXPRESSION);
+      Expression(&n);
+      (*lup)->arguments.push_back(n);
+
+      Expect(TOKEN_PIPE, "Expected '|' after lupfor conditional expression");
+
+      n = new Node(NODE_ASSIGNATION);
+      Assignation(&n);
+      (*lup)->arguments.push_back(n);
+    } else {
+      Node *exp = new Node(NODE_EXPRESSION);
+      Expression(&exp);
+
+      (*lup)->arguments.push_back(exp);
+    }
   }
 
   // We get the inner block
@@ -303,10 +346,10 @@ void Parser::Lup(Node **lup) {
 }
 
 // TODO
-void Parser::Fn(Node **fun){
+void Parser::Fn(Node **fun) {
   (*fun)->type = NODE_FUNCTION;
   // First of all we expect an identifier
-  if(PeekType() != TOKEN_IDENTIFIER){
+  if (PeekType() != TOKEN_IDENTIFIER) {
     Panic("Expected an identifier after 'fn'");
     return;
   }
@@ -315,34 +358,40 @@ void Parser::Fn(Node **fun){
   Advance();
 
   // We expect an argument list
-
 }
 
-void Parser::Ret(Node **ret){
+void Parser::Ret(Node **ret) {
   (*ret)->type = NODE_RET;
   // As Lua does, we expect the following expressions to be for the return
-  if(PeekType() == TOKEN_RIGHT_BRACE) return; // No chance for confusion here 
+  std::cout << Peek().lexeme << std::endl;
+  if (PeekType() == TOKEN_RIGHT_BRACE)
+    return; // No chance for confusion here
   do {
     Node *exp = new Node(NODE_EXPRESSION);
     Expression(&exp);
     (*ret)->children.push_back(exp);
-  } while(Match(TOKEN_COMMA));
+  } while (Match(TOKEN_COMMA));
+}
+
+void Parser::Brk(Node **brk){
+  (*brk)->type = NODE_BRK;
+  if(Match(TOKEN_IF)){
+    Node* exp = new Node(NODE_EXPRESSION);
+    Expression(&exp);
+    (*brk)->children.push_back(exp);
+  }
 }
 
 // TODO
-void Parser::Kin(Node **kin){
-
-}
+void Parser::Kin(Node **kin) {}
 
 // TODO
-void Parser::Get(Node **get){
-
-}
+void Parser::Get(Node **get) {}
 
 void Parser::Type(Node **type) {
   (*type)->type = NODE_TYPE;
 
-  if(PeekType() == TOKEN_STAR){
+  if (PeekType() == TOKEN_STAR) {
     (*type)->data = "*";
     Advance();
     return;
@@ -354,7 +403,7 @@ void Parser::Type(Node **type) {
     // Now we get recursive type defs ( i.e List<Int> )
 
     if (Match(TOKEN_LESSER)) {
-      if(Match(TOKEN_GREATER)){
+      if (Match(TOKEN_GREATER)) {
         Panic("Expected type inside <>");
         return;
       }
@@ -365,7 +414,8 @@ void Parser::Type(Node **type) {
           Type(&subType);
 
           (*type)->children.push_back(subType);
-          if(!isStar) Advance();
+          if (!isStar)
+            Advance();
         }
         if (AtEnd()) {
           Panic("Reached end of file before closing type definition");
@@ -432,24 +482,59 @@ void Parser::Primary(Node **exp) {
   }
 }
 
-void Parser::Array(Node **array){
+void Parser::Array(Node **array) {
   (*array)->type = NODE_ARRAY;
-  while(PeekType() != TOKEN_RIGHT_BRACKET){
-    Node* exp = new Node();
+  while (PeekType() != TOKEN_RIGHT_BRACKET) {
+    Node *exp = new Node();
     Expression(&exp);
     (*array)->children.push_back(exp);
 
-    if(!Match(TOKEN_COMMA)){
-      if(PeekType() == TOKEN_RIGHT_BRACKET){
+    if (!Match(TOKEN_COMMA)) {
+      if (PeekType() == TOKEN_RIGHT_BRACKET) {
         Advance();
         return;
       }
     }
-      
-    if(AtEnd()){
+
+    if (AtEnd()) {
       Panic("Unclosed right bracket for listable");
       return;
     }
+  }
+}
+
+void Parser::LupIterators(Node **iterators) {
+  (*iterators)->type = NODE_LUP_ITERATORS;
+  // We have guaranteed the following
+  // ID COMMA ID COMMA ID .... PIPE
+  // We save identifiers on args
+  do {
+    Node *identifier = new Node(NODE_IDENTIFIER);
+    identifier->data = Peek().literal;
+    (*iterators)->arguments.push_back(identifier);
+    Advance();
+  } while (Match(TOKEN_COMMA));
+
+  // Now we consume intervals (do-while because we have a guaranteed pipe)
+  while (Match(TOKEN_PIPE)) {
+    Node *interval = new Node(NODE_INTERVAL);
+    Interval(&interval);
+    (*iterators)->children.push_back(interval);
+  }
+}
+
+void Parser::Interval(Node **interval) {
+  (*interval)->type = NODE_INTERVAL;
+  // We get the first expression
+  Node *exp = new Node(NODE_EXPRESSION);
+  Expression(&exp);
+  (*interval)->children.push_back(exp);
+
+  // If we have comma we consume a second one
+  if (Match(TOKEN_COMMA)) {
+    exp = new Node(NODE_EXPRESSION);
+    Expression(&exp);
+    (*interval)->children.push_back(exp);
   }
 }
 
