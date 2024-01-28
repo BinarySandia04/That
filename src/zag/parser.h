@@ -43,6 +43,7 @@ private:
 
   bool CheckBlock();
   bool CheckAssignation();
+  bool CheckIncrementor(); 
   bool CheckIterator();
 
   void PopulateSpace(Node**);
@@ -66,6 +67,7 @@ private:
   void Lup(Node **);
   void Block(Node **);
   void Fn(Node **);
+  void Args(Node **);
   void Ret(Node **);
   void Brk(Node **);
   void Kin(Node **);

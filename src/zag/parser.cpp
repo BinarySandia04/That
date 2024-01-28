@@ -103,7 +103,7 @@ bool Parser::GenerateAST(std::vector<Token> *tokens, Node **tree, Error *err) {
 
 void Parser::PopulateSpace(Node **root) {
   while (PeekType() != TOKEN_END_OF_FILE) {
-    
+
     Consume(root);
 
     if (panic)
@@ -174,15 +174,15 @@ void Parser::Statement(Node **node) {
     Ret(node);
     return;
   }
-  if(Match(TOKEN_BRK)){
+  if (Match(TOKEN_BRK)) {
     Brk(node);
     return;
   }
-  if(Match(TOKEN_GET)){
+  if (Match(TOKEN_GET)) {
     Get(node);
     return;
   }
-  if (CheckAssignation()) {
+  if (CheckAssignation() || CheckIncrementor()) {
     Assignation(node);
     return;
   }
@@ -200,7 +200,6 @@ void Parser::Assignation(Node **assignation) {
   //                                         ^
   //                                         |
   bool typed = false;
-
   Node *identifier = new Node(NODE_IDENTIFIER);
   (*identifier).data = Peek().literal;
   (*assignation)->children.push_back(identifier);
@@ -216,15 +215,43 @@ void Parser::Assignation(Node **assignation) {
 
   // If it is not, we must provide an equality
   if (!typed) {
-    Expect(TOKEN_EQUAL, "Expected '='");
-    if (panic)
+    if (MatchAny({TOKEN_EQUAL, TOKEN_MINUS_EQUAL, TOKEN_PLUS_EQUAL,
+                  TOKEN_STAR_EQUAL, TOKEN_SLASH_EQUAL,
+                  TOKEN_PERCENTAGE_EQUAL})) {
+      switch (PreviousType()) {
+      case TOKEN_EQUAL:
+        (*assignation)->data = "=";
+        break;
+      case TOKEN_MINUS_EQUAL:
+        (*assignation)->data = "-=";
+        break;
+      case TOKEN_PLUS_EQUAL:
+        (*assignation)->data = "+=";
+        break;
+      case TOKEN_STAR_EQUAL:
+        (*assignation)->data = "*=";
+        break;
+      case TOKEN_SLASH_EQUAL:
+        (*assignation)->data = "/=";
+        break;
+      case TOKEN_PERCENTAGE_EQUAL:
+        (*assignation)->data = "%=";
+        break;
+      default:
+        Panic("Expected valid assignation symbol");
+        return;
+      }
+    } else {
+      Panic("Expected assignation symbol");
       return;
+    }
   }
   // It if is typed and we do not have an equal we ended the statement
   if (typed) {
     if (PeekType() != TOKEN_EQUAL) {
       return;
     }
+    (*assignation)->data = "=";
     Advance();
   }
 
@@ -276,6 +303,13 @@ bool Parser::CheckBlock() {
 bool Parser::CheckAssignation() {
   return PeekType() == TOKEN_IDENTIFIER &&
          (PeekNType(1) == TOKEN_EQUAL || PeekNType(1) == TOKEN_DOUBLE_DOTS);
+}
+
+bool Parser::CheckIncrementor(){
+  return PeekType() == TOKEN_IDENTIFIER && 
+    (PeekNType(1) == TOKEN_PLUS_EQUAL || PeekNType(1) == TOKEN_MINUS_EQUAL ||
+     PeekNType(1) == TOKEN_STAR_EQUAL || PeekNType(1) == TOKEN_SLASH_EQUAL ||
+     PeekNType(1) == TOKEN_PERCENTAGE_EQUAL);
 }
 
 bool Parser::CheckIterator() {
@@ -361,7 +395,63 @@ void Parser::Fn(Node **fun) {
   (*fun)->data = Peek().literal;
   Advance();
 
-  // We expect an argument list
+  // We expect a definition token or an arrow
+  if (Match(TOKEN_LEFT_BRACKET)) {
+    Node *args = new Node(NODE_ARGS);
+    Args(&args);
+    (*fun)->arguments.push_back((args));
+  }
+
+  if (Match(TOKEN_ARROW)) {
+    Node *type = new Node(NODE_TYPE);
+    Type(&type);
+    (*fun)->arguments.push_back(type);
+  }
+
+  // We expect now the block
+  Node *block = new Node(NODE_BLOCK);
+  Block(&block);
+  (*fun)->children.push_back(block);
+}
+
+void Parser::Args(Node **args) {
+  (*args)->type = NODE_ARGS;
+
+  while (PeekType() != TOKEN_RIGHT_BRACKET) {
+
+    Node *arg = new Node(NODE_ARG);
+
+    if (PeekType() != TOKEN_IDENTIFIER) {
+      Panic("Expected identifier");
+      return;
+    }
+
+    Node *identifier = new Node(NODE_IDENTIFIER);
+    (*identifier).data = Peek().literal;
+    arg->children.push_back(identifier);
+
+    Advance();
+    // We check if the assignation is typed
+    if (Match(TOKEN_DOUBLE_DOTS)) {
+      Node *type = new Node(NODE_TYPE);
+      Type(&type);
+      arg->arguments.push_back(type);
+    }
+
+    (*args)->children.push_back(arg);
+
+    if (!Match(TOKEN_COMMA)) {
+      if (PeekType() == TOKEN_RIGHT_BRACKET) {
+        Advance();
+        return;
+      }
+    }
+
+    if (AtEnd()) {
+      Panic("Unclosed right bracket for argument list");
+      return;
+    }
+  }
 }
 
 void Parser::Ret(Node **ret) {
@@ -377,7 +467,7 @@ void Parser::Ret(Node **ret) {
   } while (Match(TOKEN_COMMA));
 }
 
-void Parser::Brk(Node **brk){
+void Parser::Brk(Node **brk) {
   (*brk)->type = NODE_BRK;
 
   if (PeekType() == TOKEN_CONST) {
@@ -385,8 +475,8 @@ void Parser::Brk(Node **brk){
     Advance();
   }
 
-  if(Match(TOKEN_IF)){
-    Node* exp = new Node(NODE_EXPRESSION);
+  if (Match(TOKEN_IF)) {
+    Node *exp = new Node(NODE_EXPRESSION);
     Expression(&exp);
     (*brk)->children.push_back(exp);
   }
@@ -397,12 +487,12 @@ void Parser::Kin(Node **kin) {}
 
 void Parser::Get(Node **get) {
   (*get)->type = NODE_GET;
-  // We put lexemes because we want to distinct const and string (local and global)
-  if(PeekType() == TOKEN_CONST){
+  // We put lexemes because we want to distinct const and string (local and
+  // global)
+  if (PeekType() == TOKEN_CONST) {
     (*get)->data = Peek().lexeme;
     Advance();
-  }
-  else if(PeekType() == TOKEN_STRING){
+  } else if (PeekType() == TOKEN_STRING) {
     (*get)->data = Peek().lexeme;
     Advance();
   } else {

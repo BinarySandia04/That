@@ -67,6 +67,9 @@ void Scanner::ScanToken() {
   case ',':
     AddToken(TOKEN_COMMA);
     break;
+  case '$':
+    AddToken(TOKEN_DOLLAR);
+    break;
   case '.':
     if (Match('.'))
       AddToken(TOKEN_DOT_DOT);
@@ -74,10 +77,10 @@ void Scanner::ScanToken() {
       AddToken(TOKEN_DOT);
     break;
   case ':':
-    if(Match(':'))
+    if (Match(':'))
       AddToken(TOKEN_DOUBLE_DOUBLE_DOTS);
-    else if(Match('='))
-      AddToken(TOKEN_DEFINITION);
+    else if (Match('='))
+      AddToken(TOKEN_DOUBLE_DOTS_EQUAL);
     else
       AddToken(TOKEN_DOUBLE_DOTS);
     break;
@@ -113,7 +116,12 @@ void Scanner::ScanToken() {
       AddToken(TOKEN_STAR);
     break;
   case '|':
-    AddToken(Match('|') ? TOKEN_PIPE_PIPE : TOKEN_PIPE);
+    if (Match('|'))
+      AddToken(TOKEN_PIPE_PIPE);
+    else if (Match('='))
+      AddToken(TOKEN_PIPE_EQUAL);
+    else
+      AddToken(TOKEN_PIPE);
     break;
   case '!':
     AddToken(Match('=') ? TOKEN_BANG_EQUAL : TOKEN_BANG);
@@ -220,16 +228,15 @@ void Scanner::GetString() {
 }
 
 void Scanner::GetConstant() {
-  while (!IsEmpty(Peek()) && !AtEnd() && (IsAlpha(Peek()) || ValidConst(Peek()))) {
+  while (!IsEmpty(Peek()) && !AtEnd() &&
+         (IsAlpha(Peek()) || ValidConst(Peek()))) {
     Advance();
   }
 
   AddToken(TOKEN_CONST, source.substr(start + 1, current - start - 1));
 }
 
-bool Scanner::ValidConst(char c){
-  return c == '/';
-}
+bool Scanner::ValidConst(char c) { return c == '/'; }
 
 bool Scanner::IsDigit(char c) { return IsDigitNumber(c) || c == '.'; }
 
@@ -270,20 +277,19 @@ void Scanner::Identifier() {
   std::string text = source.substr(start, current - start);
 
   TokenType type;
-  if (keywords.count(text) > 0){
+  if (keywords.count(text) > 0) {
     type = keywords[text];
     AddToken(type);
-  }
-  else {
+  } else {
     type = TOKEN_IDENTIFIER;
     AddToken(type, text);
   }
 }
 
-std::unordered_map<std::string, TokenType> Scanner::keywords {
+std::unordered_map<std::string, TokenType> Scanner::keywords{
     {"if", TOKEN_IF},   {"els", TOKEN_ELS}, {"eif", TOKEN_EIF},
     {"lup", TOKEN_LUP}, {"fn", TOKEN_FN},   {"dis", TOKEN_DIS},
     {"sup", TOKEN_SUP}, {"nil", TOKEN_NIL}, {"ret", TOKEN_RET},
     {"kin", TOKEN_KIN}, {"yep", TOKEN_YEP}, {"nop", TOKEN_NOP},
-    {"get", TOKEN_GET}, {"brk", TOKEN_BRK} 
+    {"get", TOKEN_GET}, {"brk", TOKEN_BRK}, {"hoc", TOKEN_HOC}
 };

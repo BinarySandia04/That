@@ -6,32 +6,35 @@
 namespace Zag {
 
 enum NodeType {
-  NODE_UNDEF,
-  NODE_SPACE,
-  NODE_BLOCK,
-  NODE_FUNCTION,
-  NODE_RET,
-  NODE_BRK,
+  NODE_UNDEF, // Undef node (?)
+  NODE_SPACE, // Top file node
+  NODE_BLOCK, // Child has various nodes
+  NODE_FUNCTION, // Data is identifier, args have NODE_ARGS and/or NDOE_TYPE return. Child is block
+  NODE_RET, // Childs are expressions to return
+  NODE_BRK, // Data has identifier, child is the expression to break
   NODE_KIN,
-  NODE_ARGS,
-  NODE_IF,
-  NODE_LUP,
-  NODE_OP_BIN,
-  NODE_OP_UN,
-  NODE_ASSIGN,
-  NODE_EXPRESSION,
-  NODE_YEP_VAL,
-  NODE_NOP_VAL,
-  NODE_NIL_VAL,
-  NODE_ASSIGNATION,
-  NODE_TYPE,
-  NODE_ARRAY,
-  NODE_GET,
-  NODE_INTERVAL, // children: 2 - 4, arguments: NODE_IDENTIFIER
-  NODE_LUP_ITERATORS,
-  NODE_NUMBER_VAL,
-  NODE_STRING_VAL,
-  NODE_IDENTIFIER,
+  NODE_ARG, // Children has identifier, args has type if typed
+  NODE_ARGS, // Multiple NODE_ARG as children
+  NODE_IF, // Arg has expressions childs are blocks. If args + 1 = childs then has else
+  NODE_LUP, // data has identifier. Child is block. Three forms: 
+            // Args: LUP_ITERATORS
+            // Args: EXPRESSION, ASSIGNATION, EXPRESSIOn
+            // Args: EXPRESSION
+  NODE_OP_BIN, // Data contains op
+  NODE_OP_UN, // Data contains op
+  NODE_EXPRESSION, // Undef expression. Should not appear in final ast
+  NODE_YEP_VAL, // yep
+  NODE_NOP_VAL, // nop
+  NODE_NIL_VAL, // nil
+  NODE_ASSIGNATION, // Assignation as = or +=, -=, *=. If not '=' maybe is not declaration
+  NODE_TYPE, // Childs are nested types <>. Data is the identifier of type
+  NODE_ARRAY, // Childs are expressions
+  NODE_GET, // Data is the read value
+  NODE_INTERVAL, // Children are one to two expressions
+  NODE_LUP_ITERATORS, // Arguments are identifiers, childs are intervals
+  NODE_NUMBER_VAL, // Data is the number value
+  NODE_STRING_VAL, // Data is the string value
+  NODE_IDENTIFIER, // Data is the identifier name
 };
 
 class Node {

@@ -39,14 +39,16 @@ enum TokenType {
   TOKEN_BANG_EQUAL, // !=
   TOKEN_EQUAL, // =
   TOKEN_EQUAL_EQUAL, // ==
-  TOKEN_DEFINITION,
+  TOKEN_DOUBLE_DOTS_EQUAL, // :=
   TOKEN_GREATER, // > 
   TOKEN_GREATER_EQUAL, // >=
   TOKEN_LESSER, // <
   TOKEN_LESSER_EQUAL, // <=
   TOKEN_AMP, // &
+  TOKEN_DOLLAR, // $
   TOKEN_AMP_AMP, // &&
   TOKEN_PIPE, // |
+  TOKEN_PIPE_EQUAL, // |=
   TOKEN_PIPE_PIPE, // ||
   TOKEN_DOT_DOT, // ..
   
@@ -70,6 +72,7 @@ enum TokenType {
   TOKEN_DIS, // dis
   TOKEN_KIN, // kin
   TOKEN_GET, // get
+  TOKEN_HOC, // hoc
 
   TOKEN_YEP, // yep
   TOKEN_NOP, // nop
