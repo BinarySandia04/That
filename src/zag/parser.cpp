@@ -383,7 +383,6 @@ void Parser::Lup(Node **lup) {
   (*lup)->children.push_back(block);
 }
 
-// TODO
 void Parser::Fn(Node **fun) {
   (*fun)->type = NODE_FUNCTION;
   // First of all we expect an identifier
@@ -457,7 +456,6 @@ void Parser::Args(Node **args) {
 void Parser::Ret(Node **ret) {
   (*ret)->type = NODE_RET;
   // As Lua does, we expect the following expressions to be for the return
-  std::cout << Peek().lexeme << std::endl;
   if (PeekType() == TOKEN_RIGHT_BRACE)
     return; // No chance for confusion here
   do {
@@ -673,7 +671,55 @@ void Parser::Unary(Node **exp) {
     (*exp)->children.push_back(operand);
 
   } else {
-    Primary(exp);
+    // Primary(exp);
+    Call(exp);
+  }
+}
+
+void Parser::Call(Node **call){
+  Node* ogCall = *call;
+  Primary(call);
+
+  while(!AtEnd()){
+    if(Match(TOKEN_LEFT_PAREN)){
+      ogCall->type = NODE_CALL;
+
+      // Get arguments until ')'
+      while(PeekType() != TOKEN_RIGHT_PAREN){
+        Node *arg = new Node();
+        Expression(&arg);
+        ogCall->arguments.push_back(arg); 
+
+        if(!Match(TOKEN_COMMA)){
+          if(PeekType() == TOKEN_RIGHT_PAREN){
+            break;
+          }
+        }
+
+        if(AtEnd()){
+          Panic("Unclosed right parenthesis for function arguments");
+          return;
+        }
+      }
+      Advance();
+    } else if(Match(TOKEN_DOT)){
+      Node* newGet = new Node(NODE_GET);
+      
+      if(PeekType() != TOKEN_IDENTIFIER){
+        Panic("Expected identifier after '.'");
+        return;
+      }
+
+      Node *identifier = new Node(NODE_IDENTIFIER);
+      (*identifier).data = Peek().literal;
+      newGet->arguments.push_back(identifier);
+      ogCall->children.push_back(newGet);
+
+      ogCall = newGet;
+      Advance();
+    } else {
+      break;
+    }
   }
 }
 

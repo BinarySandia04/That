@@ -51,6 +51,7 @@ private:
 
   void Type(Node **);
   void Primary(Node **);
+  void Call(Node **);
   void Unary(Node **);
   void Factor(Node **);
   void Term(Node **);

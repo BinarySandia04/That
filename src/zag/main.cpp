@@ -4,11 +4,13 @@
 #include <string>
 #include <vector>
 
-#include "main.h"
-#include "scanner.h"
-#include "parser.h"
 #include "error.h"
+#include "flags.h"
+#include "main.h"
+#include "parser.h"
+#include "scanner.h"
 
+#include "libs/argh.h"
 #include "libs/termcolor.hpp"
 #include "libs/toml.hpp"
 
@@ -20,15 +22,20 @@ void Run(std::string code);
 
 int main(int argc, char *argv[]) {
 
-  if (argc > 2) {
-    std::cout << termcolor::red << "Usage: zag <script>" << termcolor::reset;
-  } else if (argc == 2) {
-    RunFile(std::string(argv[1]));
-  } else {
-    std::cout << termcolor::cyan << "Zag shell" << termcolor::reset
-              << std::endl;
-    RunShell();
+  auto cmdl = argh::parser(argc, argv);
+
+  if (cmdl[{"-d", "--debug"}]) {
+    programFlags = programFlags | Flags::DEBUG;
   }
+
+  if (cmdl.size() > 1) {
+    for (int i = 1; i < cmdl.size(); i++) {
+      RunFile(cmdl.pos_args()[i]);
+    }
+  }
+
+  if (cmdl.size() == 1)
+    RunShell();
 }
 
 void RunFile(std::string name) {
@@ -82,23 +89,25 @@ void Run(std::string code, std::string fileName) {
   Scanner scanner = Scanner(code, fileName);
   std::vector<Token> tokens;
 
-  if(!scanner.ScanTokens(&tokens, &error)){
-    error.Print(code); 
-    return;
-  }
-
-  for (int i = 0; i < tokens.size(); i++) {
-    std::cout << termcolor::yellow << tokens[i].ToString() << termcolor::reset
-              << std::endl;
-  }
-
-  Parser parser(fileName);
-  Node* ast = new Node(NODE_SPACE);
-  if(!parser.GenerateAST(&tokens, &ast, &error)){
+  if (!scanner.ScanTokens(&tokens, &error)) {
     error.Print(code);
     return;
   }
 
-  ast->Debug(0);
+  if (programFlags & Flags::DEBUG) {
+    for (int i = 0; i < tokens.size(); i++) {
+      std::cout << termcolor::yellow << tokens[i].ToString() << termcolor::reset
+                << std::endl;
+    }
+  }
 
+  Parser parser(fileName);
+  Node *ast = new Node(NODE_SPACE);
+
+  if (!parser.GenerateAST(&tokens, &ast, &error)) {
+    error.Print(code);
+    return;
+  }
+
+  if(programFlags & Flags::DEBUG) ast->Debug(0);
 }
