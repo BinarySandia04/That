@@ -11,6 +11,7 @@ enum NodeType {
   NODE_BLOCK, // Child has various nodes
   NODE_FUNCTION, // Data is identifier, args have NODE_ARGS and/or NDOE_TYPE return. Child is block
   NODE_CALL, // Child is callee, args are expression arguments
+  NODE_GET, // 
   NODE_RET, // Childs are expressions to return
   NODE_BRK, // Data has identifier, child is the expression to break
   NODE_KIN,
@@ -30,7 +31,6 @@ enum NodeType {
   NODE_ASSIGNATION, // Assignation as = or +=, -=, *=. If not '=' maybe is not declaration
   NODE_TYPE, // Childs are nested types <>. Data is the identifier of type
   NODE_ARRAY, // Childs are expressions
-  NODE_GET, // Data is the read value
   NODE_INTERVAL, // Children are one to two expressions
   NODE_LUP_ITERATORS, // Arguments are identifiers, childs are intervals
   NODE_NUMBER_VAL, // Data is the number value
