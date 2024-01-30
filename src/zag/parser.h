@@ -45,6 +45,7 @@ private:
   bool CheckAssignation();
   bool CheckIncrementor(); 
   bool CheckIterator();
+  bool IsAssignationType(TokenType);
 
   void PopulateSpace(Node**);
   void Consume(Node **);

@@ -182,17 +182,34 @@ void Parser::Statement(Node **node) {
     Get(node);
     return;
   }
+
+  Assignation(node);
+  /*
   if (CheckAssignation() || CheckIncrementor()) {
     Assignation(node);
     return;
   }
 
   Expression(node);
+  */
 }
 
 void Parser::Assignation(Node **assignation) {
+
+  /*
+  if(!(CheckAssignation() || CheckIncrementor())){
+    Expression(assignation);
+    return;
+  }
+  */
+
   (*assignation)->type = NODE_ASSIGNATION;
 
+  Call(assignation);
+  std::cout << "---" << std::endl;
+  (*assignation)->Debug(0);
+
+  std::cout << "Peek: " << Peek().lexeme << std::endl;
   // 2 childs: var name and value
   // 1 arg: declared type
 
@@ -246,6 +263,7 @@ void Parser::Assignation(Node **assignation) {
       return;
     }
   }
+  std::cout << "HOla?? " << std::endl;
   // It if is typed and we do not have an equal we ended the statement
   if (typed) {
     if (PeekType() != TOKEN_EQUAL) {
@@ -255,6 +273,7 @@ void Parser::Assignation(Node **assignation) {
     Advance();
   }
 
+  std::cout << Peek().lexeme << std::endl;
   // Now we expect an expression afer the equal
   Node *expression = new Node(NODE_EXPRESSION);
   Expression(&expression);
@@ -310,6 +329,12 @@ bool Parser::CheckIncrementor(){
     (PeekNType(1) == TOKEN_PLUS_EQUAL || PeekNType(1) == TOKEN_MINUS_EQUAL ||
      PeekNType(1) == TOKEN_STAR_EQUAL || PeekNType(1) == TOKEN_SLASH_EQUAL ||
      PeekNType(1) == TOKEN_PERCENTAGE_EQUAL);
+}
+
+bool Parser::IsAssignationType(TokenType t){
+  return (t == TOKEN_PLUS_EQUAL || t == TOKEN_MINUS_EQUAL ||
+     t == TOKEN_STAR_EQUAL || t == TOKEN_SLASH_EQUAL ||
+     t == TOKEN_PERCENTAGE_EQUAL || t == TOKEN_EQUAL);
 }
 
 bool Parser::CheckIterator() {
@@ -703,6 +728,11 @@ void Parser::Call(Node **call){
       }
       Advance();
     } else if(Match(TOKEN_DOT)){
+
+      if(PeekType() == TOKEN_IDENTIFIER && IsAssignationType(PeekNType(1))){
+        return;
+      }
+
       Node* newGet = new Node(NODE_GET);
       
       if(PeekType() != TOKEN_IDENTIFIER){
@@ -844,4 +874,7 @@ void Parser::Equality(Node **exp) {
   }
 }
 
-void Parser::Expression(Node **exp) { Equality(exp); }
+void Parser::Expression(Node **exp) {
+  (*exp)->type = NODE_EXPRESSION;
+  Equality(exp);
+}
