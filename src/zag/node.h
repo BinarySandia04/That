@@ -14,7 +14,8 @@ enum NodeType {
   NODE_GET, // 
   NODE_RET, // Childs are expressions to return
   NODE_BRK, // Data has identifier, child is the expression to break
-  NODE_KIN,
+  NODE_KIN, // Contains KIN_ENTRY as childs
+  NODE_KIN_ENTRY, // Data has the accessor. Child has the thing
   NODE_ARG, // Children has identifier, args has type if typed
   NODE_ARGS, // Multiple NODE_ARG as children
   NODE_IF, // Arg has expressions childs are blocks. If args + 1 = childs then has else

@@ -7,6 +7,13 @@
 
 using namespace Zag;
 
+/*
+ * TODO: Falten:
+ * - hoc
+ * - sintaxis hoc per cosa extra
+ * - constructors
+ */
+
 Parser::Parser(std::string fileName) {
   this->fileName = fileName;
   current = 0;
@@ -111,17 +118,10 @@ void Parser::PopulateSpace(Node **root) {
   }
 }
 
-void Parser::ConsumeEmpty() {
-  while (Match(TOKEN_SEMICOLON))
-    ;
-}
-
 void Parser::Consume(Node **block) {
   Node *line = new Node();
 
   Statement(&line);
-
-  ConsumeEmpty();
 
   (*block)->children.push_back(line);
 }
@@ -182,46 +182,29 @@ void Parser::Statement(Node **node) {
     Get(node);
     return;
   }
-
-  Assignation(node);
-  /*
-  if (CheckAssignation() || CheckIncrementor()) {
-    Assignation(node);
+  if (Match(TOKEN_KIN)) {
+    Kin(node);
     return;
   }
 
-  Expression(node);
-  */
+  Assignation(node);
 }
 
 void Parser::Assignation(Node **assignation) {
 
-  /*
-  if(!(CheckAssignation() || CheckIncrementor())){
-    Expression(assignation);
+  Expression(assignation);
+  if (!(IsAssignationOrIncrementor(PeekType())) && PeekType() != TOKEN_DOUBLE_DOTS) {
     return;
   }
-  */
 
-  (*assignation)->type = NODE_ASSIGNATION;
+  Node *trueAssignation = new Node(NODE_ASSIGNATION);
+  trueAssignation->children.push_back(*assignation);
+  *assignation = trueAssignation;
 
-  Call(assignation);
-  std::cout << "---" << std::endl;
-  (*assignation)->Debug(0);
-
-  std::cout << "Peek: " << Peek().lexeme << std::endl;
   // 2 childs: var name and value
   // 1 arg: declared type
 
-  // Passed after CheckAssignation ==> TOKEN_IDENTIFIER, TOKEN_EQUAL, ...
-  //                                         ^
-  //                                         |
   bool typed = false;
-  Node *identifier = new Node(NODE_IDENTIFIER);
-  (*identifier).data = Peek().literal;
-  (*assignation)->children.push_back(identifier);
-
-  Advance();
   // We check if the assignation is typed
   if (Match(TOKEN_DOUBLE_DOTS)) {
     Node *type = new Node(NODE_TYPE);
@@ -263,7 +246,6 @@ void Parser::Assignation(Node **assignation) {
       return;
     }
   }
-  std::cout << "HOla?? " << std::endl;
   // It if is typed and we do not have an equal we ended the statement
   if (typed) {
     if (PeekType() != TOKEN_EQUAL) {
@@ -273,7 +255,6 @@ void Parser::Assignation(Node **assignation) {
     Advance();
   }
 
-  std::cout << Peek().lexeme << std::endl;
   // Now we expect an expression afer the equal
   Node *expression = new Node(NODE_EXPRESSION);
   Expression(&expression);
@@ -324,17 +305,24 @@ bool Parser::CheckAssignation() {
          (PeekNType(1) == TOKEN_EQUAL || PeekNType(1) == TOKEN_DOUBLE_DOTS);
 }
 
-bool Parser::CheckIncrementor(){
-  return PeekType() == TOKEN_IDENTIFIER && 
-    (PeekNType(1) == TOKEN_PLUS_EQUAL || PeekNType(1) == TOKEN_MINUS_EQUAL ||
-     PeekNType(1) == TOKEN_STAR_EQUAL || PeekNType(1) == TOKEN_SLASH_EQUAL ||
-     PeekNType(1) == TOKEN_PERCENTAGE_EQUAL);
+bool Parser::IsAssignationOrIncrementor(TokenType type) {
+  return type == TOKEN_EQUAL || IsIncrementor(type);
 }
 
-bool Parser::IsAssignationType(TokenType t){
+bool Parser::IsIncrementor(TokenType type) {
+  return type == TOKEN_PLUS_EQUAL || type == TOKEN_MINUS_EQUAL ||
+         type == TOKEN_STAR_EQUAL || type == TOKEN_SLASH_EQUAL ||
+         type == TOKEN_PERCENTAGE_EQUAL;
+}
+
+bool Parser::CheckIncrementor() {
+  return PeekType() == TOKEN_IDENTIFIER && IsIncrementor(PeekNType(1));
+}
+
+bool Parser::IsAssignationType(TokenType t) {
   return (t == TOKEN_PLUS_EQUAL || t == TOKEN_MINUS_EQUAL ||
-     t == TOKEN_STAR_EQUAL || t == TOKEN_SLASH_EQUAL ||
-     t == TOKEN_PERCENTAGE_EQUAL || t == TOKEN_EQUAL);
+          t == TOKEN_STAR_EQUAL || t == TOKEN_SLASH_EQUAL ||
+          t == TOKEN_PERCENTAGE_EQUAL || t == TOKEN_EQUAL);
 }
 
 bool Parser::CheckIterator() {
@@ -370,6 +358,7 @@ void Parser::Lup(Node **lup) {
 
   if (CheckIterator()) {
     // iterator form
+    std::cout << "Iterator" << std::endl;
     Node *iterators = new Node(NODE_LUP_ITERATORS);
     LupIterators(&iterators);
     (*lup)->arguments.push_back(iterators);
@@ -412,7 +401,7 @@ void Parser::Fn(Node **fun) {
   (*fun)->type = NODE_FUNCTION;
   // First of all we expect an identifier
   if (PeekType() != TOKEN_IDENTIFIER) {
-    Panic("Expected an identifier after 'fn'");
+    Panic("Expected an identifier instead of keyword");
     return;
   }
 
@@ -505,8 +494,66 @@ void Parser::Brk(Node **brk) {
   }
 }
 
-// TODO
-void Parser::Kin(Node **kin) {}
+void Parser::Kin(Node **kin) {
+  (*kin)->type = NODE_KIN;
+  // We get the name of the kin
+  if (PeekType() != TOKEN_IDENTIFIER) {
+    Panic("Expected an identifier after 'kin'");
+    return;
+  }
+
+  (*kin)->data = Peek().literal;
+  Advance();
+
+  // We expect a left brace
+  Expect(TOKEN_LEFT_BRACE, "Expected '{' after class declaration");
+
+  std::cout << Peek().lexeme << std::endl;
+
+  while (!Match(TOKEN_RIGHT_BRACE)) {
+    if (AtEnd()) {
+      EnterPanic(Peek(), "Expected '}' for closing block");
+      return;
+    }
+    ConsumeKin(kin);
+    if (panic)
+      return;
+  }
+}
+
+void Parser::ConsumeKin(Node **kin) {
+  Node *kinEntry = new Node(NODE_KIN_ENTRY);
+
+  KinEntry(&kinEntry);
+
+  (*kin)->children.push_back(kinEntry);
+}
+
+void Parser::KinEntry(Node **kinStatement) {
+
+  // Check for public/private accessors
+  // static -> @, private -> $
+  Node* kinEntryContent = new Node();
+  if (Match(TOKEN_AT))
+    (*kinStatement)->data = "@";
+  else if (Match(TOKEN_DOLLAR))
+    (*kinStatement)->data = "$";
+  else
+    (*kinStatement)->data = "";
+
+  // Supongo que se puede añadir antes
+
+  // We will get functions first
+  if (Match(TOKEN_FN)) {
+    Fn(&kinEntryContent);
+    (*kinStatement)->children.push_back(kinEntryContent);
+    return;
+  }
+  
+  // Ok so we suppose that we have a variable then. If not we panic
+  Assignation(&kinEntryContent);
+  (*kinStatement)->children.push_back(kinEntryContent);
+}
 
 void Parser::Get(Node **get) {
   (*get)->type = NODE_GET;
@@ -612,7 +659,7 @@ void Parser::Primary(Node **exp) {
     break;
   }
   default:
-    Panic("Unexpected primary type");
+    Panic("Unexpected primary type with lexeme " + t.lexeme);
     break;
   }
 }
@@ -662,13 +709,13 @@ void Parser::Interval(Node **interval) {
   (*interval)->type = NODE_INTERVAL;
   // We get the first expression
   Node *exp = new Node(NODE_EXPRESSION);
-  Expression(&exp);
+  Primary(&exp);
   (*interval)->children.push_back(exp);
 
   // If we have comma we consume a second one
   if (Match(TOKEN_COMMA)) {
     exp = new Node(NODE_EXPRESSION);
-    Expression(&exp);
+    Primary(&exp);
     (*interval)->children.push_back(exp);
   }
 }
@@ -701,41 +748,57 @@ void Parser::Unary(Node **exp) {
   }
 }
 
-void Parser::Call(Node **call){
-  Node* ogCall = *call;
+void Parser::Call(Node **call) {
+  Node *ogCall = *call;
+  std::cout << "Calling primary at " << Peek().lexeme << std::endl;
   Primary(call);
 
-  while(!AtEnd()){
-    if(Match(TOKEN_LEFT_PAREN)){
+  while (!AtEnd()) {
+    if (Match(TOKEN_LEFT_PAREN)) {
       ogCall->type = NODE_CALL;
 
       // Get arguments until ')'
-      while(PeekType() != TOKEN_RIGHT_PAREN){
+      while (PeekType() != TOKEN_RIGHT_PAREN) {
         Node *arg = new Node();
         Expression(&arg);
-        ogCall->arguments.push_back(arg); 
+        ogCall->arguments.push_back(arg);
 
-        if(!Match(TOKEN_COMMA)){
-          if(PeekType() == TOKEN_RIGHT_PAREN){
+        if (!Match(TOKEN_COMMA)) {
+          if (PeekType() == TOKEN_RIGHT_PAREN) {
             break;
           }
         }
 
-        if(AtEnd()){
+        if (AtEnd()) {
           Panic("Unclosed right parenthesis for function arguments");
           return;
         }
       }
       Advance();
-    } else if(Match(TOKEN_DOT)){
+    } else if (Match(TOKEN_DOT)) {
 
-      if(PeekType() == TOKEN_IDENTIFIER && IsAssignationType(PeekNType(1))){
-        return;
+      if (ogCall->type != NODE_GET && ogCall->type != NODE_CALL) {
+        // Aixo nomes es pot donar amb el primer identifier
+        Node *finalOg = new Node(NODE_GET);
+        Node *newOg = new Node();
+        finalOg->arguments.push_back(*call);
+        finalOg->children.push_back(newOg);
+        *call = finalOg;
+        ogCall = newOg;
       }
 
-      Node* newGet = new Node(NODE_GET);
-      
-      if(PeekType() != TOKEN_IDENTIFIER){
+      if (PeekType() == TOKEN_IDENTIFIER && IsAssignationType(PeekNType(1))) {
+        Node *identifier = new Node(NODE_IDENTIFIER);
+        (*identifier).data = Peek().literal;
+        ogCall->children.push_back(identifier);
+        Advance();
+
+        break;
+      }
+
+      Node *newGet = new Node(NODE_GET);
+
+      if (PeekType() != TOKEN_IDENTIFIER) {
         Panic("Expected identifier after '.'");
         return;
       }

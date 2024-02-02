@@ -34,7 +34,6 @@ private:
   bool Match(TokenType);
   bool MatchAny(std::initializer_list<TokenType>);
 
-  void ConsumeEmpty();
   void EnterPanic(int, int, std::string);
   void EnterPanic(Token, std::string);
   void Panic(std::string);
@@ -46,9 +45,12 @@ private:
   bool CheckIncrementor(); 
   bool CheckIterator();
   bool IsAssignationType(TokenType);
+  bool IsIncrementor(TokenType);
+  bool IsAssignationOrIncrementor(TokenType);
 
   void PopulateSpace(Node**);
   void Consume(Node **);
+  void ConsumeKin(Node **);
 
   void Type(Node **);
   void Primary(Node **);
@@ -73,6 +75,7 @@ private:
   void Ret(Node **);
   void Brk(Node **);
   void Kin(Node **);
+  void KinEntry(Node **);
   void Get(Node **);
 
   std::vector<Token> *tokens;
