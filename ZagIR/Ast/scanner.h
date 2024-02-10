@@ -4,10 +4,10 @@
 #include <vector>
 #include <unordered_map>
 
-#include "token.h"
-#include "error.h"
+#include "Ast/token.h"
+#include "Frontend/error.h"
 
-namespace Zag {
+namespace ZagIR {
 
 class Scanner {
 public:

@@ -3,11 +3,11 @@
 #include <vector>
 #include <initializer_list>
 
-#include "token.h"
-#include "error.h"
-#include "node.h"
+#include "Ast/token.h"
+#include "Frontend/error.h"
+#include "Ast/node.h"
 
-namespace Zag {
+namespace ZagIR {
 
 class Parser {
 public:

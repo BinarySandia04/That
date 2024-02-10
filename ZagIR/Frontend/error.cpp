@@ -1,12 +1,12 @@
 #include "error.h"
 
-#include "libs/termcolor.hpp"
+#include "termcolor.h"
 #include <iostream>
 #include <cmath>
 
 #define ERROR_PADDING 1
 
-using namespace Zag;
+using namespace ZagIR;
 
 Error::Error(){
   fired = false;

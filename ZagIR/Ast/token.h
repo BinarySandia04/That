@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace Zag {
+namespace ZagIR {
 
 enum TokenType {
   // One character tokens

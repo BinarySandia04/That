@@ -1,11 +1,10 @@
 #include <iostream>
 #include <unordered_map>
 
-#include "error.h"
 #include "scanner.h"
 #include "token.h"
 
-using namespace Zag;
+using namespace ZagIR;
 
 Scanner::Scanner(std::string code, std::string fileName) {
   source = code;

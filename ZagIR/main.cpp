@@ -4,17 +4,19 @@
 #include <string>
 #include <vector>
 
-#include "error.h"
-#include "flags.h"
+#include "Frontend/error.h"
+#include "Frontend/flags.h"
 #include "main.h"
-#include "parser.h"
-#include "scanner.h"
+#include "Ast/parser.h"
+#include "Ast/scanner.h"
 
-#include "libs/argh.h"
-#include "libs/termcolor.hpp"
-#include "libs/toml.hpp"
+#include "argh.h"
+#include "termcolor.h"
+#include "toml.h"
 
-using namespace Zag;
+// Hauria de moure aixo juntament amb main.h
+
+using namespace ZagIR;
 
 void RunFile(std::string name);
 void RunShell();

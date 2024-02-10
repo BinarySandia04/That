@@ -5,7 +5,7 @@
 #include "parser.h"
 #include "token.h"
 
-using namespace Zag;
+using namespace ZagIR;
 
 /*
  * TODO: Falten:

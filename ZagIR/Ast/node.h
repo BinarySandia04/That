@@ -3,7 +3,7 @@
 
 #pragma once
 
-namespace Zag {
+namespace ZagIR {
 
 enum NodeType {
   NODE_UNDEF, // Undef node (?)

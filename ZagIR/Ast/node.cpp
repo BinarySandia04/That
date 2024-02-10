@@ -2,7 +2,7 @@
 
 #include "node.h"
 
-using namespace Zag;
+using namespace ZagIR;
 
 Node::Node() { this->type = NODE_UNDEF; }
 

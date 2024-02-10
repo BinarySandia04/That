@@ -1,6 +1,6 @@
 #include "token.h"
 
-using namespace Zag;
+using namespace ZagIR;
 
 Token::Token(TokenType type, std::string lexeme, std::string literal,
              int offset) {

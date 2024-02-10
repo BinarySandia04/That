@@ -4,7 +4,7 @@ mkdir .build 2>/dev/null
 
 cd .build
 cmake ../
-cmake --build . -j 16
+cmake --build .
 cd ..
 # cp build/src/wyrm/Wyrm scripts/Wyrm/
 

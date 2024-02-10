@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace Zag {
+namespace ZagIR {
 
 class Error {
 public:
