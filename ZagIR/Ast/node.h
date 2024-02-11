@@ -21,7 +21,7 @@ enum NodeType {
   NODE_IF, // Arg has expressions childs are blocks. If args + 1 = childs then has else
   NODE_LUP, // data has identifier. Child is block. Three forms: 
             // Args: LUP_ITERATORS
-            // Args: EXPRESSION, ASSIGNATION, EXPRESSIOn
+            // Args: ASSIGNATION, EXPRESSION, ASSIGNATION
             // Args: EXPRESSION
   NODE_OP_BIN, // Data contains op
   NODE_OP_UN, // Data contains op

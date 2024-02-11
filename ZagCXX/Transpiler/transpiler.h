@@ -29,6 +29,7 @@ class Transpiler {
     std::string TranspileUnary(ZagIR::Node*);
 
     std::string TranspileIf(ZagIR::Node*);
+    std::string TranspileLup(ZagIR::Node*);
 
   private:
     std::vector<std::string> includes;
