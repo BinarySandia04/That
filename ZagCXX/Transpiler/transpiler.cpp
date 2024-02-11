@@ -1,5 +1,6 @@
 #include "transpiler.h"
 
+#include <ZagIR/Ast/node.h>
 #include <algorithm>
 #include <iostream>
 
@@ -16,7 +17,7 @@ std::string Transpiler::GenerateSource(Node *ast) {
 
   ast->Debug(0);
 
-  std::string mainFunc = TranspileSpace(ast);
+  std::string mainFunc = TranspileBlock(ast);
 
   return GenerateIncludes() + main + mainFunc + "}";
 }
@@ -46,7 +47,11 @@ std::string Transpiler::GenerateIncludes(){
   return res;
 }
 
-std::string Transpiler::TranspileSpace(Node *space) {
+std::string Transpiler::SanitizeIdentifier(std::string idName){
+  return "_" + idName; 
+}
+
+std::string Transpiler::TranspileBlock(Node *space) {
   std::string content = "";
   for (int i = 0; i < space->children.size(); i++) {
     content += TranspileStatement(space->children[i]);
@@ -59,6 +64,9 @@ std::string Transpiler::TranspileStatement(Node *statement) {
   switch (statement->type) {
   case ZagIR::NODE_ASSIGNATION:
     return TranspileAssignation(statement);
+    break;
+  case ZagIR::NODE_IF:
+    return TranspileIf(statement);
     break;
   default:
     std::cout << "Undefined node" << std::endl;
@@ -89,7 +97,7 @@ std::string Transpiler::TranspileType(Node *type) {
 }
 
 std::string Transpiler::TranspileIdentifier(Node *identifier) {
-  return identifier->data;
+  return SanitizeIdentifier(identifier->data);
 }
 
 std::string Transpiler::TranspileExpression(Node *expression) {
@@ -100,8 +108,20 @@ std::string Transpiler::TranspileExpression(Node *expression) {
   case NODE_STRING_VAL:
     return "\"" + expression->data + "\"";
     break;
+  case NODE_YEP_VAL:
+    return "true";
+    break;
+  case NODE_NOP_VAL:
+    return "false";
+    break;
   case NODE_OP_BIN:
     return TranspileBinary(expression);
+    break;
+  case NODE_OP_UN:
+    return TranspileUnary(expression);
+    break;
+  case NODE_IDENTIFIER:
+    return TranspileIdentifier(expression); 
     break;
   default:
     std::cout << "Unexpected node" << std::endl;
@@ -113,4 +133,29 @@ std::string Transpiler::TranspileExpression(Node *expression) {
 std::string Transpiler::TranspileBinary(Node *binary) {
   return "(" + TranspileExpression(binary->children[0]) + " " + binary->data + " " +
          TranspileExpression(binary->children[1]) + ")";
+}
+
+std::string Transpiler::TranspileUnary(ZagIR::Node *unary){
+  return unary->data + TranspileExpression(unary->children[0]);
+}
+
+std::string Transpiler::TranspileIf(ZagIR::Node *ifNode){
+  // Arg has expressions childs are blocks. If args + 1 = childs then has else
+  std::string res = "";
+  int i;
+  for(i = 0; i < ifNode->arguments.size(); i++){
+     if(i == 0) res += "if";
+     else res += "else if";
+     res += "(";
+     res += TranspileExpression(ifNode->arguments[i]);
+     res += "){";
+     res += TranspileBlock(ifNode->children[i]);
+     res += "}";
+  }
+  if(ifNode->children.size() > ifNode->arguments.size()){
+    res += "else {";
+    res += TranspileBlock(ifNode->children[i]);
+    res += "}";
+  }
+  return res;
 }
