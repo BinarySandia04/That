@@ -4,8 +4,8 @@
 #include <vector>
 #include <unordered_map>
 
-#include "Ast/token.h"
-#include "Frontend/error.h"
+#include "token.h"
+#include "error.h"
 
 namespace ZagIR {
 

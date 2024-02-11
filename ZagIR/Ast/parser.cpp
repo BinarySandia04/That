@@ -193,7 +193,8 @@ void Parser::Statement(Node **node) {
 void Parser::Assignation(Node **assignation) {
 
   Expression(assignation);
-  if (!(IsAssignationOrIncrementor(PeekType())) && PeekType() != TOKEN_DOUBLE_DOTS) {
+  if (!(IsAssignationOrIncrementor(PeekType())) &&
+      PeekType() != TOKEN_DOUBLE_DOTS) {
     return;
   }
 
@@ -358,7 +359,7 @@ void Parser::Lup(Node **lup) {
 
   if (CheckIterator()) {
     // iterator form
-    std::cout << "Iterator" << std::endl;
+    // std::cout << "Iterator" << std::endl;
     Node *iterators = new Node(NODE_LUP_ITERATORS);
     LupIterators(&iterators);
     (*lup)->arguments.push_back(iterators);
@@ -508,7 +509,7 @@ void Parser::Kin(Node **kin) {
   // We expect a left brace
   Expect(TOKEN_LEFT_BRACE, "Expected '{' after class declaration");
 
-  std::cout << Peek().lexeme << std::endl;
+  // std::cout << Peek().lexeme << std::endl;
 
   while (!Match(TOKEN_RIGHT_BRACE)) {
     if (AtEnd()) {
@@ -533,7 +534,7 @@ void Parser::KinEntry(Node **kinStatement) {
 
   // Check for public/private accessors
   // static -> @, private -> $
-  Node* kinEntryContent = new Node();
+  Node *kinEntryContent = new Node();
   if (Match(TOKEN_AT))
     (*kinStatement)->data = "@";
   else if (Match(TOKEN_DOLLAR))
@@ -549,7 +550,7 @@ void Parser::KinEntry(Node **kinStatement) {
     (*kinStatement)->children.push_back(kinEntryContent);
     return;
   }
-  
+
   // Ok so we suppose that we have a variable then. If not we panic
   Assignation(&kinEntryContent);
   (*kinStatement)->children.push_back(kinEntryContent);
@@ -750,7 +751,7 @@ void Parser::Unary(Node **exp) {
 
 void Parser::Call(Node **call) {
   Node *ogCall = *call;
-  std::cout << "Calling primary at " << Peek().lexeme << std::endl;
+  // std::cout << "Calling primary at " << Peek().lexeme << std::endl;
   Primary(call);
 
   while (!AtEnd()) {

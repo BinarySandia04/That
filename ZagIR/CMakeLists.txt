@@ -7,10 +7,8 @@ file(GLOB src "*.h" "*.cpp")
 source_group("src" FILES ${src})
 file(GLOB_RECURSE Ast "Ast/*.h" "Ast/*.cpp")
 source_group("Ast" FILES ${Ast})
-file(GLOB_RECURSE Frontend "Frontend/*.h" "Frontend/*.cpp")
-source_group("Frontend" FILES ${Frontend})
 
-set(ALL_FILES ${src} ${Ast} ${Frontend} ${libs})
+set(ALL_FILES ${src} ${Ast} ${libs})
 set(ROOT_NAMESPACE ZagIR)
 
 add_library(${PROJECT_NAME} STATIC ${ALL_FILES})
@@ -27,7 +25,7 @@ endif ()
 cmake_print_variables(PROJECT_SOURCE_DIR)
 
 # Public headers accessible when using the lib
-file(GLOB PUBLIC_HEADERS "*.h" "Ast/*.h" "Frontend/*.h")
+file(GLOB PUBLIC_HEADERS "*.h" "Ast/*.h")
 
 target_sources(${PROJECT_NAME} 
     PRIVATE ${ALL_FILES}

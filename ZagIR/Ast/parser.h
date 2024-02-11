@@ -3,9 +3,9 @@
 #include <vector>
 #include <initializer_list>
 
-#include "Ast/token.h"
-#include "Frontend/error.h"
-#include "Ast/node.h"
+#include "token.h"
+#include "error.h"
+#include "node.h"
 
 namespace ZagIR {
 

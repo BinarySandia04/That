@@ -1,10 +1,11 @@
 #!/bin/bash
-sudo rm -R .build 2>/dev/null
+# sudo rm -R .build 2>/dev/null
+sudo rm -R /usr/local/include/ZagIR/
 mkdir .build 2>/dev/null
 
 cd .build
 cmake ../
-cmake --build .
+cmake --build . -j 16
 cd ..
 # cp build/src/wyrm/Wyrm scripts/Wyrm/
 

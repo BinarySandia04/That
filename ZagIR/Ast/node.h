@@ -49,11 +49,11 @@ public:
   std::string data;
 
   Node();
+  ~Node();
   Node(NodeType);
   Node(NodeType, std::string);
 
   void Debug(int);
-
 private:
   void PrintTabs(int);
 };

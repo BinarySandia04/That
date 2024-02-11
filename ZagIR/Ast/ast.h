@@ -2,30 +2,13 @@
 
 #include <string>
 
-#include "Ast/node.h"
-#include "Ast/parser.h"
-#include "Ast/scanner.h"
-#include "Ast/token.h"
-#include "Frontend/error.h"
+#include "error.h"
+#include "node.h"
+#include "parser.h"
+#include "scanner.h"
+#include "termcolor.h"
+#include "token.h"
 
 namespace ZagIR {
-bool GenerateAst(std::string code, std::string fileName, Node *ast) {
-  Error error;
-
-  Scanner scanner = Scanner(code, fileName);
-  std::vector<Token> tokens;
-
-  if(!scanner.ScanTokens(&tokens, &error)){
-    error.Print(code);
-    return false;
-  }
-
-  Parser parser(fileName);
-  if(!parser.GenerateAST(&tokens, &ast, &error)){
-    error.Print(code);
-    return false;
-  }
-
-  return true;
-}
+bool GenerateAst(std::string code, std::string fileName, Node *ast, bool debug);
 }; // namespace ZagIR

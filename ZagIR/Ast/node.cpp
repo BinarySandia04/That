@@ -6,6 +6,11 @@ using namespace ZagIR;
 
 Node::Node() { this->type = NODE_UNDEF; }
 
+Node::~Node(){
+  for(int i = 0; i < children.size(); i++)  delete children[i];
+  for(int i = 0; i < arguments.size(); i++) delete arguments[i];
+}
+
 Node::Node(NodeType type) { this->type = type; }
 
 Node::Node(NodeType type, std::string data) {
@@ -48,5 +53,4 @@ void Node::PrintTabs(int tabs) {
   for (int i = 0; i < tabs; i++)
     std::cout << "\t";
 }
-
 

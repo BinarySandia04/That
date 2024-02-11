@@ -1,9 +1,14 @@
+include(CMakePrintHelpers)
+
 set(PROJECT_NAME ZagCXX)
 
-file(GLOB src "src/*.h" "src/*.cpp")
+file(GLOB src "*.h" "*.cpp")
 source_group("src" FILES ${src})
+file(GLOB_RECURSE Transpiler "Transpiler/*.h" "Transpiler/*.cpp")
+source_group("Transpiler" FILES ${Transpiler})
 
-set(ALL_FILES ${src})
+set(ALL_FILES ${src} ${Transpiler})
+
 set(ROOT_NAMESPACE ZagCXX)
 
 add_executable(${PROJECT_NAME} ${ALL_FILES})
