@@ -1,0 +1,110 @@
+get "path/to/file.zag"
+get 'std/io
+
+fn factorial [n: Int] => Int {
+  r: Int = 1
+  if n <= 0: ret 0
+  lup i | n: r *= i
+  ret r
+}
+
+lup {}
+
+lup i | 1, 10 {
+  "2"
+}
+
+lup i < 10 {
+  "Hola conditional lup!!"
+}
+
+lup i {
+  "Hola lup con i!!!"
+}
+
+c: List<int> = [1,[1,2],"Hola"]
+lup 'yep ;
+
+a = 3
+b = 4
+
+lup 'miau t == 3 {
+  "Test"
+  a = 4 == 5
+}
+
+// ARGS LIST:
+// a, b, c
+// a: Int, b: String
+
+
+// Bucle infinit
+
+// En una linea
+
+// While
+lup n < 10: n += 1
+
+// Iterar i de 1 a 10
+lup i | 1, 10 {
+  i
+}
+
+// Python for c in string
+lup c | "Hola" ;
+
+// i va de 0 a 9
+lup i | 10 ;
+
+lup i = 0 | i < 10 | i += 1: "For normal"
+
+lup i = 0 | i < 10 | i += 1 {
+  "For normal pero en bloc"
+}
+
+// Es poden posar noms com rust, son opcionals i han d'anar despres de la keyword lup
+// brk es break
+lup 'outer i | 1, 10 {
+  lup 'inner j | 1, 10 {
+    if i * j == 50 {
+      brk 'outer
+    }
+    if j == 3 { brk 'inner }
+  }
+}
+
+// Aixo es equivalent
+lup {
+  if a == 10: brk
+}
+// a aixo
+lup {
+  brk if a == 10
+}
+
+Int sum = 0
+Int minus = 0
+
+get 'std/http
+get 'std/io
+get 'std/color
+get 'std/test
+get 'std/random
+get 'std/math
+
+get "path/to/code.zag"
+
+kin Entity {
+  @ estatic: Int // @ vol dir estatic
+  $ maxHealth: Int // $ vol dir privat
+  $ health: Num
+  $ damage: Num
+  $ defense: Int
+  position: Num
+  $ alive: Bol
+
+  fn Debug {
+    "Gay"
+  }
+}
+

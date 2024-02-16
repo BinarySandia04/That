@@ -778,9 +778,9 @@ void Parser::Call(Node **call) {
       Advance();
     } else if (Match(TOKEN_DOT)) {
 
-      if (ogCall->type != NODE_GET && ogCall->type != NODE_CALL) {
+      if (ogCall->type != NODE_GETTER && ogCall->type != NODE_CALL) {
         // Aixo nomes es pot donar amb el primer identifier
-        Node *finalOg = new Node(NODE_GET);
+        Node *finalOg = new Node(NODE_GETTER);
         Node *newOg = new Node();
         finalOg->arguments.push_back(*call);
         finalOg->children.push_back(newOg);
@@ -797,7 +797,7 @@ void Parser::Call(Node **call) {
         break;
       }
 
-      Node *newGet = new Node(NODE_GET);
+      Node *newGet = new Node(NODE_GETTER);
 
       if (PeekType() != TOKEN_IDENTIFIER) {
         Panic("Expected identifier after '.'");

@@ -8,11 +8,14 @@
 
 namespace ZagCXX {
 
+
 class Transpiler {
   public:
     Transpiler();
 
     void AddInclude(std::string);
+    void LoadLib(std::string);
+
     std::string ConvertType(std::string);
     std::string GenerateIncludes();
     std::string SanitizeIdentifier(std::string);
@@ -30,10 +33,12 @@ class Transpiler {
 
     std::string TranspileIf(ZagIR::Node*);
     std::string TranspileLup(ZagIR::Node*);
+    std::string TranspileGet(ZagIR::Node*);
 
   private:
     std::vector<std::string> includes;
     std::map<std::string, std::tuple<std::string, std::string>> typeMap;
+    // std::vector<std::vector<VarObject>> stack;
 };
 
 }; // namespace ZagCXX

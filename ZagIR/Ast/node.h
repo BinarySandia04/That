@@ -12,6 +12,7 @@ enum NodeType {
   NODE_FUNCTION, // Data is identifier, args have NODE_ARGS and/or NDOE_TYPE return. Child is block
   NODE_CALL, // Child is callee, args are expression arguments
   NODE_GET, // 
+  NODE_GETTER,
   NODE_RET, // Childs are expressions to return
   NODE_BRK, // Data has identifier, child is the expression to break
   NODE_KIN, // Contains KIN_ENTRY as childs

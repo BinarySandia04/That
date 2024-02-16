@@ -1,0 +1,8 @@
+[info]
+name = ""
+version = "0.1v"
+namespace = "zagstd"
+
+[target.std.print]
+funcName = "print"
+fileDeps = ["src/print.cpp"]

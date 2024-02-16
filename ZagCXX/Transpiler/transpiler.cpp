@@ -15,7 +15,7 @@ Transpiler::Transpiler() {
 std::string Transpiler::GenerateSource(Node *ast) {
   std::string main = "int main(){";
 
-  ast->Debug(0);
+  // ast->Debug(0);
 
   std::string mainFunc = TranspileBlock(ast);
 
@@ -68,6 +68,8 @@ std::string Transpiler::TranspileStatement(Node *statement) {
     return TranspileIf(statement);
   case ZagIR::NODE_LUP:
     return TranspileLup(statement);
+  case ZagIR::NODE_GET:
+    return TranspileGet(statement);
   case ZagIR::NODE_EXPRESSION:
   case ZagIR::NODE_OP_BIN:
   case ZagIR::NODE_OP_UN:
@@ -227,4 +229,26 @@ std::string Transpiler::TranspileLup(ZagIR::Node *lup) {
   }
 
   return res;
+}
+
+std::string Transpiler::TranspileGet(ZagIR::Node* getNode){
+  std::string value = getNode->data;
+  std::string realImport;
+  bool lib;
+  std::cout << "Value size: " << value.size() << std::endl;
+  getNode->Debug(0);
+  if(value[0] == '\''){
+    lib = true;
+    realImport = value.substr(1, value.size() - 1);
+    LoadLib(realImport); 
+  } else {
+    lib = false;
+    realImport = value.substr(1, value.size() - 2);
+    // Normal import
+  }
+  return realImport;
+}
+
+void Transpiler::LoadLib(std::string libName){
+
 }
