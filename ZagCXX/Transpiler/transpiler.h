@@ -4,7 +4,7 @@
 #include <map>
 #include <tuple>
 
-#include "ZagIR/Ast/ast.h"
+#include <ZagIR/Ast/ast.h>
 
 namespace ZagCXX {
 

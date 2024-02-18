@@ -1,6 +1,7 @@
 #include "transpiler.h"
 
 #include <ZagIR/Ast/node.h>
+#include <ZagIR/Libs/packages.h>
 #include <algorithm>
 #include <iostream>
 
@@ -250,5 +251,5 @@ std::string Transpiler::TranspileGet(ZagIR::Node* getNode){
 }
 
 void Transpiler::LoadLib(std::string libName){
-
+  ZagIR::FetchPackages();
 }
