@@ -26,7 +26,11 @@ public:
   std::string root;
 
   std::unordered_map<std::string, PackCall> packMap;
+private:
+  void AddPackMapRecursive(std::string, std::unordered_map<std::string, PackCall>*, toml::table);
+  bool EndsWith(std::string, std::string);
 };
 
 std::vector<Package> FetchPackages();
+// TODO: Només carregar un package en comptes de tots?
 }; // namespace ZagIR

@@ -5,6 +5,5 @@ namespace = "zagstd"
 root = "std"
 
 [root.print]
-funcName = "print"
-fileDeps = ["src/print.cpp"]
-
+bind_name = "print"
+bind_deps = ["src/print.cpp"]

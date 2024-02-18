@@ -58,22 +58,46 @@ Package::Package(std::filesystem::path path, toml::parse_result result) {
   else
     throw(4);
 
-  for (auto [k, v] : *result["root"].as_table()) { 
-    toml::table t = *v.as_table();
-    std::string funcName = *t["funcName"].value<std::string>();
-    std::vector<std::string> fileDeps;
-    toml::array* arrFileDeps = t["fileDeps"].as_array();
-    for(int i = 0; i < arrFileDeps->size(); i++){
-      fileDeps.push_back(*(arrFileDeps)[i].value<std::string>());
-    }
-
-    PackCall pack(funcName, fileDeps);
-    this->packMap.insert(std::make_pair(std::string(k.str()), pack));
-  }
-
+  AddPackMapRecursive(this->root, &packMap, *result["root"].as_table());
 }
 
-PackCall::PackCall(std::string funcName, std::vector<std::string> fileDeps){
+void Package::AddPackMapRecursive(
+    std::string rootName, std::unordered_map<std::string, PackCall> *map,
+    toml::table table) {
+
+  std::string funcName;
+  std::vector<std::string> fileDeps;
+  bool hasBind = false;
+  for (auto [k, v] : table) {
+    std::string key = std::string(k.str());
+    // std::cout << rootName << std::endl;
+
+    if (EndsWith(key, "bind_name")) {
+      funcName = *v.value<std::string>();
+      hasBind = true;
+    } else if (EndsWith(key, "bind_deps")) {
+      toml::array* arrFileDeps = v.as_array();
+      for(int i = 0; i < arrFileDeps->size(); i++) fileDeps.push_back(*(arrFileDeps)[i].value<std::string>());
+    } else {
+      AddPackMapRecursive(rootName + "." + key, map, *v.as_table());
+    }
+  }
+
+  if(hasBind){
+    PackCall pack(funcName, fileDeps);
+    map->insert(std::make_pair(rootName, pack));
+  }
+}
+
+bool Package::EndsWith(std::string fullString, std::string ending) {
+  if (ending.size() > fullString.size())
+    return false;
+
+  return fullString.compare(fullString.size() - ending.size(), ending.size(),
+                            ending) == 0;
+}
+
+PackCall::PackCall(std::string funcName, std::vector<std::string> fileDeps) {
   this->funcName = funcName;
   this->fileDeps = fileDeps;
 }

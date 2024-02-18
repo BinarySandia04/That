@@ -1,4 +1,3 @@
-/*
 a: Int = -(4 + 3) * 2
 b: Str = "Hola"
 
@@ -9,11 +8,11 @@ if a == 3 {
 } els: a = 7
 // lup i < 10: a = a + 1
 
-lup i = 0 | i < 100 | i = i + 1: a = 3 + b
 a
-lup i, j, k | 10 | 20 | 30, 50 : a = 2
-*/
-get "Hoal" 
-get 'std/io
+c
+
+/*
+get 'std
 
 std.print("Hello World!")
+*/
