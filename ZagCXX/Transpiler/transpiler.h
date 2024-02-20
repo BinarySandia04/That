@@ -40,6 +40,7 @@ private:
   std::string TranspileGet(ZagIR::Node *);
   std::string TranspileReturn(ZagIR::Node *);
   std::string TranspileCall(ZagIR::Node *);
+  std::string TranspileGetter(ZagIR::Node *);
 
   std::string TranspileFunction(ZagIR::Node *);
 

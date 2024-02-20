@@ -4,8 +4,8 @@
 #include <ZagIR/Ast/node.h>
 #include <ZagIR/Libs/packages.h>
 #include <algorithm>
-#include <iostream>
 #include <format>
+#include <iostream>
 
 using namespace ZagCXX;
 using namespace ZagIR;
@@ -42,7 +42,7 @@ Object *Transpiler::FetchEnvironment(std::string key) {
   return &environment.back().data[key];
 }
 
-bool Transpiler::ExistsInEnv(std::string key){
+bool Transpiler::ExistsInEnv(std::string key) {
   for (int i = environment.size() - 1; i >= 0; i--) {
     if (environment[i].data.find(key) != environment[i].data.end()) {
       return true;
@@ -55,18 +55,18 @@ bool Transpiler::ExistsInScope(std::string key) {
   return environment.back().data.find(key) != environment.back().data.end();
 }
 
-void Transpiler::AddPackageToScope(ZagIR::Package package){
+void Transpiler::AddPackageToScope(ZagIR::Package package) {
   Object pack = Object();
-  pack.objType = OBJECT_CONTAINER;
-  
-  for(auto &p : package.packMap){
+  pack.objType = OBJECT_CCONTAINER;
+
+  for (auto &p : package.packMap) {
     pack.AddChild(Object(p.second), p.first);
   }
 
   AddToScope(package.root, pack);
 }
 
-std::string Transpiler::WriteFormat(std::string text){
+std::string Transpiler::WriteFormat(std::string text) {
   formatList.insert(std::make_pair(currentFormat, text));
   std::string res = "{" + std::to_string(currentFormat) + "}";
   currentFormat++;
@@ -82,11 +82,10 @@ std::string Transpiler::GenerateSource(Node *ast) {
   std::string mainFunc = TranspileBlock(ast);
   PopScope();
 
-  std::string preFormat = GenerateIncludes() + functionDeclaration + main + mainFunc + "}}" + functionDefinition;
+  std::string preFormat = GenerateIncludes() + functionDeclaration + main +
+                          mainFunc + "}}" + functionDefinition;
   return formatter.Format(preFormat, formatList);
 }
-
-
 
 void Transpiler::AddInclude(std::string include) {
   if (std::find(includes.begin(), includes.end(), include) == includes.end()) {
@@ -100,7 +99,8 @@ std::string Transpiler::TranspileType(std::string type) {
     return std::get<0>(typeMap[type]);
   }
   // Error
-  std::cout << "Unexpected type";
+  std::cout << "Unexpected type " << type << std::endl;
+  return "";
 }
 
 std::string Transpiler::GenerateIncludes() {
@@ -149,6 +149,7 @@ std::string Transpiler::TranspileStatement(Node *statement) {
   case ZagIR::NODE_NUMBER_VAL:
   case ZagIR::NODE_STRING_VAL:
   case ZagIR::NODE_CALL:
+  case ZagIR::NODE_GETTER:
     return TranspileExpression(statement) + ";";
   default:
     std::cout << "Undefined node " << statement->type << std::endl;
@@ -159,7 +160,7 @@ std::string Transpiler::TranspileStatement(Node *statement) {
 
 std::string Transpiler::TranspileIdentifier(Node *identifier) {
   std::string idName = identifier->data;
-  if(ExistsInEnv(idName)){
+  if (ExistsInEnv(idName)) {
     return SanitizeIdentifier(identifier->data);
   } else {
     std::cout << "Identifier " << idName << " doesnt exist!!!" << std::endl;
@@ -178,7 +179,7 @@ std::string Transpiler::TranspileAssignation(Node *assignation) {
     Node *type = assignation->arguments[0];
     ogType = type->data;
     Ttype = TranspileType(ogType);
-    
+
     // Aqui es podrien detectar ja dobles definicions??
     AddToScope(ogIdentifier, Object(ogType));
   } else {
@@ -188,8 +189,8 @@ std::string Transpiler::TranspileAssignation(Node *assignation) {
   Tidentifier = SanitizeIdentifier(ogIdentifier);
   Texpression = TranspileExpression(assignation->children[1]);
 
-
-  return Ttype + " " + Tidentifier + " " + assignation->data + " " + Texpression;
+  return Ttype + " " + Tidentifier + " " + assignation->data + " " +
+         Texpression;
 }
 
 std::string Transpiler::TranspileExpression(Node *expression) {
@@ -217,6 +218,9 @@ std::string Transpiler::TranspileExpression(Node *expression) {
     break;
   case NODE_CALL:
     return TranspileCall(expression);
+    break;
+  case NODE_GETTER:
+    return TranspileGetter(expression);
     break;
   default:
     std::cout << "Unexpected node" << std::endl;
@@ -306,14 +310,16 @@ std::string Transpiler::TranspileLup(ZagIR::Node *lup) {
       }
 
       res += "for(int " + identifier + " = ";
-      res += from + "; " + identifier + " < " + to + "; " + identifier + "++){{";
+      res +=
+          from + "; " + identifier + " < " + to + "; " + identifier + "++){{";
     }
     std::cout << iterator->arguments.size() << std::endl;
-     
+
     block = TranspileBlock(lup->children[0]);
     PopScope();
     res += block;
-    for(int i = 0; i < iterator->arguments.size(); i++) res += "}}";
+    for (int i = 0; i < iterator->arguments.size(); i++)
+      res += "}}";
 
   } else {
     // Simple while structure
@@ -360,7 +366,7 @@ std::string Transpiler::TranspileGet(ZagIR::Node *getNode) {
   return realImport;
 }
 
-std::string Transpiler::TranspileFunction(ZagIR::Node *function){
+std::string Transpiler::TranspileFunction(ZagIR::Node *function) {
 
   // Sanitization?
   std::string funcName = "_f_" + function->data;
@@ -373,23 +379,25 @@ std::string Transpiler::TranspileFunction(ZagIR::Node *function){
   std::string argType, argIdentifier;
 
   PushScope();
-  for(int i = 0; i < function->arguments.size(); i++){
-    if(function->arguments[i]->type == ZagIR::NODE_TYPE){
+  for (int i = 0; i < function->arguments.size(); i++) {
+    if (function->arguments[i]->type == ZagIR::NODE_TYPE) {
       returnType = TranspileType(function->arguments[i]->data);
-    } else if(function->arguments[i]->type == ZagIR::NODE_ARGS){
-      Node* args = function->arguments[i];
+    } else if (function->arguments[i]->type == ZagIR::NODE_ARGS) {
+      Node *args = function->arguments[i];
       arguments = "(";
-      for(int j = 0; j < args->children.size(); j++){
-        Node* arg = args->children[j];
+      for (int j = 0; j < args->children.size(); j++) {
+        Node *arg = args->children[j];
 
         argType = arg->arguments[0]->data;
         argIdentifier = arg->children[0]->data;
 
         AddToScope(argIdentifier, Object(argType));
-        
-        argPiled = TranspileType(argType) + " " + SanitizeIdentifier(argIdentifier);
+
+        argPiled =
+            TranspileType(argType) + " " + SanitizeIdentifier(argIdentifier);
         arguments += argPiled;
-        if(j < args->children.size() - 1) arguments += ",";
+        if (j < args->children.size() - 1)
+          arguments += ",";
       }
       arguments += ")";
     } else {
@@ -400,29 +408,59 @@ std::string Transpiler::TranspileFunction(ZagIR::Node *function){
   std::string defBlock = TranspileBlock(function->children[0]);
   PopScope();
 
-
   functionDeclaration += returnType + " " + funcName + arguments + ";";
-  functionDefinition += returnType + " " + funcName + arguments + "{{" + defBlock + "}}";
+  functionDefinition +=
+      returnType + " " + funcName + arguments + "{{" + defBlock + "}}";
 
   return "";
 }
 
-std::string Transpiler::TranspileReturn(ZagIR::Node *ret){
-  if(ret->children.size() > 0) return "return " + TranspileExpression(ret->children[0]) + ";";
-  else return "return;";
+std::string Transpiler::TranspileReturn(ZagIR::Node *ret) {
+  if (ret->children.size() > 0)
+    return "return " + TranspileExpression(ret->children[0]) + ";";
+  else
+    return "return;";
 }
 
-std::string Transpiler::TranspileCall(ZagIR::Node *call){
+std::string Transpiler::TranspileCall(ZagIR::Node *call) {
   std::string funcName = "_f_" + call->data;
   std::string args = "";
 
-  for(int i = 0; i < call->arguments.size(); i++){
+  for (int i = 0; i < call->arguments.size(); i++) {
     args += TranspileExpression(call->arguments[i]);
-    if(i < call->arguments.size() - 1) args += ",";
-  } 
+    if (i < call->arguments.size() - 1)
+      args += ",";
+  }
 
   // We should check if args are valid
   return funcName + "(" + args + ")";
+}
+
+std::string Transpiler::TranspileGetter(ZagIR::Node *getter) {
+  getter->Debug(0);
+  if (ExistsInEnv(getter->arguments[0]->data)) {
+    Object *scoped = FetchEnvironment(getter->arguments[0]->data);
+    scoped->Print();
+    ZagIR::Node *currentGetter = getter;
+    if (scoped->objType == OBJECT_CCONTAINER) {
+      // visit recursively until we get our PackCall and then call!
+      while (scoped->objType == OBJECT_CCONTAINER) {
+        currentGetter = currentGetter->children[0];
+        if (!(currentGetter->type == ZagIR::NODE_GETTER || currentGetter->type == ZagIR::NODE_CALL)) {
+          std::cout << "Not reached till the end" << std::endl;
+        }
+        std::cout << "getting " << currentGetter->arguments[0]->data << std::endl;
+        scoped = scoped->Get(currentGetter->arguments[0]->data);
+      }
+
+      std::cout << "Miau " << scoped->objType << std::endl;
+      ZagIR::PackCall pack = scoped->GetCFunctionData();
+      std::cout << pack.funcName << std::endl;
+    } else {
+      std::cout << "Undefined object" << std::endl;
+    }
+  }
+  return "";
 }
 
 void Transpiler::LoadLib(std::string libName) { ZagIR::FetchPackages(); }

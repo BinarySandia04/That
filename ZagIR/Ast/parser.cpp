@@ -815,6 +815,19 @@ void Parser::Call(Node **call) {
       break;
     }
   }
+
+  // Cleanup
+  Node* visitor = *call, *child;
+  while(visitor->children.size() > 0){
+    child = visitor->children[0];
+    if(child->type == NODE_UNDEF){
+      visitor->children = child->children;
+      child->children.clear();
+      delete child;
+      child = visitor->children[0];
+    }
+    visitor = child;
+  }
 }
 
 void Parser::Factor(Node **exp) {

@@ -11,7 +11,8 @@ enum ObjectType {
   OBJECT_VARIABLE,
   OBJECT_CONTAINER,
   OBJECT_FUNCTION,
-  OBJECT_CFUNCTION
+  OBJECT_CFUNCTION,
+  OBJECT_CCONTAINER,
 };
 
 class Object {
@@ -22,6 +23,10 @@ public:
   ObjectType objType;
 
   void AddChild(Object, std::string);
+  void Print();
+  Object* Get(std::string);
+
+  ZagIR::PackCall GetCFunctionData();
 private:
   // TODO: Puc fer un union ??? cada enum només vol un d'aquests
   std::string varData;
