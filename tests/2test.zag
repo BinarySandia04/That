@@ -1,15 +1,11 @@
-a: Int = -(4 + 3) * 2
-b: Str = "Hola"
+fn factorial [n: Int, j: Int] => Int {
+  r: Int = 1
+  if n <= 0: ret 0
+  lup i | n: r *= i
+  ret r
+}
 
-if a == 3 {
-  a = 4
-} eif b == 4 {
-  b = 5
-} els: a = 7
-// lup i < 10: a = a + 1
-
-a
-c
+r: Int = factorial(10)
 
 /*
 get 'std

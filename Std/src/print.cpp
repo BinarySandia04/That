@@ -16,7 +16,7 @@ namespace zagstd {
     std::cout << data << std::endl;
   }
 #else
-  extern "C" void print(ZagIR::Data* data){
+  extern "C" inline void print(ZagIR::Data* data){
     if(data->type == "Int"){
       std::cout << *(int*)(data->value);
     } else if(data->type == "Str"){

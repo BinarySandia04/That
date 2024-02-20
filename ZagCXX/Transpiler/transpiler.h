@@ -1,48 +1,31 @@
 #pragma once
 
 #include <map>
+#include <unordered_map>
 #include <string>
 #include <tuple>
 
 #include <ZagIR/Ast/ast.h>
 #include <ZagIR/Libs/packages.h>
 
+#include "environment.h"
+#include "formatter.h"
+
 namespace ZagCXX {
-
-enum ObjectType {
-  OBJECT_EMPTY,
-  OBJECT_VARIABLE,
-  OBJECT_CONTAINER
-};
-
-class Object {
-public:
-  Object();
-  Object(std::string);
-  std::string type;
-  ObjectType objType;
-  std::unordered_map<std::string, Object> data;
-
-  void AddPackageCall(std::string, ZagIR::PackCall);
-};
-
-class Scope {
-  public:
-  std::unordered_map<std::string, Object> data;
-};
 
 class Transpiler {
 public:
+  // Podriem moure el 100% de tot això a private
   Transpiler();
 
+  std::string GenerateSource(ZagIR::Node *);
+private:
   void AddInclude(std::string);
   void LoadLib(std::string);
 
-  std::string ConvertType(std::string);
+  std::string TranspileType(std::string);
   std::string GenerateIncludes();
   std::string SanitizeIdentifier(std::string);
-
-  std::string GenerateSource(ZagIR::Node *);
 
   std::string TranspileBlock(ZagIR::Node *);
   std::string TranspileStatement(ZagIR::Node *);
@@ -55,20 +38,36 @@ public:
   std::string TranspileIf(ZagIR::Node *);
   std::string TranspileLup(ZagIR::Node *);
   std::string TranspileGet(ZagIR::Node *);
+  std::string TranspileReturn(ZagIR::Node *);
+  std::string TranspileCall(ZagIR::Node *);
+
+  std::string TranspileFunction(ZagIR::Node *);
 
   void PushScope();
   void PopScope();
 
   void AddToScope(std::string, Object);
+  
   bool ExistsInScope(std::string);
+  bool ExistsInEnv(std::string);
+
   Object* FetchEnvironment(std::string);
 
   void AddPackageToScope(ZagIR::Package package);
-private:
+
+  Formatter formatter;
+
+  std::string functionDeclaration;
+  std::string functionDefinition;
+
   std::vector<std::string> includes;
   std::vector<ZagIR::Package> loadedPackages;
   std::map<std::string, std::tuple<std::string, std::string>> typeMap;
   std::vector<Scope> environment;
+
+  int currentFormat;
+  std::unordered_map<int, std::string> formatList;
+  std::string WriteFormat(std::string);
 };
 
 }; // namespace ZagCXX

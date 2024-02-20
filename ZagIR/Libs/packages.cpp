@@ -97,6 +97,8 @@ bool Package::EndsWith(std::string fullString, std::string ending) {
                             ending) == 0;
 }
 
+PackCall::PackCall(){}
+
 PackCall::PackCall(std::string funcName, std::vector<std::string> fileDeps) {
   this->funcName = funcName;
   this->fileDeps = fileDeps;

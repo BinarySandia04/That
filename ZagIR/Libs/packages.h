@@ -10,6 +10,7 @@
 namespace ZagIR {
 class PackCall {
 public:
+  PackCall();
   PackCall(std::string, std::vector<std::string>);
   std::string funcName;
   std::vector<std::string> fileDeps;
