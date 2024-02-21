@@ -23,6 +23,10 @@ Object::Object(ZagIR::Package *package){
   this->package = package;
 }
 
+Object::Object(ObjectType type){
+  objType = type;
+}
+
 void Object::AddChild(Object obj, std::string path) {
   if (!(objType == OBJECT_CONTAINER || objType == OBJECT_CCONTAINER || objType == OBJECT_PACKAGE)) {
     // TODO: Change to exception
@@ -48,7 +52,11 @@ void Object::AddChild(Object obj, std::string path) {
   }
 
   if (containerData.find(firstPart) == containerData.end()) {
-    containerData[firstPart] = obj;
+    if(secondPart.empty()) containerData[firstPart] = obj;
+    else {
+      containerData[firstPart] = Object(OBJECT_CCONTAINER);
+      containerData[firstPart].AddChild(obj, secondPart);
+    }
   } else {
     containerData[firstPart].AddChild(obj, secondPart);
   }

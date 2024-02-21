@@ -7,3 +7,11 @@ root = "std"
 [root.print]
 bind_name = "print"
 bind_deps = ["src/print.cpp"]
+
+[root.read.int]
+bind_name = "read_int"
+bind_deps = ["src/read.cpp"]
+
+[root.read.str]
+bind_name = "read_str"
+bind_deps = ["src/read.cpp"]

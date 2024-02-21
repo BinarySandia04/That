@@ -65,7 +65,7 @@ Package::Package(std::filesystem::path path, toml::parse_result result) {
 void Package::AddPackMapRecursive(
     std::string rootName, std::unordered_map<std::string, PackCall> *map,
     toml::table table) {
-
+  
   std::string funcName;
   std::vector<std::string> fileDeps;
   bool hasBind = false;
@@ -89,6 +89,7 @@ void Package::AddPackMapRecursive(
       AddPackMapRecursive(nextKey, map, *v.as_table());
     }
   }
+
 
   if(hasBind){
     PackCall pack(funcName, fileDeps);

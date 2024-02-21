@@ -423,7 +423,8 @@ std::string Transpiler::TranspileFunction(ZagIR::Node *function) {
 
   std::string defBlock = TranspileBlock(function->children[0]);
   PopScope();
-
+  
+  if(returnType == "") returnType = "void";
   functionDeclaration += returnType + " " + funcName + arguments + ";";
   functionDefinition +=
       returnType + " " + funcName + arguments + "{{" + defBlock + "}}";

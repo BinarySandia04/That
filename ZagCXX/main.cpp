@@ -100,8 +100,9 @@ void Transpile(std::string code, std::string fileName) {
   buffer << tmpSourceIn.rdbuf();
   std::string lastCode = buffer.str();
 
-  if (lastCode != transCode) {
-    std::cout << "Recompiling" << std::endl;
+  // if (lastCode != transCode) {
+  if(true){  
+  std::cout << "Recompiling" << std::endl;
     std::ofstream tmpSourceOut(tmpSourcePath.string());
     tmpSourceOut << transCode;
     tmpSourceOut.close();

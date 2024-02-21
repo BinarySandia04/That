@@ -22,6 +22,8 @@ public:
   Object(std::string);
   Object(ZagIR::PackCall);
   Object(ZagIR::Package*);
+  Object(ObjectType);
+
   ObjectType objType;
 
   void AddChild(Object, std::string);
