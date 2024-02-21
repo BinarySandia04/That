@@ -37,6 +37,7 @@ Package::Package(std::filesystem::path path, toml::parse_result result) {
   version = result["info"]["version"].value<std::string>();
   space = result["info"]["namespace"].value<std::string>();
   root = result["info"]["root"].value<std::string>();
+  this->path = path.string(); 
 
   if (name.has_value())
     this->name = *name;
@@ -58,7 +59,7 @@ Package::Package(std::filesystem::path path, toml::parse_result result) {
   else
     throw(4);
 
-  AddPackMapRecursive(this->root, &packMap, *result["root"].as_table());
+  AddPackMapRecursive("", &packMap, *result["root"].as_table());
 }
 
 void Package::AddPackMapRecursive(
@@ -77,9 +78,15 @@ void Package::AddPackMapRecursive(
       hasBind = true;
     } else if (EndsWith(key, "bind_deps")) {
       toml::array* arrFileDeps = v.as_array();
-      for(int i = 0; i < arrFileDeps->size(); i++) fileDeps.push_back(*(arrFileDeps)[i].value<std::string>());
+      for(int i = 0; i < arrFileDeps->size(); i++){
+        fileDeps.push_back((std::string) *((*arrFileDeps).get_as<std::string>(i))); 
+      }
     } else {
-      AddPackMapRecursive(rootName + "." + key, map, *v.as_table());
+      std::string nextKey;
+      if(rootName != "") nextKey = rootName + "." + key;
+      else nextKey = key;
+
+      AddPackMapRecursive(nextKey, map, *v.as_table());
     }
   }
 

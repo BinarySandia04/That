@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <string>
 #include <tuple>
+#include <set>
 
 #include <ZagIR/Ast/ast.h>
 #include <ZagIR/Libs/packages.h>
@@ -39,7 +40,10 @@ private:
   std::string TranspileLup(ZagIR::Node *);
   std::string TranspileGet(ZagIR::Node *);
   std::string TranspileReturn(ZagIR::Node *);
+  
   std::string TranspileCall(ZagIR::Node *);
+  std::string TranspileGCall(std::string, ZagIR::Node *);
+
   std::string TranspileGetter(ZagIR::Node *);
 
   std::string TranspileFunction(ZagIR::Node *);
@@ -54,7 +58,7 @@ private:
 
   Object* FetchEnvironment(std::string);
 
-  void AddPackageToScope(ZagIR::Package package);
+  void AddPackageToScope(ZagIR::Package *package);
 
   Formatter formatter;
 
@@ -63,6 +67,10 @@ private:
 
   std::vector<std::string> includes;
   std::vector<ZagIR::Package> loadedPackages;
+  
+  std::set<std::string> fileDeps;
+  std::string GlobFileDeps();
+
   std::map<std::string, std::tuple<std::string, std::string>> typeMap;
   std::vector<Scope> environment;
 

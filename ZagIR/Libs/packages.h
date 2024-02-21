@@ -8,6 +8,8 @@
 #include "toml.h"
 
 namespace ZagIR {
+class Package;
+
 class PackCall {
 public:
   PackCall();
@@ -25,6 +27,7 @@ public:
   std::string version;
   std::string space;
   std::string root;
+  std::string path;
 
   std::unordered_map<std::string, PackCall> packMap;
 private:

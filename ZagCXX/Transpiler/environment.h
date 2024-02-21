@@ -13,6 +13,7 @@ enum ObjectType {
   OBJECT_FUNCTION,
   OBJECT_CFUNCTION,
   OBJECT_CCONTAINER,
+  OBJECT_PACKAGE,
 };
 
 class Object {
@@ -20,11 +21,13 @@ public:
   Object();
   Object(std::string);
   Object(ZagIR::PackCall);
+  Object(ZagIR::Package*);
   ObjectType objType;
 
   void AddChild(Object, std::string);
   void Print();
-  Object* Get(std::string);
+  Object* GetObject(std::string);
+  ZagIR::Package* GetPackage();
 
   ZagIR::PackCall GetCFunctionData();
 private:
@@ -37,6 +40,8 @@ private:
 
   std::vector<Object> functionArgs;
   Object* functionReturn;
+
+  ZagIR::Package* package;
 };
 
 class Scope {

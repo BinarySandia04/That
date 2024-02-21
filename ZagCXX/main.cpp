@@ -1,17 +1,23 @@
 #include "main.h"
 
+#include <cstdlib>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <string>
-#include <filesystem>
+#ifdef __linux__
+#include <pwd.h>
+#include <sys/types.h>
+#endif
 
 #include "argh.h"
-#include "toml.h"
 #include "termcolor.h"
+#include "toml.h"
 
 #include "ZagIR/Ast/ast.h"
 
-#include "flags.h"
 #include "Transpiler/transpiler.h"
+#include "flags.h"
 
 int main(int argc, char *argv[]) {
 
@@ -25,7 +31,7 @@ int main(int argc, char *argv[]) {
     for (int i = 1; i < cmdl.size(); i++) {
       try {
         TranspileFile(cmdl.pos_args()[i]);
-      } catch(std::string err){
+      } catch (std::string err) {
         std::cout << termcolor::red << err << termcolor::reset << std::endl;
       }
     }
@@ -38,8 +44,6 @@ int main(int argc, char *argv[]) {
 }
 
 void TranspileFile(std::string fileName) {
-  std::cout << "Transpliling file " << fileName << std::endl;
-
   if (std::filesystem::exists(fileName)) {
     std::ifstream file;
     std::string code = "";
@@ -66,14 +70,51 @@ void TranspileFile(std::string fileName) {
   }
 }
 
-void Transpile(std::string code, std::string fileName){
-  ZagIR::Node* ast = new ZagIR::Node();
+void Transpile(std::string code, std::string fileName) {
+  ZagIR::Node *ast = new ZagIR::Node();
   ZagIR::GenerateAst(code, fileName, ast, programFlags & Flags::DEBUG);
 
   ZagCXX::Transpiler transpiler;
-  std::string out = transpiler.GenerateSource(ast);
 
-  delete ast;
-  std::cout << out << std::endl;
+#ifdef __linux
+  std::filesystem::path homePath =
+      std::filesystem::path(getenv("HOME")) / std::filesystem::path(".zag");
+#elif _WIN32
+  std::filesystem::path homePath(getenv("USERPROFILE"));
+#endif
+
+  if (!std::filesystem::is_directory(homePath) ||
+      !std::filesystem::exists(homePath)) {      // Check if src folder exists
+    std::filesystem::create_directory(homePath); // create src folder
+  }
+
+  std::filesystem::path tmpSourcePath(homePath /
+                                      std::filesystem::path("_tmp.cpp"));
+  std::filesystem::path tmpOutPath(homePath / std::filesystem::path("_tmp"));
+
+  std::string transCode;
+  transCode = transpiler.GenerateSource(ast);
+
+  std::ifstream tmpSourceIn(tmpSourcePath.string());
+  std::stringstream buffer;
+  buffer << tmpSourceIn.rdbuf();
+  std::string lastCode = buffer.str();
+
+  if (lastCode != transCode) {
+    std::cout << "Recompiling" << std::endl;
+    std::ofstream tmpSourceOut(tmpSourcePath.string());
+    tmpSourceOut << transCode;
+    tmpSourceOut.close();
+    delete ast;
+
+    Compile(tmpSourcePath, tmpOutPath);
+  }
+  Run(tmpOutPath);
 }
 
+void Compile(std::filesystem::path sourcePath, std::filesystem::path outPath) {
+  system(("g++ -D_ZAGCXX " + sourcePath.string() + " -o " + outPath.string())
+             .c_str());
+}
+
+void Run(std::filesystem::path outPath) { system(outPath.string().c_str()); }

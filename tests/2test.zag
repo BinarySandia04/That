@@ -1,14 +1,12 @@
 get 'std
-std.print("Hello wordl!")
+std.print("Anem a trobar nombres primers!!!")
 
-/*
-fn factorial [n: Int, j: Int] => Int {
-  r: Int = 1
-  if n <= 0: ret 0
-  lup i | n: r *= i
-  ret r
+lup i | 1, 100 {
+  t: Bul = nop
+  lup j: Int = 2 | j < i && !t | j += 1 {
+    if i % j == 0 {
+      t = yep
+    }
+  } 
+  if !t: std.print(i)
 }
-
-r: Int = factorial(10)
-
-*/

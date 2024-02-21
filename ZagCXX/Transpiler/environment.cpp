@@ -18,8 +18,13 @@ Object::Object(ZagIR::PackCall cfunctionData) {
   this->cfunctionData = cfunctionData;
 }
 
+Object::Object(ZagIR::Package *package){
+  objType = OBJECT_PACKAGE;
+  this->package = package;
+}
+
 void Object::AddChild(Object obj, std::string path) {
-  if (!(objType == OBJECT_CONTAINER || objType == OBJECT_CCONTAINER)) {
+  if (!(objType == OBJECT_CONTAINER || objType == OBJECT_CCONTAINER || objType == OBJECT_PACKAGE)) {
     // TODO: Change to exception
     std::cout << "Tried to call AddChild in object that is not "
                  "(OBJECT_CONTAINER | OBJECT_CCONTAINER)"
@@ -49,7 +54,9 @@ void Object::AddChild(Object obj, std::string path) {
   }
 }
 
-Object *Object::Get(std::string key) { return &containerData[key]; }
+Object *Object::GetObject(std::string key) { return &(containerData[key]); }
+
+Package* Object::GetPackage(){ return package; }
 
 ZagIR::PackCall Object::GetCFunctionData() { return cfunctionData; }
 
@@ -67,7 +74,7 @@ void Object::Print() {
   } else if (objType == OBJECT_CCONTAINER) {
     std::cout << "OBJECT_CCONTAINER" << std::endl;
     std::cout << "-----" << std::endl;
-    for(auto &p : containerData){
+    for (auto &p : containerData) {
       std::cout << p.first << std::endl;
       p.second.Print();
     }

@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <format>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
 using namespace ZagCXX;
 using namespace ZagIR;
@@ -13,6 +15,7 @@ using namespace ZagIR;
 Transpiler::Transpiler() {
   typeMap.insert({"Int", {"int", ""}});
   typeMap.insert({"Str", {"std::string", "string"}});
+  typeMap.insert({"Bul", {"bool", ""}});
 
   loadedPackages = ZagIR::FetchPackages();
   currentFormat = 0;
@@ -55,15 +58,14 @@ bool Transpiler::ExistsInScope(std::string key) {
   return environment.back().data.find(key) != environment.back().data.end();
 }
 
-void Transpiler::AddPackageToScope(ZagIR::Package package) {
-  Object pack = Object();
-  pack.objType = OBJECT_CCONTAINER;
+void Transpiler::AddPackageToScope(ZagIR::Package *package) {
+  Object pack = Object(package);
 
-  for (auto &p : package.packMap) {
+  for (auto &p : package->packMap) {
     pack.AddChild(Object(p.second), p.first);
   }
 
-  AddToScope(package.root, pack);
+  AddToScope(package->root, pack);
 }
 
 std::string Transpiler::WriteFormat(std::string text) {
@@ -84,7 +86,21 @@ std::string Transpiler::GenerateSource(Node *ast) {
 
   std::string preFormat = GenerateIncludes() + functionDeclaration + main +
                           mainFunc + "}}" + functionDefinition;
-  return formatter.Format(preFormat, formatList);
+  std::string globFileDeps = GlobFileDeps();
+  return globFileDeps + "\n" + formatter.Format(preFormat, formatList);
+}
+
+std::string Transpiler::GlobFileDeps(){
+  std::ostringstream ss;
+  for(std::string s : fileDeps){
+    // std::cout << "filedep " << s << std::endl;
+    std::ifstream f(s);
+    if(f){
+      ss << f.rdbuf();
+    }
+    f.close();
+  }
+  return ss.str();
 }
 
 void Transpiler::AddInclude(std::string include) {
@@ -223,7 +239,7 @@ std::string Transpiler::TranspileExpression(Node *expression) {
     return TranspileGetter(expression);
     break;
   default:
-    std::cout << "Unexpected node" << std::endl;
+    // std::cout << "Unexpected node:" << std::endl;
     break;
   }
   return "";
@@ -313,7 +329,7 @@ std::string Transpiler::TranspileLup(ZagIR::Node *lup) {
       res +=
           from + "; " + identifier + " < " + to + "; " + identifier + "++){{";
     }
-    std::cout << iterator->arguments.size() << std::endl;
+    // std::cout << iterator->arguments.size() << std::endl;
 
     block = TranspileBlock(lup->children[0]);
     PopScope();
@@ -344,7 +360,7 @@ std::string Transpiler::TranspileGet(ZagIR::Node *getNode) {
   std::string value = getNode->data;
   std::string realImport;
   bool lib;
-  std::cout << "Value size: " << value.size() << std::endl;
+  // std::cout << "Value size: " << value.size() << std::endl;
   if (value[0] == '\'') {
     lib = true;
     realImport = value.substr(1, value.size() - 1);
@@ -358,12 +374,12 @@ std::string Transpiler::TranspileGet(ZagIR::Node *getNode) {
   // TODO: Hauria de carregar només tal package no mirar entre tots
   for (int i = 0; i < loadedPackages.size(); i++) {
     if (loadedPackages[i].name == realImport) {
-      std::cout << "Found package" << std::endl;
-      AddPackageToScope(loadedPackages[i]);
+      // std::cout << "Found package" << std::endl;
+      AddPackageToScope(&loadedPackages[i]);
       // I ara aqui hauria de crear l'objecte i importar-lo
     }
   }
-  return realImport;
+  return "";
 }
 
 std::string Transpiler::TranspileFunction(ZagIR::Node *function) {
@@ -423,7 +439,13 @@ std::string Transpiler::TranspileReturn(ZagIR::Node *ret) {
 }
 
 std::string Transpiler::TranspileCall(ZagIR::Node *call) {
+  // TODO: Comprovar que la funció existeix lmao
   std::string funcName = "_f_" + call->data;
+  return TranspileGCall(funcName, call);
+}
+
+std::string Transpiler::TranspileGCall(std::string callName,
+                                       ZagIR::Node *call) {
   std::string args = "";
 
   for (int i = 0; i < call->arguments.size(); i++) {
@@ -433,29 +455,53 @@ std::string Transpiler::TranspileCall(ZagIR::Node *call) {
   }
 
   // We should check if args are valid
-  return funcName + "(" + args + ")";
+  return callName + "(" + args + ")";
 }
 
 std::string Transpiler::TranspileGetter(ZagIR::Node *getter) {
-  getter->Debug(0);
   if (ExistsInEnv(getter->arguments[0]->data)) {
     Object *scoped = FetchEnvironment(getter->arguments[0]->data);
-    scoped->Print();
+    // scoped->Print();
     ZagIR::Node *currentGetter = getter;
-    if (scoped->objType == OBJECT_CCONTAINER) {
-      // visit recursively until we get our PackCall and then call!
-      while (scoped->objType == OBJECT_CCONTAINER) {
+    if (scoped->objType == OBJECT_PACKAGE) {
+      Object* packageObject = scoped;
+      // visit recursively until we get our PackCall and then call
+
+      while ((scoped->objType == OBJECT_PACKAGE ||
+              scoped->objType == OBJECT_CCONTAINER) &&
+             currentGetter->children.size() > 0) {
         currentGetter = currentGetter->children[0];
-        if (!(currentGetter->type == ZagIR::NODE_GETTER || currentGetter->type == ZagIR::NODE_CALL)) {
+        if (!(currentGetter->type == ZagIR::NODE_GETTER ||
+              currentGetter->type == ZagIR::NODE_CALL)) {
+          // Ens hem quedat sense getters
           std::cout << "Not reached till the end" << std::endl;
         }
-        std::cout << "getting " << currentGetter->arguments[0]->data << std::endl;
-        scoped = scoped->Get(currentGetter->arguments[0]->data);
+        if (currentGetter->type == ZagIR::NODE_CALL) {
+          scoped = scoped->GetObject(currentGetter->data);
+        } else
+          scoped = scoped->GetObject(currentGetter->arguments[0]->data);
       }
 
-      std::cout << "Miau " << scoped->objType << std::endl;
+      if (currentGetter->type == NODE_GETTER) {
+        // Més getters que el que hi ha al objecte
+        // Podria donar support a constants???
+        std::cout << "Invalid" << std::endl;
+      }
+
+      // scoped->Print();
       ZagIR::PackCall pack = scoped->GetCFunctionData();
-      std::cout << pack.funcName << std::endl;
+      if (currentGetter->type == NODE_CALL) {
+        // Add fileDeps and return
+        
+        for(int i = 0; i < pack.fileDeps.size(); i++){
+          fileDeps.insert(packageObject->GetPackage()->path + "/" + pack.fileDeps[i]);
+        }
+
+        return TranspileGCall(packageObject->GetPackage()->space + "::" + pack.funcName,
+                              currentGetter);
+      }
+      // Hem de carregar fileDeps
+
     } else {
       std::cout << "Undefined object" << std::endl;
     }

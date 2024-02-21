@@ -826,6 +826,12 @@ void Parser::Call(Node **call) {
       delete child;
       child = visitor->children[0];
     }
+    if(child->type == NODE_CALL){
+      if(child->data == ""){
+        child->data = child->arguments[0]->data;
+        child->arguments.erase(child->arguments.begin());
+      }
+    }
     visitor = child;
   }
 }
@@ -951,7 +957,34 @@ void Parser::Equality(Node **exp) {
   }
 }
 
+void Parser::Bool(Node **exp){
+  Token t = Peek();
+  Equality(exp);
+
+  while(MatchAny({TOKEN_AMP_AMP, TOKEN_PIPE_PIPE})) {
+    Node *first, *second;
+    TokenType opToken = PreviousType();
+
+    switch(opToken){
+      case TOKEN_AMP_AMP:
+        first = new Node(NODE_OP_BIN, "&&");
+        break;
+      default:
+        first = new Node(NODE_OP_BIN, "||");
+        break;
+    }
+
+    first->children.push_back(*exp);
+
+    second = new Node(NODE_EXPRESSION);
+    Equality(&second);
+
+    first->children.push_back(second);
+    *exp = first;
+  } 
+}
+
 void Parser::Expression(Node **exp) {
   (*exp)->type = NODE_EXPRESSION;
-  Equality(exp);
+  Bool(exp);
 }

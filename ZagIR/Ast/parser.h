@@ -60,6 +60,7 @@ private:
   void Term(Node **);
   void Comparison(Node **);
   void Equality(Node **);
+  void Bool(Node **);
   void Expression(Node **);
   void Array(Node **);
   void LupIterators(Node **);

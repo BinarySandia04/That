@@ -114,6 +114,12 @@ void Scanner::ScanToken() {
     else
       AddToken(TOKEN_STAR);
     break;
+  case '%':
+    if (Match('='))
+      AddToken(TOKEN_PERCENTAGE_EQUAL);
+    else
+      AddToken(TOKEN_PERCENTAGE);
+    break;
   case '|':
     if (Match('|'))
       AddToken(TOKEN_PIPE_PIPE);
