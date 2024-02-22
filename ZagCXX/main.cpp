@@ -86,6 +86,7 @@ void Transpile(std::string code, std::string fileName) {
   if (!std::filesystem::is_directory(homePath) ||
       !std::filesystem::exists(homePath)) {      // Check if src folder exists
     std::filesystem::create_directory(homePath); // create src folder
+    std::cout << termcolor::yellow << "Created env directory" << termcolor::reset << std::endl;
   }
 
   std::filesystem::path tmpSourcePath(homePath /
@@ -100,22 +101,36 @@ void Transpile(std::string code, std::string fileName) {
   buffer << tmpSourceIn.rdbuf();
   std::string lastCode = buffer.str();
 
-  // if (lastCode != transCode) {
-  if(true){  
-  std::cout << "Recompiling" << std::endl;
+  /*
+  std::cout << "LASTCODE" << std::endl
+            << "-----------------------------------" << std::endl;
+  std::cout << lastCode << std::endl;
+  std::cout << "TRANSCODE" << std::endl
+            << "-----------------------------------" << std::endl;
+  std::cout << transCode << std::endl;
+  */
+
+  if (lastCode != transCode || !std::filesystem::exists(tmpOutPath)) {
+
     std::ofstream tmpSourceOut(tmpSourcePath.string());
     tmpSourceOut << transCode;
     tmpSourceOut.close();
     delete ast;
 
-    Compile(tmpSourcePath, tmpOutPath);
+    if (Compile(tmpSourcePath, tmpOutPath)) {
+      std::cout << termcolor::red << "Error compiling" << termcolor::reset
+                << std::endl;
+      std::filesystem::remove(tmpSourcePath);
+      return;
+    }
   }
   Run(tmpOutPath);
 }
 
-void Compile(std::filesystem::path sourcePath, std::filesystem::path outPath) {
-  system(("g++ -D_ZAGCXX " + sourcePath.string() + " -o " + outPath.string())
-             .c_str());
+int Compile(std::filesystem::path sourcePath, std::filesystem::path outPath) {
+  return system(
+      ("g++ -D_ZAGCXX -lm " + sourcePath.string() + " -o " + outPath.string())
+          .c_str());
 }
 
 void Run(std::filesystem::path outPath) { system(outPath.string().c_str()); }

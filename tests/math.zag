@@ -1,0 +1,12 @@
+get 'std
+get 'math
+
+x: Num = std.read.num("Posa un valor inicial: ")
+it: Int = std.read.int("Nombre iteracions? ")
+
+lup i | 1, it: x = math.cos(x)
+
+// Encara no puc concatenar coses amb strings lmao
+std.write("resultat: ")
+std.print(x)
+

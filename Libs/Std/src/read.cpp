@@ -25,6 +25,13 @@ namespace zagstd {
     std::cin >> readVar;
     return readVar;
   }
+
+  double read_num(std::string data){
+    double readVar;
+    std::cout << data;
+    std::cin >> readVar;
+    return readVar;
+  }
 #else
 #endif
 };
