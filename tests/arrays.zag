@@ -1,0 +1,9 @@
+get 'std
+
+std.print("Arrays:")
+a = [1, 2, 3]
+lup i | 0, 2: std.print(a[i])
+
+std.print("També poden tenir diferents tipus")
+b = [1, "Hola", 3, -4]
+lup i | 0, 3: std.print(b[i])
