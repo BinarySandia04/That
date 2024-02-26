@@ -1,12 +1,38 @@
 set(PROJECT_NAME Zag)
 
+
 file(GLOB src "*.h" "*.cpp")
 source_group("src" FILES ${src})
 
 set(ALL_FILES ${src})
 set(ROOT_NAMESPACE Zag)
 
-add_executable(${PROJECT_NAME} ${ALL_FILES})
+# Odio CMAKE
+FUNCTION(ADD_RESOURCES out_var)
+  SET(result)
+  FOREACH(in_f ${ARGN})
+    FILE(RELATIVE_PATH src_f ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/res/${in_f})
+    SET(out_f "${PROJECT_BINARY_DIR}/${in_f}.o")
+    cmake_path(GET out_f PARENT_PATH dirPath)
+    message(${dirPath})
+    ADD_CUSTOM_COMMAND(OUTPUT ${out_f}
+      COMMAND mkdir -p ${dirPath} && pushd Zag && pushd res && ld -r -b binary -o ${out_f} ${in_f} && popd && popd
+      DEPENDS res/${in_f}
+      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+      COMMENT "Building resource object ${out_f}"
+      VERBATIM
+      )
+    LIST(APPEND result ${out_f})
+  ENDFOREACH()
+  SET(${out_var} "${result}" PARENT_SCOPE)
+ENDFUNCTION()
+
+# Glob resource files
+file(GLOB_RECURSE resourceFiles RELATIVE "${CMAKE_SOURCE_DIR}/Zag/res" "res/*")
+
+add_resources(resources ${resourceFiles})
+
+add_executable(${PROJECT_NAME} ${ALL_FILES} ${resources})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
   ZagIR

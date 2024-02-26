@@ -82,8 +82,8 @@ lup {
   brk if a == 10
 }
 
-Int sum = 0
-Int minus = 0
+sum = 0
+minus = 0
 
 get 'std/http
 get 'std/io

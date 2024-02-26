@@ -4,5 +4,6 @@ _build/
 *.exe
 .cache/
 .clangd
+.tests/
 CMakeFiles/
 TODO

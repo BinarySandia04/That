@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
   }
 
   if (cmdl.size() == 1) {
-    std::cout << "test" << std::endl;
+    std::cout << "Zag" << std::endl;
   }
   return 0;
 }
@@ -82,6 +82,7 @@ void Transpile(std::string code, std::string fileName) {
 #elif _WIN32
   std::filesystem::path homePath(getenv("USERPROFILE"));
 #endif
+
 
   if (!std::filesystem::is_directory(homePath) ||
       !std::filesystem::exists(homePath)) {      // Check if src folder exists

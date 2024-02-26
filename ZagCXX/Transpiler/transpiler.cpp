@@ -1,4 +1,6 @@
 #include "transpiler.h"
+#include "object.h"
+#include "vartype.h"
 #include "environment.h"
 
 #include <ZagIR/Ast/node.h>
@@ -13,18 +15,26 @@ using namespace ZagCXX;
 using namespace ZagIR;
 
 Transpiler::Transpiler() {
-  typeMap.insert({"Int", {"int", ""}});
-  typeMap.insert({"Str", {"std::string", "string"}});
-  typeMap.insert({"Bul", {"bool", ""}});
-  typeMap.insert({"Num", {"double", ""}});;
 
-  loadedPackages = ZagIR::FetchPackages();
+  typeMap.insert({"Int", new VarType("Int", "int", "")});
+  typeMap.insert({"Str", new VarType("Str", "std::string", "string")});
+  typeMap.insert({"Bul", new VarType("Bul", "bool", "")});
+  typeMap.insert({"Num", new VarType("Num", "double", "")});
+  // any type?
+
   currentFormat = 0;
 
   functionDefinition = "";
   functionDeclaration = "";
 
   includes.push_back("string");
+
+}
+
+Transpiler::~Transpiler(){
+  for(auto &p : typeMap){
+    delete p.second;
+  }
 }
 
 void Transpiler::PushScope() { environment.push_back(Scope()); }
@@ -81,8 +91,6 @@ std::string Transpiler::WriteFormat(std::string text) {
 std::string Transpiler::GenerateSource(Node *ast) {
   std::string main = "int main(){{";
 
-  // ast->Debug(0);
-
   PushScope();
   std::string mainFunc = TranspileBlock(ast);
   PopScope();
@@ -112,16 +120,6 @@ void Transpiler::AddInclude(std::string include) {
   }
 }
 
-std::string Transpiler::TranspileType(std::string type) {
-  if (typeMap.count(type)) {
-    AddInclude(std::get<1>(typeMap[type]));
-    return std::get<0>(typeMap[type]);
-  }
-  // Error
-  std::cout << "Unexpected type " << type << std::endl;
-  return "";
-}
-
 std::string Transpiler::GenerateIncludes() {
   std::string res = "";
   for (int i = 0; i < includes.size(); i++) {
@@ -130,6 +128,10 @@ std::string Transpiler::GenerateIncludes() {
     }
   }
   return res;
+}
+
+VarType* Transpiler::GetType(std::string name){
+  return typeMap[name];
 }
 
 std::string Transpiler::SanitizeIdentifier(std::string idName) {
@@ -145,6 +147,8 @@ std::string Transpiler::TranspileBlock(Node *space) {
 }
 
 std::string Transpiler::TranspileStatement(Node *statement) {
+
+  VarType* evalType;
 
   switch (statement->type) {
   case ZagIR::NODE_ASSIGNATION:
@@ -169,7 +173,7 @@ std::string Transpiler::TranspileStatement(Node *statement) {
   case ZagIR::NODE_STRING_VAL:
   case ZagIR::NODE_CALL:
   case ZagIR::NODE_GETTER:
-    return TranspileExpression(statement) + ";";
+    return TranspileExpression(statement, &evalType) + ";";
   default:
     std::cout << "Undefined node " << statement->type << std::endl;
     break;
@@ -177,9 +181,12 @@ std::string Transpiler::TranspileStatement(Node *statement) {
   return "";
 }
 
-std::string Transpiler::TranspileIdentifier(Node *identifier) {
+std::string Transpiler::TranspileIdentifier(Node *identifier, VarType** retType) {
   std::string idName = identifier->data;
   if (ExistsInEnv(idName)) {
+    Object* obj = FetchEnvironment(idName);
+    *retType = obj->GetVarType();
+
     return SanitizeIdentifier(identifier->data);
   } else {
     std::cout << "Identifier " << idName << " doesnt exist!!!" << std::endl;
@@ -194,6 +201,9 @@ std::string Transpiler::TranspileAssignation(Node *assignation) {
   ogIdentifier = assignation->children[0]->data;
   bool declaring = false;
 
+  Tidentifier = SanitizeIdentifier(ogIdentifier);
+  Texpression = TranspileExpression(assignation->children[1]);
+
   if (!ExistsInEnv(ogIdentifier)) {
     declaring = true;
     if (assignation->arguments.size() > 0) {
@@ -205,11 +215,9 @@ std::string Transpiler::TranspileAssignation(Node *assignation) {
       // Aqui es podrien detectar ja dobles definicions??
       AddToScope(ogIdentifier, Object(ogType));
     } else {
-      AddToScope(ogIdentifier, Object());
+      AddToScope(ogIdentifier, Object(OBJECT_VARIABLE));
     }
   }
-  Tidentifier = SanitizeIdentifier(ogIdentifier);
-  Texpression = TranspileExpression(assignation->children[1]);
 
   if (declaring) {
     if (Ttype == "")
@@ -223,34 +231,38 @@ std::string Transpiler::TranspileAssignation(Node *assignation) {
   }
 }
 
-std::string Transpiler::TranspileExpression(Node *expression) {
+std::string Transpiler::TranspileExpression(Node *expression, VarType **retType) {
   switch (expression->type) {
   case NODE_NUMBER_VAL:
+    *retType = GetType("Num"):
     return expression->data;
     break;
   case NODE_STRING_VAL:
+    *retType = GetType("Str");
     return "std::string(\"" + expression->data + "\")";
     break;
   case NODE_YEP_VAL:
+    *retType = GetType("Bul");
     return "true";
     break;
   case NODE_NOP_VAL:
+    *retType = GetType("Bul");
     return "false";
     break;
   case NODE_OP_BIN:
-    return TranspileBinary(expression);
+    return TranspileBinary(expression, retType);
     break;
   case NODE_OP_UN:
-    return TranspileUnary(expression);
+    return TranspileUnary(expression, retType);
     break;
   case NODE_IDENTIFIER:
-    return TranspileIdentifier(expression);
+    return TranspileIdentifier(expression, retType);
     break;
   case NODE_CALL:
-    return TranspileCall(expression);
+    return TranspileCall(expression, retType);
     break;
   case NODE_GETTER:
-    return TranspileGetter(expression);
+    return TranspileGetter(expression, retType);
     break;
   default:
     // std::cout << "Unexpected node:" << std::endl;
@@ -372,26 +384,21 @@ std::string Transpiler::TranspileLup(ZagIR::Node *lup) {
 std::string Transpiler::TranspileGet(ZagIR::Node *getNode) {
   std::string value = getNode->data;
   std::string realImport;
+  Package* package;
   bool lib;
   // std::cout << "Value size: " << value.size() << std::endl;
   if (value[0] == '\'') {
     lib = true;
     realImport = value.substr(1, value.size() - 1);
-    LoadLib(realImport);
+    package = LoadPackage(realImport);
   } else {
     lib = false;
     realImport = value.substr(1, value.size() - 2);
     // Normal import
   }
 
-  // TODO: Hauria de carregar només tal package no mirar entre tots
-  for (int i = 0; i < loadedPackages.size(); i++) {
-    if (loadedPackages[i].name == realImport) {
-      // std::cout << "Found package" << std::endl;
-      AddPackageToScope(&loadedPackages[i]);
-      // I ara aqui hauria de crear l'objecte i importar-lo
-    }
-  }
+  loadedPackages.push_back(package);
+  AddPackageToScope(package);
   return "";
 }
 
@@ -526,4 +533,6 @@ std::string Transpiler::TranspileGetter(ZagIR::Node *getter) {
   return "";
 }
 
-void Transpiler::LoadLib(std::string libName) { ZagIR::FetchPackages(); }
+ZagIR::Package* Transpiler::LoadPackage(std::string packageName) {
+  return ZagIR::FetchPackage(packageName);
+}

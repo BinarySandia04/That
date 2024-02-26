@@ -18,33 +18,34 @@ class Transpiler {
 public:
   // Podriem moure el 100% de tot això a private
   Transpiler();
+  ~Transpiler();
 
   std::string GenerateSource(ZagIR::Node *);
 private:
   void AddInclude(std::string);
-  void LoadLib(std::string);
+  ZagIR::Package* LoadPackage(std::string);
 
-  std::string TranspileType(std::string);
   std::string GenerateIncludes();
   std::string SanitizeIdentifier(std::string);
 
   std::string TranspileBlock(ZagIR::Node *);
   std::string TranspileStatement(ZagIR::Node *);
   std::string TranspileAssignation(ZagIR::Node *);
-  std::string TranspileIdentifier(ZagIR::Node *);
-  std::string TranspileExpression(ZagIR::Node *);
-  std::string TranspileBinary(ZagIR::Node *);
-  std::string TranspileUnary(ZagIR::Node *);
+
+  std::string TranspileIdentifier(ZagIR::Node *, VarType**);
+  std::string TranspileExpression(ZagIR::Node *, VarType**);
+  std::string TranspileBinary(ZagIR::Node *, VarType**);
+  std::string TranspileUnary(ZagIR::Node *, VarType**);
 
   std::string TranspileIf(ZagIR::Node *);
   std::string TranspileLup(ZagIR::Node *);
   std::string TranspileGet(ZagIR::Node *);
   std::string TranspileReturn(ZagIR::Node *);
   
-  std::string TranspileCall(ZagIR::Node *);
+  std::string TranspileCall(ZagIR::Node *, VarType**);
   std::string TranspileGCall(std::string, ZagIR::Node *);
 
-  std::string TranspileGetter(ZagIR::Node *);
+  std::string TranspileGetter(ZagIR::Node *, VarType**);
 
   std::string TranspileFunction(ZagIR::Node *);
 
@@ -66,12 +67,13 @@ private:
   std::string functionDefinition;
 
   std::vector<std::string> includes;
-  std::vector<ZagIR::Package> loadedPackages;
+  std::vector<ZagIR::Package*> loadedPackages;
   
   std::set<std::string> fileDeps;
   std::string GlobFileDeps();
 
-  std::map<std::string, std::tuple<std::string, std::string>> typeMap;
+  VarType* GetType(std::string name);
+  std::map<std::string, VarType*> typeMap;
   std::vector<Scope> environment;
 
   int currentFormat;

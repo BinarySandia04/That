@@ -88,10 +88,13 @@ d'aquestes funcions de forma automàtica dins de la llibreria compartida.
 
 Les marcades amb un (*) necessiten ser instalades manualment per l'usuari final. (Podria fer un instalador potser).
 
-- [CMake](https://cmake.org/)* (En cas que es vulgui compilar)
-- [SWIG](https://www.swig.org/)
+## Llibreries utilitzades
+
+- [CMake](https://cmake.org/)
 - [GMP - The GNU Multiple Precision Arithmetic Library](https://gmplib.org/)
-- [MPFR](https://www.mpfr.org/)
+- [Argh.h]()
+- [Termcolor.h]()
+- [Toml]()
 
 ## Build
 - CMake

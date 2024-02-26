@@ -31,13 +31,31 @@ std::vector<Package> ZagIR::FetchPackages() {
   return packages;
 }
 
+Package* ZagIR::FetchPackage(std::string name){
+  for(auto &p : std::filesystem::directory_iterator(ZAG_PATH "packages")){
+    if(p.is_directory()){
+      if(std::filesystem::exists(p.path() / "package.toml")){
+        try {
+          toml::parse_result packageToml = toml::parse_file((p.path() / "package.toml").string());
+          std::optional<std::string> packName = packageToml["info"]["_name"].value<std::string>();
+          if(packName.has_value()){
+            return new Package(p.path(), packageToml);
+          }
+        } catch(int e){}
+      }
+    }
+  }
+  std::cout << "No package found with that name" << std::endl;
+}
+
 Package::Package(std::filesystem::path path, toml::parse_result result) {
   std::optional<std::string> name, version, space, root;
-  name = result["info"]["name"].value<std::string>();
-  version = result["info"]["version"].value<std::string>();
-  space = result["info"]["namespace"].value<std::string>();
-  root = result["info"]["root"].value<std::string>();
-  this->path = path.string(); 
+  name = result["info"]["_name"].value<std::string>();
+  version = result["info"]["_version"].value<std::string>();
+  space = result["info"]["_namespace"].value<std::string>();
+  root = result["info"]["_root"].value<std::string>();
+
+  this->path = path.string();
 
   if (name.has_value())
     this->name = *name;
@@ -58,6 +76,11 @@ Package::Package(std::filesystem::path path, toml::parse_result result) {
     this->root = *root;
   else
     throw(4);
+  
+  toml::array *arrFileDeps = result["info"]["_deps"].as_array();
+  for (int i = 0; i < arrFileDeps->size(); i++) {
+    fileDeps.push_back((std::string) * ((*arrFileDeps).get_as<std::string>(i)));
+  }
 
   AddPackMapRecursive("", &packMap, *result["root"].as_table());
 }
@@ -65,34 +88,36 @@ Package::Package(std::filesystem::path path, toml::parse_result result) {
 void Package::AddPackMapRecursive(
     std::string rootName, std::unordered_map<std::string, PackCall> *map,
     toml::table table) {
-  
+
   std::string funcName;
-  std::vector<std::string> fileDeps;
   bool hasBind = false;
   for (auto [k, v] : table) {
     std::string key = std::string(k.str());
     // std::cout << rootName << std::endl;
 
-    if (EndsWith(key, "bind_name")) {
-      funcName = *v.value<std::string>();
-      hasBind = true;
-    } else if (EndsWith(key, "bind_deps")) {
-      toml::array* arrFileDeps = v.as_array();
-      for(int i = 0; i < arrFileDeps->size(); i++){
-        fileDeps.push_back((std::string) *((*arrFileDeps).get_as<std::string>(i))); 
+    if (EndsWith(key, "_function")) {
+      toml::table t = *v.as_table();
+      std::optional<std::string> nameOpt;
+      nameOpt = t["name"].value<std::string>();
+
+      if(nameOpt.has_value()){
+        funcName = *nameOpt;
       }
-    } else {
+    }
+
+    else {
       std::string nextKey;
-      if(rootName != "") nextKey = rootName + "." + key;
-      else nextKey = key;
+      if (rootName != "")
+        nextKey = rootName + "." + key;
+      else
+        nextKey = key;
 
       AddPackMapRecursive(nextKey, map, *v.as_table());
     }
   }
 
-
-  if(hasBind){
-    PackCall pack(funcName, fileDeps);
+  if (hasBind) {
+    PackCall pack(funcName);
     map->insert(std::make_pair(rootName, pack));
   }
 }
@@ -105,9 +130,8 @@ bool Package::EndsWith(std::string fullString, std::string ending) {
                             ending) == 0;
 }
 
-PackCall::PackCall(){}
+PackCall::PackCall() {}
 
-PackCall::PackCall(std::string funcName, std::vector<std::string> fileDeps) {
+PackCall::PackCall(std::string funcName) {
   this->funcName = funcName;
-  this->fileDeps = fileDeps;
 }

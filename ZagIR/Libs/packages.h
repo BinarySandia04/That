@@ -13,9 +13,8 @@ class Package;
 class PackCall {
 public:
   PackCall();
-  PackCall(std::string, std::vector<std::string>);
+  PackCall(std::string); 
   std::string funcName;
-  std::vector<std::string> fileDeps;
 };
 
 class Package {
@@ -29,6 +28,8 @@ public:
   std::string root;
   std::string path;
 
+  std::vector<std::string> fileDeps;
+
   std::unordered_map<std::string, PackCall> packMap;
 private:
   void AddPackMapRecursive(std::string, std::unordered_map<std::string, PackCall>*, toml::table);
@@ -36,5 +37,5 @@ private:
 };
 
 std::vector<Package> FetchPackages();
-// TODO: Només carregar un package en comptes de tots?
+Package* FetchPackage(std::string);
 }; // namespace ZagIR

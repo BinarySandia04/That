@@ -1,0 +1,4 @@
+get 'std
+get 'math
+
+std.print(math.cos(3.14159))
