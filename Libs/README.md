@@ -13,7 +13,9 @@ _version = <string> # (OPTIONAL) Version of the library
 _namespace = <string> # (OPTIONAL) redifines cpp namespace 
 _root = <string> # Root object for the lib bindings. Can leave empty if the library doesn't need to create an object
 _file_deps = <Arr<string>> # (OPTIONAL) additional .cpp file deps for the library
-_requires = <Arr<string>> # (OPTIONAL) _name of libs that this lib requires
+_include_directories = <Arr<string>>  # -I dirs
+_link_directories = <Arr<string>> # -L dirs
+_link_libraries = <Arr<string>> # -l
 
 [a.b.c.d]
 _function = {

@@ -5,7 +5,9 @@ sudo rm -R /usr/local/lib/zag
 
 sudo mkdir /usr/local/lib/zag 2>/dev/null
 sudo mkdir /usr/local/lib/zag/packages 2>/dev/null
-sudo cp -R Libs/* /usr/local/lib/zag/packages
+sudo mkdir /usr/local/lib/zag/binaries 2>/dev/null
+
+Libs/_Internal/build.sh
 
 mkdir .build 2>/dev/null
 

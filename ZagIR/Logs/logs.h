@@ -1,0 +1,26 @@
+#pragma once
+
+#include <stdint.h>
+#include <string>
+
+namespace ZagIR {
+namespace Logs {
+class Color {
+  public:
+  Color(uint8_t r, uint8_t g, uint8_t b);
+  uint8_t r;
+  uint8_t g;
+  uint8_t b;
+};
+
+void Print(std::string);
+void Error(std::string);
+void Success(std::string);
+void Warning(std::string);
+void Info(std::string);
+
+std::string Ask(std::string);
+std::string color(Color c);
+void Gradient(std::string, Color, Color);
+}; // namespace Logs
+}; // namespace ZagIR

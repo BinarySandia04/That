@@ -1,5 +1,5 @@
 set(PROJECT_NAME Zag)
-
+set(CMAKE_INSTALL_MESSAGE LAZY)
 
 file(GLOB src "*.h" "*.cpp")
 source_group("src" FILES ${src})
@@ -14,9 +14,8 @@ FUNCTION(ADD_RESOURCES out_var)
     FILE(RELATIVE_PATH src_f ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/res/${in_f})
     SET(out_f "${PROJECT_BINARY_DIR}/${in_f}.o")
     cmake_path(GET out_f PARENT_PATH dirPath)
-    message(${dirPath})
     ADD_CUSTOM_COMMAND(OUTPUT ${out_f}
-      COMMAND mkdir -p ${dirPath} && pushd Zag && pushd res && ld -r -b binary -o ${out_f} ${in_f} && popd && popd
+      COMMAND mkdir -p ${dirPath} && pushd Zag > /dev/null && pushd res > /dev/null && ld -r -b binary -o ${out_f} ${in_f} && popd > /dev/null && popd > /dev/null
       DEPENDS res/${in_f}
       WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
       COMMENT "Building resource object ${out_f}"

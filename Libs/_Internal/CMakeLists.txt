@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(internal VERSION 0.1)
+project(_internal VERSION 0.1)
 
 SET(CMAKE_COLOR_MAKEFILE ON)
 
