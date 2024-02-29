@@ -11,8 +11,11 @@ namespace ZagIR {
 
 class Binding {
 public:
+  virtual ~Binding() = default;
+
   std::string bind;
   bool good;
+  bool duped;
   std::string foundBind;
   std::string realBind;
 };
@@ -71,7 +74,7 @@ public:
 
   // Ok si es prescindible el resultat d'això s'hauria de separar a un arxiu
   // Dins del mateix lloc que el .so
-  void ComputeBinds(std::filesystem::path);
+  void ComputeBinds();
 
 private:
   void AddObjectsMap(std::string,

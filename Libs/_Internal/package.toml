@@ -12,11 +12,8 @@ Num = {type = "Internal", parent = "double"}
 Nil = {type = "Internal", parent = "NULL"}
 
 [_conversions]
-int_to_str = {bind = "int_to_str", from = "Int", to = "Str"}
-num_to_str = {bind = "num_to_str", from = "Num", to = "Str"}
+int_to_str = {bind = "IntToString", from = "Int", to = "Str"}
+num_to_str = {bind = "NumToString", from = "Num", to = "Str"}
 
 [_.io.print]
-_function = {bind = "print", args = ["Str"], return = "Nil"}
-
-[_.io.print.prant]
-_function = {bind = "prant", args = ["Str"], return = "Int"}
+_function = {bind = "Print", args = ["Str"], return = "Nil"}

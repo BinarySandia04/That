@@ -1,3 +1,4 @@
+#include <stdexcept>
 #ifndef ZAG_PATH
 #define ZAG_PATH "/usr/local/lib/zag/"
 #endif
@@ -14,6 +15,8 @@
 #include <vector>
 #include <string>
 
+// https://stackoverflow.com/questions/307765/how-do-i-check-if-an-objects-type-is-a-particular-subclass-in-c
+
 using namespace ZagIR;
 namespace fs = std::filesystem;
 
@@ -24,9 +27,10 @@ void ZagIR::FetchPackages(std::vector<Package*> *packages) {
         try {
           Package* pack = new Package(p.path(),
                        toml::parse_file((p.path() / "package.toml").string()));
-          pack->ComputeBinds(p.path());
+          pack->ComputeBinds();
           packages->push_back(pack);
         } catch (int e) {
+          throw std::runtime_error("Error parsing package.toml");
         }
       }
     }
@@ -41,19 +45,26 @@ Package *ZagIR::FetchPackage(std::string name) {
           toml::parse_result packageToml =
               toml::parse_file((p.path() / "package.toml").string());
           std::optional<std::string> packName =
-              packageToml["info"]["_name"].value<std::string>();
+              packageToml["_info"]["_name"].value<std::string>();
           if (packName.has_value()) {
-            return new Package(p.path(), packageToml);
+            if(*packName == name) {
+              Package* pack = new Package(p.path(), packageToml);
+              pack->ComputeBinds();
+              return pack;
+            }
           }
         } catch (int e) {
+          throw std::runtime_error("Error parsing package.toml");
         }
       }
     }
-  }
-  std::cout << "No package found with that name" << std::endl;
+  } 
+  throw std::runtime_error("Package " + name + " does not exist");
 }
 
 Package::Package(std::filesystem::path path, toml::parse_result result) {
+  this->path = path;
+
   std::optional<std::string> name, display_name, version, space, root,
       file_deps, required;
   name = result["_info"]["_name"].value<std::string>();
@@ -193,6 +204,7 @@ void Package::AddConversionsMap(std::string rootName, std::vector<Conversion* >*
     if(to  .has_value()) conversion->rType = *to;
 
     map->push_back(conversion);
+    binds.push_back(conversion);
   }
 }
 
@@ -204,7 +216,8 @@ bool Package::EndsWith(std::string fullString, std::string ending) {
                             ending) == 0;
 }
 
-void Package::ComputeBinds(fs::path path){
+void Package::ComputeBinds(){
+  fs::path path = this->path;
   std::vector<std::string> mangles, demangles;
   std::string nmm, nmdm;
   nmm = Utils::Exec("nm -gDjUv " + (path / ("lib" + this->name + ".so") ).string());
@@ -216,7 +229,30 @@ void Package::ComputeBinds(fs::path path){
   for(std::string line; std::getline(nmmss, line, '\n'); ) mangles.push_back(line);
   for(std::string line; std::getline(nmdmss, line, '\n'); ) demangles.push_back(line);
 
-  for(int i = 0; i < mangles.size(); i++) std::cout << mangles[i] << " | " << demangles[i] << std::endl;
+  for(int i = 0; i < binds.size(); i++){
+    binds[i]->good = false;
+    binds[i]->duped = false;
+
+    int f = 0;
+    for(int j = 0; j < mangles.size(); j++){
+
+      // std::cout << demangles[j] << " " << binds[i]->bind << std::endl;
+      if (demangles[j].find(binds[i]->bind) != std::string::npos) {
+        f++;
+        binds[i]->foundBind = demangles[j];
+        binds[i]->realBind = mangles[j];
+        if(f > 1){
+          binds[i]->good = false;
+          binds[i]->duped = true;
+          break;
+        }
+      }
+    }
+
+    if(f == 1){
+      binds[i]->good = true;
+    }
+  }
 }
 
 
