@@ -81,7 +81,7 @@ void PrintPackageInfo(ZagIR::Package* package) {
   for (auto &p : package->functionMap) {
     FunctionCall* call = p.second;
     std::cout << "   " << termcolor::bold << "F " << termcolor::reset
-              << call->bind << " => " << p.first;
+              << call->bind << ": " << p.first;
     std::cout << "(";
     for (int i = 0; i < call->funcArgs.size(); i++) {
       std::cout << call->funcArgs[i];
@@ -96,7 +96,12 @@ void PrintPackageInfo(ZagIR::Package* package) {
   for (auto &p : package->typeMap) {
     ImportType* type = p.second;
     std::cout << "   " << termcolor::bold << "T " << termcolor::reset << p.first
-              << " => " << type->bind;
+              << " ~> " << type->parent;
     std::cout << std::endl;
+  }
+
+  for(int i = 0; i < package->conversionMap.size(); i++){
+    Conversion* conversion = package->conversionMap[i];
+    std::cout << "   " << termcolor::bold << "C " << termcolor::reset << conversion->lType << " => " << conversion->rType << std::endl;
   }
 }

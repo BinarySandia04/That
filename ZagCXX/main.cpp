@@ -102,15 +102,6 @@ void Transpile(std::string code, std::string fileName) {
   buffer << tmpSourceIn.rdbuf();
   std::string lastCode = buffer.str();
 
-  /*
-  std::cout << "LASTCODE" << std::endl
-            << "-----------------------------------" << std::endl;
-  std::cout << lastCode << std::endl;
-  std::cout << "TRANSCODE" << std::endl
-            << "-----------------------------------" << std::endl;
-  std::cout << transCode << std::endl;
-  */
-
   if (lastCode != transCode || !std::filesystem::exists(tmpOutPath)) {
 
     std::ofstream tmpSourceOut(tmpSourcePath.string());
@@ -130,7 +121,7 @@ void Transpile(std::string code, std::string fileName) {
 
 int Compile(std::filesystem::path sourcePath, std::filesystem::path outPath) {
   return system(
-      ("g++ -D_ZAGCXX -lm " + sourcePath.string() + " -o " + outPath.string())
+      ("g++ -lm " + sourcePath.string() + " -o " + outPath.string())
           .c_str());
 }
 

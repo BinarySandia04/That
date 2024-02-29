@@ -5,7 +5,7 @@ r = std.read.int("Posa un número: ")
 fn primers [r: Int] {
   lup i | 1, r {
     t = nop
-    lup j = 2 | j < i / 2 + 1 && !t | j += 1: if i % j == 0: t = yep 
+    lup j = 2 | j < i / 2 + 1 && !t | j += 1: if i % j == 0: t = yep
     if !t: std.print(i)
   }
 }

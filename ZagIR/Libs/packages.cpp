@@ -12,6 +12,7 @@
 #include <iostream>
 #include <optional>
 #include <vector>
+#include <string>
 
 using namespace ZagIR;
 namespace fs = std::filesystem;
@@ -58,7 +59,6 @@ Package::Package(std::filesystem::path path, toml::parse_result result) {
   name = result["_info"]["_name"].value<std::string>();
   display_name = result["_info"]["_display_name"].value<std::string>();
   version = result["_info"]["_version"].value<std::string>();
-  space = result["_info"]["_namespace"].value<std::string>();
   root = result["_info"]["_root"].value<std::string>();
 
   if (name.has_value())
@@ -67,8 +67,6 @@ Package::Package(std::filesystem::path path, toml::parse_result result) {
     this->display_name = *display_name;
   if (version.has_value())
     this->version = *version;
-  if (space.has_value())
-    this->space = *space;
   if (root.has_value())
     this->root = *root;
 
@@ -83,8 +81,9 @@ Package::Package(std::filesystem::path path, toml::parse_result result) {
     }
   }
 
-  AddObjectsMap("", &functionMap, *result["_"].as_table());
-  AddTypeMap   ("", &typeMap, *result["_types"].as_table());
+  AddObjectsMap    ("", &functionMap, *result["_"].as_table());
+  AddTypeMap       ("", &typeMap, *result["_types"].as_table());
+  AddConversionsMap("", &conversionMap, *result["_conversions"].as_table());
 }
 
 Package::~Package(){
@@ -96,7 +95,6 @@ void Package::AddObjectsMap(std::string rootName,
                             std::unordered_map<std::string, FunctionCall *> *map,
                             toml::table table) {
 
-  std::string function_bind;
   bool hasBind = false;
   for (auto [k, v] : table) {
     std::string key = std::string(k.str());
@@ -143,8 +141,6 @@ void Package::AddTypeMap(std::string rootName,
                          std::unordered_map<std::string, ImportType *> *map,
                          toml::table table) {
 
-  std::string function_bind;
-  bool hasBind = false;
   for (auto [k, v] : table) {
     std::string key = std::string(k.str());
 
@@ -153,9 +149,12 @@ void Package::AddTypeMap(std::string rootName,
 
     std::optional<std::string> type_accessor = t["type"].value<std::string>();
     std::optional<std::string> bind = t["bind"].value<std::string>();
+    std::optional<std::string> parent = t["parent"].value<std::string>();
 
     if (bind.has_value())
       type->bind = *bind;
+
+    if(parent.has_value()) type->parent = *parent;
 
     if (type_accessor.has_value())
       type->typeAccessor = *type_accessor;
@@ -176,6 +175,27 @@ void Package::AddTypeMap(std::string rootName,
   }
 }
 
+void Package::AddConversionsMap(std::string rootName, std::vector<Conversion* >*map, toml::table table){
+  for(auto [k, v] : table){
+    std::string key = std::string(k.str());
+
+    Conversion *conversion = new Conversion();
+    conversion->name = key;
+
+    toml::table t = *v.as_table();
+
+    std::optional<std::string> bind = t["bind"].value<std::string>();
+    std::optional<std::string> from = t["from"].value<std::string>();
+    std::optional<std::string> to   = t["to"].  value<std::string>();
+
+    if(bind.has_value()) conversion->bind = *bind;
+    if(from.has_value()) conversion->lType = *from;
+    if(to  .has_value()) conversion->rType = *to;
+
+    map->push_back(conversion);
+  }
+}
+
 bool Package::EndsWith(std::string fullString, std::string ending) {
   if (ending.size() > fullString.size())
     return false;
@@ -185,8 +205,18 @@ bool Package::EndsWith(std::string fullString, std::string ending) {
 }
 
 void Package::ComputeBinds(fs::path path){
-  std::cout << "nm -gDjUv " + (path / ("lib" + this->name + ".so") ).string() << std::endl;
-  std::cout << Utils::Exec("nm -gDjUv " + (path / ("lib" + this->name + ".so") ).string()) << std::endl;
+  std::vector<std::string> mangles, demangles;
+  std::string nmm, nmdm;
+  nmm = Utils::Exec("nm -gDjUv " + (path / ("lib" + this->name + ".so") ).string());
+  nmdm = Utils::Exec("nm -gDjUvC " + (path / ("lib" + this->name + ".so") ).string());
+
+  auto nmmss = std::stringstream(nmm);
+  auto nmdmss = std::stringstream(nmdm);
+
+  for(std::string line; std::getline(nmmss, line, '\n'); ) mangles.push_back(line);
+  for(std::string line; std::getline(nmdmss, line, '\n'); ) demangles.push_back(line);
+
+  for(int i = 0; i < mangles.size(); i++) std::cout << mangles[i] << " | " << demangles[i] << std::endl;
 }
 
 

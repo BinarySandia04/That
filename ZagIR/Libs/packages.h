@@ -32,8 +32,16 @@ public:
   ImportType(std::string);
 
   std::string typeName;
+  std::string parent;
   std::vector<std::string> include;
   std::string typeAccessor;
+};
+
+class Conversion : public Binding {
+public:
+  std::string name;
+  std::string lType;
+  std::string rType;
 };
 
 class Package {
@@ -45,7 +53,6 @@ public:
   std::string name;
   std::string display_name;
   std::string version;
-  std::string space;
   std::string root;
   std::vector<std::string> file_deps;
   std::vector<std::string> include_directories;
@@ -60,6 +67,7 @@ public:
 
   std::unordered_map<std::string, FunctionCall *> functionMap;
   std::unordered_map<std::string, ImportType *> typeMap;
+  std::vector<Conversion *> conversionMap;
 
   // Ok si es prescindible el resultat d'això s'hauria de separar a un arxiu
   // Dins del mateix lloc que el .so
@@ -71,6 +79,7 @@ private:
                      toml::table);
   void AddTypeMap(std::string, std::unordered_map<std::string, ImportType *> *,
                   toml::table);
+  void AddConversionsMap(std::string, std::vector<Conversion* >*, toml::table);
   bool EndsWith(std::string, std::string);
 };
 

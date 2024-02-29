@@ -2,15 +2,14 @@
 _name = "_internal"
 _display_name = "Internal library"
 _version = "0.1v"
-_namespace = "zag_internal"
-_root = "_internal"
+_root = ""
 
 [_types]
-Int = {type = "Internal", bind = "int"}
-Str = {type = "Internal", bind = "std::string", include = ["<string>"]}
-Bul = {type = "Internal", bind = "bool"}
-Num = {type = "Internal", bind = "float"}
-Nil = {type = "Internal", bind = "NULL"}
+Int = {type = "Internal", parent = "int"}
+Str = {type = "Internal", parent = "std::string", include = ["<string>"]}
+Bul = {type = "Internal", parent = "bool"}
+Num = {type = "Internal", parent = "double"}
+Nil = {type = "Internal", parent = "NULL"}
 
 [_conversions]
 int_to_str = {bind = "int_to_str", from = "Int", to = "Str"}
@@ -19,5 +18,5 @@ num_to_str = {bind = "num_to_str", from = "Num", to = "Str"}
 [_.io.print]
 _function = {bind = "print", args = ["Str"], return = "Nil"}
 
-[_.io.print.miau]
-_function = {bind = "print", args = ["Str"], return = "Int"}
+[_.io.print.prant]
+_function = {bind = "prant", args = ["Str"], return = "Int"}
