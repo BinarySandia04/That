@@ -3,42 +3,22 @@
 #include <iostream>
 #include <string>
 
+#include <ZagIR/Logs/logs.h>
+
 using namespace ZagIR;
 using namespace ZagCXX;
 
-Object::Object(std::string varName, VarType* varType) {
-  objType = OBJECT_VARIABLE;
-  this->varName = varName;
-  this->varType = varType;
-}
+void Object::Print() { std::cout << "[Object]" << std::endl; }
 
-Object::Object(ZagIR::PackCall cfunctionData) {
-  objType = OBJECT_CFUNCTION;
-  this->cfunctionData = cfunctionData;
-}
+void ObjectEmpty::Print() { std::cout << "[ObjectEmpty]" << std::endl; }
 
-Object::Object(ZagIR::Package *package){
-  objType = OBJECT_PACKAGE;
-  this->package = package;
-}
+void ObjectVariable::Print() { std::cout << "[ObjectVariable]" << std::endl; }
 
-Object::Object(ObjectType type){
-  objType = type;
-}
+ObjectVariable::ObjectVariable(std::string varName) { this->varName = varName; }
 
-VarType* Object::GetVarType(){
-  return varType;
-}
+void ObjectContainer::Print() { std::cout << "[ObjectContainer]" << std::endl; }
 
-void Object::AddChild(Object obj, std::string path) {
-  if (!(objType == OBJECT_CONTAINER || objType == OBJECT_CCONTAINER || objType == OBJECT_PACKAGE)) {
-    // TODO: Change to exception
-    std::cout << "Tried to call AddChild in object that is not "
-                 "(OBJECT_CONTAINER | OBJECT_CCONTAINER)"
-              << std::endl;
-    return;
-  }
-
+void ObjectContainer::AddObject(Object *obj, std::string path) {
   std::string firstPart = "", secondPart = "";
 
   // Populate firstPart and secondPart
@@ -55,44 +35,37 @@ void Object::AddChild(Object obj, std::string path) {
   }
 
   if (containerData.find(firstPart) == containerData.end()) {
-    if(secondPart.empty()) containerData[firstPart] = obj;
+    if (secondPart.empty())
+      containerData[firstPart] = obj;
     else {
-      containerData[firstPart] = Object(OBJECT_CCONTAINER);
-      containerData[firstPart].AddChild(obj, secondPart);
+      ObjectContainer *subContainer =
+          dynamic_cast<ObjectContainer *>(containerData[firstPart]);
+      if (subContainer != nullptr)
+        subContainer->AddObject(obj, secondPart);
+      else
+        Logs::Error("Error adding subcontainer");
     }
   } else {
-    containerData[firstPart].AddChild(obj, secondPart);
+    ObjectContainer *subContainer =
+        dynamic_cast<ObjectContainer *>(containerData[firstPart]);
+    if (subContainer != nullptr)
+      subContainer->AddObject(obj, secondPart);
+    else
+      Logs::Error("Error adding subcontainer");
   }
 }
 
-Object *Object::GetObject(std::string key) { return &(containerData[key]); }
+Object *ObjectContainer::GetObject(std::string key) { return containerData[key]; }
 
-Package* Object::GetPackage(){ return package; }
+void ObjectFunction::Print() { std::cout << "[ObjectFunction]" << std::endl; }
 
-ZagIR::PackCall Object::GetCFunctionData() { return cfunctionData; }
+void ObjectCFunction::Print() { std::cout << "[ObjectCFunction]" << std::endl; }
 
-void Object::Print() {
-  if (objType == OBJECT_EMPTY) {
-    std::cout << "OBJECT_EMPTY" << std::endl;
-  } else if (objType == OBJECT_VARIABLE) {
-    std::cout << "OBJECT_VARIABLE" << std::endl;
-  } else if (objType == OBJECT_CONTAINER) {
-    std::cout << "OBJECT_CONTAINER" << std::endl;
-  } else if (objType == OBJECT_FUNCTION) {
-    std::cout << "OBJECT_FUNCTION" << std::endl;
-  } else if (objType == OBJECT_CFUNCTION) {
-    std::cout << "OBJECT_CFUNCTION: " << cfunctionData.funcName << std::endl;
-  } else if (objType == OBJECT_CCONTAINER) {
-    std::cout << "OBJECT_CCONTAINER" << std::endl;
-    std::cout << "-----" << std::endl;
-    for (auto &p : containerData) {
-      std::cout << p.first << std::endl;
-      p.second.Print();
-    }
-    std::cout << "-----" << std::endl;
-  }
+void ObjectConversion::Print() {
+  std::cout << "[ObjectConversion]" << std::endl;
 }
 
+void ObjectCType::Print() { std::cout << "[ObjectCType]" << std::endl; }
 
 /*
 VarType::VarType() {

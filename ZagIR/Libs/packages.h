@@ -20,19 +20,19 @@ public:
   std::string realBind;
 };
 
-class FunctionCall : public Binding {
+class CFunction : public Binding {
 public:
-  FunctionCall();
-  FunctionCall(std::string);
+  CFunction();
+  CFunction(std::string);
 
   std::string name;
   std::string retType;
   std::vector<std::string> funcArgs;
 };
 
-class ImportType : public Binding {
+class CType : public Binding {
 public:
-  ImportType(std::string);
+  CType(std::string);
 
   std::string typeName;
   std::string parent;
@@ -68,24 +68,17 @@ public:
 
   std::vector<Binding *> binds;
 
-  std::unordered_map<std::string, FunctionCall *> functionMap;
-  std::unordered_map<std::string, ImportType *> typeMap;
-  std::vector<Conversion *> conversionMap;
-
   // Ok si es prescindible el resultat d'això s'hauria de separar a un arxiu
   // Dins del mateix lloc que el .so
   void ComputeBinds();
 
 private:
-  void AddObjectsMap(std::string,
-                     std::unordered_map<std::string, FunctionCall *> *,
-                     toml::table);
-  void AddTypeMap(std::string, std::unordered_map<std::string, ImportType *> *,
-                  toml::table);
-  void AddConversionsMap(std::string, std::vector<Conversion* >*, toml::table);
+  void AddObjectsMap(std::string, toml::table);
+  void AddTypeMap(std::string, toml::table);
+  void AddConversionsMap(std::string, toml::table);
   bool EndsWith(std::string, std::string);
 };
 
-void FetchPackages(std::vector<Package*> *packages);
+void FetchPackages(std::vector<Package *> *packages);
 Package *FetchPackage(std::string);
 }; // namespace ZagIR

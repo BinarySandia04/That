@@ -89,60 +89,50 @@ void WriteFiles(std::vector<Resource> res) {
 
 void PrintPackageInfo(ZagIR::Package *package) {
   PrintPackage(package);
-  for (auto &p : package->functionMap) {
-    FunctionCall *call = p.second;
 
-    PrintBindStatus("F ", call);
+  bool ok = true;
+  for (int i = 0; i < package->binds.size(); i++) {
+    Binding *bind = package->binds[i];
 
-    std::cout << call->bind << ": " << p.first;
-    std::cout << "(";
-    for (int i = 0; i < call->funcArgs.size(); i++) {
-      std::cout << call->funcArgs[i];
-      if (i < call->funcArgs.size() - 1)
-        std::cout << ", ";
+    CFunction *cfunc = dynamic_cast<CFunction *>(bind);
+    CType *ctype = dynamic_cast<CType *>(bind);
+    Conversion *conversion = dynamic_cast<Conversion *>(bind);
+
+    if (cfunc != nullptr) {
+      PrintBindStatus("F", bind);
+
+      std::cout << cfunc->bind << ": " << cfunc->name;
+      std::cout << "(";
+      for (int i = 0; i < cfunc->funcArgs.size(); i++) {
+        std::cout << cfunc->funcArgs[i];
+        if (i < cfunc->funcArgs.size() - 1)
+          std::cout << ", ";
+      }
+      std::cout << ") -> ";
+      std::cout << cfunc->retType;
+      ok = ok && cfunc ->good;
+    } else if (ctype != nullptr) {
+      if(ctype->typeAccessor == "Internal") PrintBindStatus("t", bind);
+      else PrintBindStatus("T", bind);
+
+      std::cout << ctype->typeName << " ~> " << ctype->parent;
+    } else if (conversion != nullptr) {
+      PrintBindStatus("C", bind);
+      std::cout << conversion->lType << " => " << conversion->rType;
+      ok = ok && conversion->good;
     }
-    std::cout << ") -> ";
-    std::cout << call->retType;
     std::cout << std::endl;
-  }
-
-  for (auto &p : package->typeMap) {
-    ImportType *type = p.second;
-    PrintBindStatus("T ", type);
-    std::cout << p.first << " ~> " << type->parent;
-    std::cout << std::endl;
-  }
-
-  for (int i = 0; i < package->conversionMap.size(); i++) {
-    Conversion *conversion = package->conversionMap[i];
-    PrintBindStatus("C ", conversion);
-    std::cout << conversion->lType << " => " << conversion->rType << std::endl;
   }
 
   // Print if valid
-  bool ok = true;
-  for(int i = 0; i < package->binds.size(); i++){
-    Binding* b = package->binds[i];
-    ZagIR::ImportType *supType = dynamic_cast<ZagIR::ImportType*>(b);
-    if(supType != nullptr){
-      if(supType->typeAccessor == "Internal") continue;
-    }
-
-    ok = ok && b->good;
-  }
-  
-  if(ok) std::cout << termcolor::green << "All good" << termcolor::reset << std::endl;
+  if (ok)
+    std::cout << termcolor::green << "All good" << termcolor::reset
+              << std::endl;
 }
 
 void PrintBindStatus(std::string letter, Binding *bind) {
   std::cout << "   " << termcolor::bold;
-
   bool good = bind->good;
-  ZagIR::ImportType *supType = dynamic_cast<ZagIR::ImportType*>(bind);
-  if(supType != nullptr){
-    good = good || supType->typeAccessor == "Internal";
-    letter = "t ";
-  }
 
   if (good) {
     std::cout << termcolor::green;
@@ -153,7 +143,7 @@ void PrintBindStatus(std::string letter, Binding *bind) {
       std::cout << termcolor::red;
   }
 
-  std::cout << letter << termcolor::reset;
+  std::cout << letter << termcolor::reset << " ";
 }
 
 void ShowBinds(Package *pack) {
@@ -185,9 +175,7 @@ void PrintPackage(ZagIR::Package *package) {
             << package->version << termcolor::color<255, 128, 0> << "]"
             << termcolor::reset << ": ";
 
-  std::cout << termcolor::bold << package->functionMap.size()
-            << termcolor::reset << " bindings, ";
-  std::cout << termcolor::bold << package->typeMap.size() << termcolor::reset
-            << " types";
+  std::cout << termcolor::bold << package->binds.size()
+            << termcolor::reset << " bindings" << termcolor::reset;
   std::cout << std::endl;
 }

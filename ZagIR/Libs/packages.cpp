@@ -12,21 +12,21 @@
 #include <filesystem>
 #include <iostream>
 #include <optional>
-#include <vector>
 #include <string>
+#include <vector>
 
 // https://stackoverflow.com/questions/307765/how-do-i-check-if-an-objects-type-is-a-particular-subclass-in-c
 
 using namespace ZagIR;
 namespace fs = std::filesystem;
 
-void ZagIR::FetchPackages(std::vector<Package*> *packages) {
+void ZagIR::FetchPackages(std::vector<Package *> *packages) {
   for (auto &p : fs::directory_iterator(ZAG_PATH "packages")) {
     if (p.is_directory()) {
       if (fs::exists(p.path() / "package.toml")) {
         try {
-          Package* pack = new Package(p.path(),
-                       toml::parse_file((p.path() / "package.toml").string()));
+          Package *pack = new Package(
+              p.path(), toml::parse_file((p.path() / "package.toml").string()));
           pack->ComputeBinds();
           packages->push_back(pack);
         } catch (int e) {
@@ -47,8 +47,8 @@ Package *ZagIR::FetchPackage(std::string name) {
           std::optional<std::string> packName =
               packageToml["_info"]["_name"].value<std::string>();
           if (packName.has_value()) {
-            if(*packName == name) {
-              Package* pack = new Package(p.path(), packageToml);
+            if (*packName == name) {
+              Package *pack = new Package(p.path(), packageToml);
               pack->ComputeBinds();
               return pack;
             }
@@ -58,7 +58,7 @@ Package *ZagIR::FetchPackage(std::string name) {
         }
       }
     }
-  } 
+  }
   throw std::runtime_error("Package " + name + " does not exist");
 }
 
@@ -92,26 +92,24 @@ Package::Package(std::filesystem::path path, toml::parse_result result) {
     }
   }
 
-  AddObjectsMap    ("", &functionMap, *result["_"].as_table());
-  AddTypeMap       ("", &typeMap, *result["_types"].as_table());
-  AddConversionsMap("", &conversionMap, *result["_conversions"].as_table());
+  AddObjectsMap("", *result["_"].as_table());
+  AddTypeMap("", *result["_types"].as_table());
+  AddConversionsMap("", *result["_conversions"].as_table());
 }
 
-Package::~Package(){
-  for(auto &p : functionMap) delete p.second;
-  for(auto &p : typeMap) delete p.second;
+Package::~Package() {
+  for (int i = 0; i < binds.size(); i++)
+    delete binds[i];
 }
 
-void Package::AddObjectsMap(std::string rootName,
-                            std::unordered_map<std::string, FunctionCall *> *map,
-                            toml::table table) {
+void Package::AddObjectsMap(std::string rootName, toml::table table) {
 
   bool hasBind = false;
   for (auto [k, v] : table) {
     std::string key = std::string(k.str());
 
     if (EndsWith(key, "_function")) {
-      FunctionCall* function = new FunctionCall(rootName);
+      CFunction *function = new CFunction(rootName);
       toml::table t = *v.as_table();
 
       std::optional<std::string> bind = t["bind"].value<std::string>();
@@ -134,7 +132,6 @@ void Package::AddObjectsMap(std::string rootName,
         }
       }
 
-      map->insert(std::make_pair(rootName, function));
       binds.push_back(function);
     } else {
       std::string nextKey;
@@ -143,19 +140,17 @@ void Package::AddObjectsMap(std::string rootName,
       else
         nextKey = key;
 
-      AddObjectsMap(nextKey, map, *v.as_table());
+      AddObjectsMap(nextKey, *v.as_table());
     }
   }
 }
 
-void Package::AddTypeMap(std::string rootName,
-                         std::unordered_map<std::string, ImportType *> *map,
-                         toml::table table) {
+void Package::AddTypeMap(std::string rootName, toml::table table) {
 
   for (auto [k, v] : table) {
     std::string key = std::string(k.str());
 
-    ImportType* type = new ImportType(key);
+    CType *type = new CType(key);
     toml::table t = *v.as_table();
 
     std::optional<std::string> type_accessor = t["type"].value<std::string>();
@@ -165,7 +160,8 @@ void Package::AddTypeMap(std::string rootName,
     if (bind.has_value())
       type->bind = *bind;
 
-    if(parent.has_value()) type->parent = *parent;
+    if (parent.has_value())
+      type->parent = *parent;
 
     if (type_accessor.has_value())
       type->typeAccessor = *type_accessor;
@@ -181,13 +177,12 @@ void Package::AddTypeMap(std::string rootName,
       }
     }
 
-    map->insert(std::make_pair(key, type));
     binds.push_back(type);
   }
 }
 
-void Package::AddConversionsMap(std::string rootName, std::vector<Conversion* >*map, toml::table table){
-  for(auto [k, v] : table){
+void Package::AddConversionsMap(std::string rootName, toml::table table) {
+  for (auto [k, v] : table) {
     std::string key = std::string(k.str());
 
     Conversion *conversion = new Conversion();
@@ -197,13 +192,15 @@ void Package::AddConversionsMap(std::string rootName, std::vector<Conversion* >*
 
     std::optional<std::string> bind = t["bind"].value<std::string>();
     std::optional<std::string> from = t["from"].value<std::string>();
-    std::optional<std::string> to   = t["to"].  value<std::string>();
+    std::optional<std::string> to = t["to"].value<std::string>();
 
-    if(bind.has_value()) conversion->bind = *bind;
-    if(from.has_value()) conversion->lType = *from;
-    if(to  .has_value()) conversion->rType = *to;
+    if (bind.has_value())
+      conversion->bind = *bind;
+    if (from.has_value())
+      conversion->lType = *from;
+    if (to.has_value())
+      conversion->rType = *to;
 
-    map->push_back(conversion);
     binds.push_back(conversion);
   }
 }
@@ -216,32 +213,36 @@ bool Package::EndsWith(std::string fullString, std::string ending) {
                             ending) == 0;
 }
 
-void Package::ComputeBinds(){
+void Package::ComputeBinds() {
   fs::path path = this->path;
   std::vector<std::string> mangles, demangles;
   std::string nmm, nmdm;
-  nmm = Utils::Exec("nm -gDjUv " + (path / ("lib" + this->name + ".so") ).string());
-  nmdm = Utils::Exec("nm -gDjUvC " + (path / ("lib" + this->name + ".so") ).string());
+  nmm = Utils::Exec("nm -gDjUv " +
+                    (path / ("lib" + this->name + ".so")).string());
+  nmdm = Utils::Exec("nm -gDjUvC " +
+                     (path / ("lib" + this->name + ".so")).string());
 
   auto nmmss = std::stringstream(nmm);
   auto nmdmss = std::stringstream(nmdm);
 
-  for(std::string line; std::getline(nmmss, line, '\n'); ) mangles.push_back(line);
-  for(std::string line; std::getline(nmdmss, line, '\n'); ) demangles.push_back(line);
+  for (std::string line; std::getline(nmmss, line, '\n');)
+    mangles.push_back(line);
+  for (std::string line; std::getline(nmdmss, line, '\n');)
+    demangles.push_back(line);
 
-  for(int i = 0; i < binds.size(); i++){
+  for (int i = 0; i < binds.size(); i++) {
     binds[i]->good = false;
     binds[i]->duped = false;
 
     int f = 0;
-    for(int j = 0; j < mangles.size(); j++){
+    for (int j = 0; j < mangles.size(); j++) {
 
       // std::cout << demangles[j] << " " << binds[i]->bind << std::endl;
       if (demangles[j].find(binds[i]->bind) != std::string::npos) {
         f++;
         binds[i]->foundBind = demangles[j];
         binds[i]->realBind = mangles[j];
-        if(f > 1){
+        if (f > 1) {
           binds[i]->good = false;
           binds[i]->duped = true;
           break;
@@ -249,15 +250,14 @@ void Package::ComputeBinds(){
       }
     }
 
-    if(f == 1){
+    if (f == 1) {
       binds[i]->good = true;
     }
   }
 }
 
+CFunction::CFunction() {}
 
-FunctionCall::FunctionCall() {}
+CFunction::CFunction(std::string funcName) { this->name = funcName; }
 
-FunctionCall::FunctionCall(std::string funcName) { this->name = funcName; }
-
-ImportType::ImportType(std::string typeName) { this->typeName = typeName; }
+CType::CType(std::string typeName) { this->typeName = typeName; }
