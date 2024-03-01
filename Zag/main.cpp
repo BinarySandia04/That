@@ -131,7 +131,7 @@ void PrintPackageInfo(ZagIR::Package *package) {
     ok = ok && b->good;
   }
   
-  if(ok) std::cout << termcolor::green << "All good" << std::endl;
+  if(ok) std::cout << termcolor::green << "All good" << termcolor::reset << std::endl;
 }
 
 void PrintBindStatus(std::string letter, Binding *bind) {

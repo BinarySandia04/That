@@ -72,8 +72,8 @@ private:
   std::set<std::string> fileDeps;
   std::string GlobFileDeps();
 
-  VarType* GetType(std::string name);
-  std::map<std::string, VarType*> typeMap;
+  // VarType* GetType(std::string name);
+  std::map<std::string, ObjectType*> typeMap;
   std::vector<Scope> environment;
 
   int currentFormat;

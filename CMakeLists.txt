@@ -22,5 +22,5 @@ find_package(Git)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 add_subdirectory(ZagIR)
-# add_subdirectory(ZagCXX)
+add_subdirectory(ZagCXX)
 add_subdirectory(Zag)

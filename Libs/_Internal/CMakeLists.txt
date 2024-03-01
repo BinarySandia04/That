@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 project(_internal VERSION 0.1)
 
+set(CMAKE_CPP_COMPILER clang)
+
 SET(CMAKE_COLOR_MAKEFILE ON)
 
 set(CMAKE_CXX_LIBS "-O2")

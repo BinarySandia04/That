@@ -1,6 +1,5 @@
 #include "transpiler.h"
 #include "object.h"
-#include "vartype.h"
 #include "environment.h"
 
 #include <ZagIR/Ast/node.h>
