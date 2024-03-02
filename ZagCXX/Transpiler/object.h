@@ -8,24 +8,32 @@
 namespace ZagCXX {
 class Object {
 public:
-  virtual ~Object();
+  virtual ~Object() {};
   virtual void Print();
+  std::string identifier; // Hauriem de posar const XD
 };
 
-class ObjectEmpty : private Object {
+class ObjectType;
+
+class ObjectEmpty : public Object {
 public:
   void Print();
 };
 
-class ObjectVariable : private Object {
+class ObjectVariable : public Object {
 public:
   void Print();
+  ObjectVariable(ObjectType *);
 
-  ObjectVariable(std::string);
-  std::string varName;
+  void SetType(ObjectType *);
+  ObjectType *GetType();
+
+  std::string Transpile();
+private:
+  ObjectType *type;
 };
 
-class ObjectContainer : private Object {
+class ObjectContainer : public Object {
 public:
   void Print();
 
@@ -36,56 +44,72 @@ private:
   std::unordered_map<std::string, Object *> containerData;
 };
 
-class ObjectFunction : private Object {
+class ObjectFunction : public Object {
+public:
   void Print();
+  virtual std::string GetName();
+
+  ObjectType* GetReturnType();
+  bool CheckArgs(std::vector<ObjectType *>&);
+  std::vector<ObjectType *> functionArgs;
+protected:
+  ObjectType *functionReturn;
 };
 
-class ObjectCFunction : private Object {
+class ObjectCFunction : public ObjectFunction {
 public:
+  std::string GetName();
+  ObjectCFunction(ZagIR::CFunction *);
   void Print();
 
 private:
-  ZagIR::CFunction cFunctionData;
-  std::vector<ObjectVariable> functionArgs;
-  ObjectVariable *functionReturn;
+  ZagIR::CFunction* cFunctionData;
 };
 
-class ObjectConversion : private Object {
+class ObjectNativeFunction : public ObjectFunction {
 public:
+  std::string GetName();
   void Print();
+  void SetReturnType(ObjectType* );
 };
 
-class ObjectType : private Object {
+class ObjectConversion : public Object {
+public:
+  ObjectConversion(ZagIR::Conversion *);
+  void Print();
+private:
+  ZagIR::Conversion *conversion;
+};
+
+class ObjectType : public Object {
 public:
   void Print();
+  virtual bool Equals(ObjectType *);
 
-  std::string name;
   std::vector<ObjectVariable *> children;
 
   virtual std::string Transpile();
 
 private:
-  virtual std::string TranspileChildren();
+  std::string TranspileChildren();
 };
 
-class ObjectCType : private ObjectType {
+class ObjectCType : public ObjectType {
 public:
+  ObjectCType(ZagIR::CType *);
   void Print();
+  bool Equals(ObjectType *);
 
   bool internal;
   std::string translation;
-  std::string includes;
+  std::vector<std::string> includes;
 
   std::string Transpile();
-
-private:
-  std::string TranspileChildren();
 };
 
-class ObjectNativeType : private ObjectType {
+class ObjectNativeType : public ObjectType {
+  bool Equals(ObjectType *);
+  void Print();
   std::string Transpile();
-
-private:
-  std::string TranspileChildren();
 };
 } // namespace ZagCXX

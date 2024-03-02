@@ -22,44 +22,54 @@ public:
 
   std::string GenerateSource(ZagIR::Node *);
 private:
+
   void AddInclude(std::string);
   ZagIR::Package* LoadPackage(std::string);
 
+  void ThrowError(ZagIR::Node*, std::string);
+
   std::string GenerateIncludes();
-  std::string SanitizeIdentifier(std::string);
 
   std::string TranspileBlock(ZagIR::Node *);
   std::string TranspileStatement(ZagIR::Node *);
   std::string TranspileAssignation(ZagIR::Node *);
 
-  std::string TranspileIdentifier(ZagIR::Node *, VarType**);
-  std::string TranspileExpression(ZagIR::Node *, VarType**);
-  std::string TranspileBinary(ZagIR::Node *, VarType**);
-  std::string TranspileUnary(ZagIR::Node *, VarType**);
+  std::string TranspileIdentifier(ZagIR::Node *, ObjectType**);
+  std::string TranspileExpression(ZagIR::Node *, ObjectType**);
+  std::string TranspileBinary(ZagIR::Node *, ObjectType**);
+  std::string TranspileUnary(ZagIR::Node *, ObjectType**);
 
   std::string TranspileIf(ZagIR::Node *);
   std::string TranspileLup(ZagIR::Node *);
   std::string TranspileGet(ZagIR::Node *);
   std::string TranspileReturn(ZagIR::Node *);
   
-  std::string TranspileCall(ZagIR::Node *, VarType**);
-  std::string TranspileGCall(std::string, ZagIR::Node *);
+  std::string TranspileCall(ZagIR::Node *, ObjectType**);
 
-  std::string TranspileGetter(ZagIR::Node *, VarType**);
+  std::string TranspileGCall(ObjectFunction*, ZagIR::Node *);
+
+  std::string TranspileGetter(ZagIR::Node *, ObjectType**);
 
   std::string TranspileFunction(ZagIR::Node *);
 
   void PushScope();
   void PopScope();
 
-  void AddToScope(std::string, Object);
+  void AddPackageToScope(ZagIR::Package *package);
+  void AddToRoot(std::string, Object*);
+  void AddToScope(std::string, Object*);
+  void AddBindingToScope(ZagIR::Binding *);
+  void AddCTypeToScope(ZagIR::CType*);
+  void AddCFunctionToScope(ZagIR::CFunction*);
+  void AddConversionToScope(ZagIR::Conversion*);
   
   bool ExistsInScope(std::string);
+  bool ExistsInRootScope(std::string);
   bool ExistsInEnv(std::string);
 
   Object* FetchEnvironment(std::string);
-
-  void AddPackageToScope(ZagIR::Package *package);
+  Object* FetchRootEnvironment(std::string);
+  ObjectType* FetchType(std::string);
 
   Formatter formatter;
 
@@ -72,8 +82,6 @@ private:
   std::set<std::string> fileDeps;
   std::string GlobFileDeps();
 
-  // VarType* GetType(std::string name);
-  std::map<std::string, ObjectType*> typeMap;
   std::vector<Scope> environment;
 
   int currentFormat;
