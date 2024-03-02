@@ -64,12 +64,12 @@ private:
   void AddConversionToScope(ZagIR::Conversion*);
   
   bool ExistsInScope(std::string);
-  bool ExistsInRootScope(std::string);
   bool ExistsInEnv(std::string);
 
   Object* FetchEnvironment(std::string);
   Object* FetchRootEnvironment(std::string);
   ObjectType* FetchType(std::string);
+
 
   Formatter formatter;
 
@@ -82,6 +82,7 @@ private:
   std::set<std::string> fileDeps;
   std::string GlobFileDeps();
 
+  void DumpEnvironment();
   std::vector<Scope> environment;
 
   int currentFormat;

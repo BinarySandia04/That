@@ -23,13 +23,14 @@ public:
 class ObjectVariable : public Object {
 public:
   void Print();
-  ObjectVariable(ObjectType *);
+  ObjectVariable(ObjectType *, std::string name);
 
   void SetType(ObjectType *);
   ObjectType *GetType();
 
   std::string Transpile();
 private:
+  std::string name;
   ObjectType *type;
 };
 

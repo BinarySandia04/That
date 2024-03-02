@@ -14,13 +14,16 @@ void ObjectEmpty::Print() { std::cout << "[ObjectEmpty]" << std::endl; }
 
 void ObjectVariable::Print() { std::cout << "[ObjectVariable]" << std::endl; }
 
-ObjectVariable::ObjectVariable(ObjectType *type) { this->type = type; }
+ObjectVariable::ObjectVariable(ObjectType *type, std::string name) {
+  this->type = type;
+  this->name = name;
+}
 
 void ObjectVariable::SetType(ObjectType *type) { this->type = type; }
 
 ObjectType *ObjectVariable::GetType() { return type; }
 
-std::string ObjectVariable::Transpile() { return "_v_" + this->identifier; }
+std::string ObjectVariable::Transpile() { return "_v_" + this->name; }
 
 void ObjectContainer::Print() { std::cout << "[ObjectContainer]" << std::endl; }
 
@@ -69,15 +72,17 @@ void ObjectFunction::Print() { std::cout << "[ObjectFunction]" << std::endl; }
 
 std::string ObjectFunction::GetName() { return "_f_" + this->identifier; }
 
-bool ObjectFunction::CheckArgs(std::vector<ObjectType *>& args){
-  if(args.size() != functionArgs.size()) return false;
-  for(int i = 0; i < args.size(); i++){
-    if(!args[i]->Equals(functionArgs[i])) return false;
+bool ObjectFunction::CheckArgs(std::vector<ObjectType *> &args) {
+  if (args.size() != functionArgs.size())
+    return false;
+  for (int i = 0; i < args.size(); i++) {
+    if (!args[i]->Equals(functionArgs[i]))
+      return false;
   }
   return true;
 }
 
-ObjectCFunction::ObjectCFunction(ZagIR::CFunction* cfunction){
+ObjectCFunction::ObjectCFunction(ZagIR::CFunction *cfunction) {
   this->cFunctionData = cfunction;
 }
 
@@ -99,7 +104,7 @@ void ObjectNativeFunction::SetReturnType(ObjectType *type) {
 
 ObjectType *ObjectFunction::GetReturnType() { return this->functionReturn; }
 
-ObjectConversion::ObjectConversion(ZagIR::Conversion *conversion){
+ObjectConversion::ObjectConversion(ZagIR::Conversion *conversion) {
   this->conversion = conversion;
 }
 
@@ -114,19 +119,19 @@ bool ObjectType::Equals(ObjectType *other) {
   return other->identifier == identifier;
 }
 
-std::string ObjectType::Transpile() { 
+std::string ObjectType::Transpile() {
   std::cout << "Transpiling normal ObjectType" << std::endl;
   return "";
 }
 
-std::string ObjectType::TranspileChildren(){
+std::string ObjectType::TranspileChildren() {
   std::cout << "Transpile children" << std::endl;
   return "";
 }
 
-ObjectCType::ObjectCType(ZagIR::CType *type){
+ObjectCType::ObjectCType(ZagIR::CType *type) {
   this->internal = type->typeAccessor == "Internal";
-  this->translation = type->realBind;
+  this->translation = type->parent;
   this->includes = type->include;
 }
 
@@ -139,9 +144,7 @@ bool ObjectCType::Equals(ObjectType *other) {
   return other->identifier == identifier;
 }
 
-std::string ObjectCType::Transpile(){
-  return translation;
-}
+std::string ObjectCType::Transpile() { return translation; }
 
 void ObjectNativeType::Print() {
   std::cout << "[ObjectType > ObjectNativeType]" << std::endl;
@@ -152,7 +155,7 @@ bool ObjectNativeType::Equals(ObjectType *other) {
   return other->identifier == identifier;
 }
 
-std::string ObjectNativeType::Transpile(){
+std::string ObjectNativeType::Transpile() {
   std::cout << "Transpiling ObjectNativeType" << std::endl;
   return "";
 }

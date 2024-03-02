@@ -7,6 +7,7 @@ namespace ZagCXX {
 
 class Scope {
 public:
+  void Print();
   std::unordered_map<std::string, Object*> data;
 };
 

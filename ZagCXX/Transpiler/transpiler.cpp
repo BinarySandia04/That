@@ -37,13 +37,12 @@ void Transpiler::PushScope() { environment.push_back(Scope()); }
 void Transpiler::PopScope() { environment.pop_back(); }
 
 void Transpiler::AddToRoot(std::string name, Object *obj) {
-  if (!ExistsInRootScope(name))
+  // if (!ExistsInRootScope(name))
     environment[0].data.insert(std::pair<std::string, Object *>(name, obj));
 }
 
 void Transpiler::AddToScope(std::string name, Object *obj) {
-  if (!ExistsInScope(name))
-    environment.back().data.insert(std::pair<std::string, Object *>(name, obj));
+  environment[environment.size() - 1].data.insert(std::pair<std::string, Object *>(name, obj));
 }
 
 Object *Transpiler::FetchEnvironment(std::string key) {
@@ -64,9 +63,19 @@ ObjectType *Transpiler::FetchType(std::string key) {
   return dynamic_cast<ObjectType *>(FetchRootEnvironment(key));
 }
 
+void Transpiler::DumpEnvironment(){
+  for(int i = 0; i < environment.size(); i++){
+    std::cout << "--------------------------------------------" << std::endl;
+    if(i == 0) std::cout << "Root:";
+    else std::cout << i;
+    std::cout << std::endl;
+    environment[i].Print();
+  }
+}
+
 bool Transpiler::ExistsInEnv(std::string key) {
   for (int i = environment.size() - 1; i >= 0; i--) {
-    if (environment[i].data[key] != nullptr) {
+    if (environment[i].data.find(key) != environment[i].data.end()) {
       return true;
     }
   }
@@ -74,11 +83,7 @@ bool Transpiler::ExistsInEnv(std::string key) {
 }
 
 bool Transpiler::ExistsInScope(std::string key) {
-  return environment.back().data[key] != nullptr;
-}
-
-bool Transpiler::ExistsInRootScope(std::string key) {
-  return environment[0].data[key] != nullptr;
+  return environment.back().data.find(key) != environment.back().data.end();
 }
 
 void Transpiler::AddPackageToScope(ZagIR::Package *package) {
@@ -106,7 +111,7 @@ void Transpiler::AddBindingToScope(Binding *bind) {
 
 void Transpiler::AddCTypeToScope(CType *ctype) {
   ObjectCType *newType = new ObjectCType(ctype);
-  AddToRoot(newType->identifier, newType);
+  AddToRoot(ctype->typeName, newType);
 }
 
 void Transpiler::AddCFunctionToScope(CFunction *cfunction) {
@@ -131,6 +136,8 @@ std::string Transpiler::GenerateSource(Node *ast) {
 
   PushScope();
   std::string mainFunc = TranspileBlock(ast);
+
+  DumpEnvironment();
   PopScope();
 
   std::string preFormat = GenerateIncludes() + functionDeclaration + main +
@@ -232,6 +239,7 @@ std::string Transpiler::TranspileIdentifier(Node *identifier,
 }
 
 std::string Transpiler::TranspileAssignation(Node *assignation) {
+
   std::string ogTypeStr = "", ogIdentifier;
   std::string TtypeStr = "", Texpression;
 
@@ -242,8 +250,9 @@ std::string Transpiler::TranspileAssignation(Node *assignation) {
   Texpression = TranspileExpression(assignation->children[1], &expType);
 
   if (!ExistsInEnv(ogIdentifier)) {
-    ObjectVariable *newVariable = new ObjectVariable(expType);
+    ObjectVariable *newVariable = new ObjectVariable(expType, ogIdentifier);
     newVariable->SetType(expType);
+
 
     declaring = true;
     if (assignation->arguments.size() > 0) {
@@ -254,8 +263,12 @@ std::string Transpiler::TranspileAssignation(Node *assignation) {
       ObjectType *declType =
           dynamic_cast<ObjectType *>(FetchEnvironment(ogTypeStr));
 
+      if(declType == nullptr){
+        std::cout << "NULLPTR! not found " << ogTypeStr << std::endl;
+      }
       TtypeStr = declType->Transpile();
       newVariable->SetType(declType);
+
 
       // Aqui es podrien detectar ja dobles definicions??
       AddToScope(ogIdentifier, newVariable);
@@ -270,6 +283,7 @@ std::string Transpiler::TranspileAssignation(Node *assignation) {
          dynamic_cast<ObjectVariable *>(FetchEnvironment(ogIdentifier))
              ->Transpile() +
          " " + assignation->data + " " + Texpression;
+
 }
 
 std::string Transpiler::TranspileExpression(Node *expression,
@@ -401,7 +415,7 @@ std::string Transpiler::TranspileLup(ZagIR::Node *lup) {
       std::string to = "0";
 
       // De moment posem només ints
-      ObjectVariable *newVar = new ObjectVariable(FetchType("Int"));
+      ObjectVariable *newVar = new ObjectVariable(FetchType("Int"), iterator->arguments[i]->data);
       AddToScope(iterator->arguments[i]->data, newVar);
 
       // TODO: Treure això
@@ -501,7 +515,7 @@ std::string Transpiler::TranspileFunction(ZagIR::Node *function) {
         argIdentifier = arg->children[0]->data;
 
         ObjectType *argType = FetchType(arg->arguments[0]->data);
-        ObjectVariable *argVar = new ObjectVariable(argType);
+        ObjectVariable *argVar = new ObjectVariable(argType, argIdentifier);
 
         AddToScope(argIdentifier, argVar);
 
