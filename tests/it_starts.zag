@@ -1,4 +1,17 @@
+
+fn fib [a: Int]{
+  ret
+}
+
 a = 5
 b = 3
 
-a + b
+if a + b == 3 {
+  b = 5
+} eif a == 65 * 3.3 {
+  a = 59
+}
+
+lup i | 1, 10 {
+  a += 1
+}

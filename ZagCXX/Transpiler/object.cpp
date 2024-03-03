@@ -130,9 +130,10 @@ std::string ObjectType::TranspileChildren() {
 }
 
 ObjectCType::ObjectCType(ZagIR::CType *type) {
-  this->internal = type->typeAccessor == "Internal";
+  this->internal = type->internal;
   this->translation = type->parent;
   this->includes = type->include;
+  this->upgrades_to = type->upgrades_to;
 }
 
 void ObjectCType::Print() {

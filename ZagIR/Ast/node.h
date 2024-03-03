@@ -35,6 +35,7 @@ enum NodeType {
   NODE_ARRAY, // Childs are expressions
   NODE_INTERVAL, // Children are one to two expressions
   NODE_LUP_ITERATORS, // Arguments are identifiers, childs are intervals
+  NODE_INT_VAL,    // Data is the int value
   NODE_NUMBER_VAL, // Data is the number value
   NODE_STRING_VAL, // Data is the string value
   NODE_IDENTIFIER, // Data is the identifier name

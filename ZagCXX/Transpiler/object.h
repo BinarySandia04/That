@@ -87,6 +87,7 @@ public:
   void Print();
   virtual bool Equals(ObjectType *);
 
+  std::string upgrades_to;
   std::vector<ObjectVariable *> children;
 
   virtual std::string Transpile();

@@ -32,17 +32,23 @@ void Transpiler::ThrowError(Node *node, std::string what) {
   Logs::Error(what);
 }
 
-void Transpiler::PushScope() { environment.push_back(Scope()); }
+void Transpiler::PushScope() {
+  environment.push_back(Scope());
+}
 
-void Transpiler::PopScope() { environment.pop_back(); }
+void Transpiler::PopScope() {
+  environment.back().Delete();
+  environment.pop_back();
+}
 
 void Transpiler::AddToRoot(std::string name, Object *obj) {
   // if (!ExistsInRootScope(name))
-    environment[0].data.insert(std::pair<std::string, Object *>(name, obj));
+  environment[0].data.insert(std::pair<std::string, Object *>(name, obj));
 }
 
 void Transpiler::AddToScope(std::string name, Object *obj) {
-  environment[environment.size() - 1].data.insert(std::pair<std::string, Object *>(name, obj));
+  environment[environment.size() - 1].data.insert(
+      std::pair<std::string, Object *>(name, obj));
 }
 
 Object *Transpiler::FetchEnvironment(std::string key) {
@@ -63,14 +69,17 @@ ObjectType *Transpiler::FetchType(std::string key) {
   return dynamic_cast<ObjectType *>(FetchRootEnvironment(key));
 }
 
-void Transpiler::DumpEnvironment(){
-  for(int i = 0; i < environment.size(); i++){
+void Transpiler::DumpEnvironment() {
+  for (int i = 0; i < environment.size(); i++) {
     std::cout << "--------------------------------------------" << std::endl;
-    if(i == 0) std::cout << "Root:";
-    else std::cout << i;
+    if (i == 0)
+      std::cout << "Root:";
+    else
+      std::cout << i;
     std::cout << std::endl;
     environment[i].Print();
   }
+  std::cout << "--------------------------------------------" << std::endl;
 }
 
 bool Transpiler::ExistsInEnv(std::string key) {
@@ -138,6 +147,8 @@ std::string Transpiler::GenerateSource(Node *ast) {
   std::string mainFunc = TranspileBlock(ast);
 
   DumpEnvironment();
+  PopScope();
+
   PopScope();
 
   std::string preFormat = GenerateIncludes() + functionDeclaration + main +
@@ -253,7 +264,6 @@ std::string Transpiler::TranspileAssignation(Node *assignation) {
     ObjectVariable *newVariable = new ObjectVariable(expType, ogIdentifier);
     newVariable->SetType(expType);
 
-
     declaring = true;
     if (assignation->arguments.size() > 0) {
       // Es typed
@@ -263,12 +273,11 @@ std::string Transpiler::TranspileAssignation(Node *assignation) {
       ObjectType *declType =
           dynamic_cast<ObjectType *>(FetchEnvironment(ogTypeStr));
 
-      if(declType == nullptr){
+      if (declType == nullptr) {
         std::cout << "NULLPTR! not found " << ogTypeStr << std::endl;
       }
       TtypeStr = declType->Transpile();
       newVariable->SetType(declType);
-
 
       // Aqui es podrien detectar ja dobles definicions??
       AddToScope(ogIdentifier, newVariable);
@@ -283,7 +292,6 @@ std::string Transpiler::TranspileAssignation(Node *assignation) {
          dynamic_cast<ObjectVariable *>(FetchEnvironment(ogIdentifier))
              ->Transpile() +
          " " + assignation->data + " " + Texpression;
-
 }
 
 std::string Transpiler::TranspileExpression(Node *expression,
@@ -291,6 +299,10 @@ std::string Transpiler::TranspileExpression(Node *expression,
   switch (expression->type) {
     // Aquests casos estan hardcodejats per tal de transformar
     // els literals interns del llenguatge amb el paquet _internal
+  case NODE_INT_VAL:
+    *retType = FetchType("Int");
+    return expression->data;
+    break;
   case NODE_NUMBER_VAL:
     *retType = FetchType("Num");
     return expression->data;
@@ -331,14 +343,50 @@ std::string Transpiler::TranspileExpression(Node *expression,
 
 std::string Transpiler::TranspileBinary(Node *binary, ObjectType **retType) {
   // Ens hem d'assegurar que els tipus coincideixin
-  ObjectType *lType, *rType;
+  ObjectType *lType, *rType, *returnType;
   std::string lExp = TranspileExpression(binary->children[0], &lType);
   std::string rExp = TranspileExpression(binary->children[1], &rType);
 
-  // Call conversion if necessary
-  if (!lType->Equals(rType)) {
+  bool typed = false;
+  if (binary->data == "==" || binary->data == ">=" || binary->data == "<=" ||
+      binary->data == "!=" || binary->data == "&&" || binary->data == "||") {
+
+    returnType = FetchType("Bul");
+    *retType = returnType;
+
+    typed = true;
   }
 
+  // Call conversion if necessary
+  if (!lType->Equals(rType)) {
+    // Veiem si un dels dos es pot millorar
+    ObjectType *upgrade;
+    if (lType->upgrades_to != "") {
+      upgrade = dynamic_cast<ObjectType *>(FetchType(lType->upgrades_to));
+      if (upgrade->Equals(rType)){
+        if(!typed){
+          typed = true;
+          *retType = upgrade;
+        }
+      }
+    } else if (rType->upgrades_to != "") {
+      upgrade = dynamic_cast<ObjectType *>(FetchType(rType->upgrades_to));
+      if (upgrade->Equals(lType)){
+        if(!typed){
+          typed = true;
+          *retType = upgrade;
+        }
+      }
+    } else {
+      // Hem de veure si hi ha una conversió
+      // I si no n'hi ha hem de fer un error
+    }
+  } else {
+    typed = true;
+    *retType = lType;
+  }
+
+  std::cout << "Si" << std::endl;
   // Es poden treure espais un cop fet bé
   return "(" + lExp + " " + binary->data + " " + rExp + ")";
 }
@@ -415,7 +463,8 @@ std::string Transpiler::TranspileLup(ZagIR::Node *lup) {
       std::string to = "0";
 
       // De moment posem només ints
-      ObjectVariable *newVar = new ObjectVariable(FetchType("Int"), iterator->arguments[i]->data);
+      ObjectVariable *newVar =
+          new ObjectVariable(FetchType("Int"), iterator->arguments[i]->data);
       AddToScope(iterator->arguments[i]->data, newVar);
 
       // TODO: Treure això
@@ -624,21 +673,20 @@ std::string Transpiler::TranspileGetter(ZagIR::Node *getter,
     if (currentGetter->type == NODE_CALL) {
       // ZagIR::PackCall pack = scoped->GetCFunctionData();
       // Add fileDeps and return
-      ObjectFunction* ofunc = dynamic_cast<ObjectFunction*>(scoped);
-      if(ofunc != nullptr){
+      ObjectFunction *ofunc = dynamic_cast<ObjectFunction *>(scoped);
+      if (ofunc != nullptr) {
         return TranspileGCall(ofunc, currentGetter);
       } else {
         Logs::Error("Object is not a func (idk what happened)");
         return "";
       }
-      
+
       /*
       for (int i = 0; i < pack.fileDeps.size(); i++) {
         fileDeps.insert(packageObject->GetPackage()->path + "/" +
                         pack.fileDeps[i]);
       }
       */
-
     }
     // Hem de carregar fileDeps
   }

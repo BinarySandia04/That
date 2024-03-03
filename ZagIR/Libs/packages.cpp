@@ -153,9 +153,11 @@ void Package::AddTypeMap(std::string rootName, toml::table table) {
     CType *type = new CType(key);
     toml::table t = *v.as_table();
 
-    std::optional<std::string> type_accessor = t["type"].value<std::string>();
+    std::optional<bool> internal = t["internal"].value<bool>();
     std::optional<std::string> bind = t["bind"].value<std::string>();
     std::optional<std::string> parent = t["parent"].value<std::string>();
+    std::optional<std::string> upgrades_to =
+        t["upgrades_to"].value<std::string>();
 
     if (bind.has_value())
       type->bind = *bind;
@@ -163,8 +165,11 @@ void Package::AddTypeMap(std::string rootName, toml::table table) {
     if (parent.has_value())
       type->parent = *parent;
 
-    if (type_accessor.has_value())
-      type->typeAccessor = *type_accessor;
+    if (internal.has_value())
+      type->internal = *internal;
+
+    if (upgrades_to.has_value())
+      type->upgrades_to = *upgrades_to;
 
     if (toml::array *arr = t["include"].as_array()) {
       for (int i = 0; i < arr->size(); i++) {
@@ -190,10 +195,13 @@ void Package::AddConversionsMap(std::string rootName, toml::table table) {
 
     toml::table t = *v.as_table();
 
+    std::optional<bool> implicit = t["implicit"].value<bool>();
     std::optional<std::string> bind = t["bind"].value<std::string>();
     std::optional<std::string> from = t["from"].value<std::string>();
     std::optional<std::string> to = t["to"].value<std::string>();
 
+    if (implicit.has_value())
+      conversion->implicit = *implicit;
     if (bind.has_value())
       conversion->bind = *bind;
     if (from.has_value())
@@ -233,6 +241,22 @@ void Package::ComputeBinds() {
   for (int i = 0; i < binds.size(); i++) {
     binds[i]->good = false;
     binds[i]->duped = false;
+
+    CType *ctype = dynamic_cast<CType *>(binds[i]);
+    if (ctype != nullptr) {
+      if (ctype->internal) {
+        binds[i]->good = true;
+        continue;
+      }
+    }
+
+    Conversion *conversion = dynamic_cast<Conversion *>(binds[i]);
+    if (conversion != nullptr) {
+      if (conversion->implicit) {
+        binds[i]->good = true;
+        continue;
+      }
+    }
 
     int f = 0;
     for (int j = 0; j < mangles.size(); j++) {

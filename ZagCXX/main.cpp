@@ -97,6 +97,10 @@ void Transpile(std::string code, std::string fileName) {
   std::string transCode;
   transCode = transpiler.GenerateSource(ast);
 
+  if(programFlags & DEBUG){
+    std::cout << termcolor::green << "CODE: " << termcolor::reset << std::endl << transCode << std::endl;
+  }
+
   std::ifstream tmpSourceIn(tmpSourcePath.string());
   std::stringstream buffer;
   buffer << tmpSourceIn.rdbuf();

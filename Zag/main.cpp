@@ -112,13 +112,25 @@ void PrintPackageInfo(ZagIR::Package *package) {
       std::cout << cfunc->retType;
       ok = ok && cfunc ->good;
     } else if (ctype != nullptr) {
-      if(ctype->typeAccessor == "Internal") PrintBindStatus("t", bind);
-      else PrintBindStatus("T", bind);
+      if(ctype->internal){
+        PrintBindStatus("t", bind);
+        std::cout << ctype->typeName << " ~> " << ctype->parent;
+      } else {
+        PrintBindStatus("T", bind);
+        std::cout << ctype->typeName << " ~> " << ctype->parent;
+      }
 
-      std::cout << ctype->typeName << " ~> " << ctype->parent;
     } else if (conversion != nullptr) {
-      PrintBindStatus("C", bind);
-      std::cout << conversion->lType << " => " << conversion->rType;
+      if(conversion->implicit){
+        PrintBindStatus("c", bind);
+        std::cout << conversion->lType << " => " << conversion->rType;
+      }
+      else {
+        PrintBindStatus("C", bind);
+        std::cout << conversion->lType << " => " << conversion->rType;
+
+        std::cout << " (" << conversion->bind << ")";
+      }
       ok = ok && conversion->good;
     }
     std::cout << std::endl;

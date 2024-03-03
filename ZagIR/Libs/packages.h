@@ -36,8 +36,9 @@ public:
 
   std::string typeName;
   std::string parent;
+  std::string upgrades_to;
   std::vector<std::string> include;
-  std::string typeAccessor;
+  bool internal;
 };
 
 class Conversion : public Binding {
@@ -45,6 +46,7 @@ public:
   std::string name;
   std::string lType;
   std::string rType;
+  bool implicit;
 };
 
 class Package {

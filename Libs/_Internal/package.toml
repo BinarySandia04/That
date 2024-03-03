@@ -5,13 +5,19 @@ _version = "0.1v"
 _root = ""
 
 [_types]
-Int = {type = "Internal", parent = "int"}
-Str = {type = "Internal", parent = "std::string", include = ["<string>"]}
-Bul = {type = "Internal", parent = "bool"}
-Num = {type = "Internal", parent = "double"}
-Nil = {type = "Internal", parent = "NULL"}
+Int = {internal = true, parent = "int", upgrades_to = "Num"}
+Str = {internal = true, parent = "std::string", include = ["<string>"]}
+Bul = {internal = true, parent = "bool", upgrades_to = "Int"}
+Num = {internal = true, parent = "double"}
+Nil = {internal = true, parent = "void"}
 
 [_conversions]
+# Implicit conversions
+int_to_bul = {implicit = true, from = "Int", to = "Bul"}
+num_to_bul = {implicit = true, from = "Num", to = "Bul"}
+int_to_num = {implicit = true, from = "Int", to = "Num"}
+
+# Explicit conversion
 int_to_str = {bind = "IntToString", from = "Int", to = "Str"}
 num_to_str = {bind = "NumToString", from = "Num", to = "Str"}
 
