@@ -241,7 +241,7 @@ void Scanner::GetConstant() {
   AddToken(TOKEN_CONST, source.substr(start + 1, current - start - 1));
 }
 
-bool Scanner::ValidConst(char c) { return c == '/'; }
+bool Scanner::ValidConst(char c) { return c == '.'; }
 
 bool Scanner::IsDigit(char c) { return IsDigitNumber(c) || c == '.'; }
 

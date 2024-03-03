@@ -21,5 +21,9 @@ int_to_num = {implicit = true, from = "Int", to = "Num"}
 int_to_str = {bind = "IntToString", from = "Int", to = "Str"}
 num_to_str = {bind = "NumToString", from = "Num", to = "Str"}
 
-[_.io.print]
-_function = {bind = "Print", args = ["Str"], return = "Nil"}
+[_operations]
+str_plus_int = {bind = "StrPlusInt", ltype = "Str", rtype = "Int", op = "+", return = "Str"}
+int_plus_str = {bind = "IntPlusStr", ltype = "Str", rtype = "Int", op = "+", return = "Str"}
+
+#[_.io.print]
+#_function = {bind = "Print", args = ["Str"], return = "Nil"}

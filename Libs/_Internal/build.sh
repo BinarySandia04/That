@@ -4,7 +4,7 @@ cd "$(dirname "$0")"
 cd .build
 mkdir .build 2>/dev/null
 cmake ../
-cmake --build . -j 16
+cmake --build . -j 
 cd ..
 
 sudo mkdir -p /usr/local/lib/zag/packages/_Internal 2>/dev/null

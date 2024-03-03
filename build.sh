@@ -8,12 +8,13 @@ sudo mkdir /usr/local/lib/zag/packages 2>/dev/null
 sudo mkdir /usr/local/lib/zag/binaries 2>/dev/null
 
 Libs/_Internal/build.sh
+Libs/Std/build.sh
 
 mkdir .build 2>/dev/null
 
 cd .build
 cmake ../
-cmake --build . -j 16
+cmake --build . -j
 cd ..
 # cp build/src/wyrm/Wyrm scripts/Wyrm/
 

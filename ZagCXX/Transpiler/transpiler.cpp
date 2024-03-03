@@ -120,6 +120,9 @@ void Transpiler::AddBindingToScope(Binding *bind) {
 
 void Transpiler::AddCTypeToScope(CType *ctype) {
   ObjectCType *newType = new ObjectCType(ctype);
+  if(newType->includes.size() != 0){
+    for(int i = 0; i < newType->includes.size(); i++) AddInclude(newType->includes[i]);
+  }
   AddToRoot(ctype->typeName, newType);
 }
 
@@ -180,7 +183,7 @@ std::string Transpiler::GenerateIncludes() {
   std::string res = "";
   for (int i = 0; i < includes.size(); i++) {
     if (includes[i] != "") {
-      res += "#include <" + includes[i] + ">\n";
+      res += "#include " + includes[i] + "\n";
     }
   }
   return res;
@@ -522,7 +525,16 @@ std::string Transpiler::TranspileGet(ZagIR::Node *getNode) {
   if (value[0] == '\'') {
     lib = true;
     realImport = value.substr(1, value.size() - 1);
-    LoadPackage(realImport);
+
+    std::string packageName, subpackageName;
+    bool subpackage = false;
+    for(int i = 0; i < realImport.size(); i++){
+      if(realImport[i] == '.' && !subpackage) subpackage = true;
+      if(!subpackage) packageName += realImport[i];
+      else subpackageName += realImport[i];
+    }
+
+    LoadPackage(packageName);
   } else {
     lib = false;
     realImport = value.substr(1, value.size() - 2);

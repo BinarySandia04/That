@@ -1,0 +1,25 @@
+[_info]
+_name = "std"
+_display_name = "Zag Standard Library"
+_version = "0.1v"
+_root = ""
+_subspaces = ["io", "shader.frag"]
+
+# Dins del subespai "io".
+# Aixo vol dir per importar es
+# get std.io
+# i llavors per executar
+# std.print
+[_.io.:.print]
+_function = {bind = "Print", args = ["Str"], return = "Nil"}
+
+# Per importar aixo també es std.io
+# Executar es
+# std.file.print
+[_.io.:.file.print]
+
+# Per importar això
+# get std.shader.frag
+# Executa es
+# std.shader.test
+[_.shader.frag.:.shader.test]

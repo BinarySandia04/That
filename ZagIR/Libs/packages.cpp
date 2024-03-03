@@ -25,6 +25,7 @@ void ZagIR::FetchPackages(std::vector<Package *> *packages) {
     if (p.is_directory()) {
       if (fs::exists(p.path() / "package.toml")) {
         try {
+
           Package *pack = new Package(
               p.path(), toml::parse_file((p.path() / "package.toml").string()));
           pack->ComputeBinds();
@@ -92,9 +93,10 @@ Package::Package(std::filesystem::path path, toml::parse_result result) {
     }
   }
 
-  AddObjectsMap("", *result["_"].as_table());
-  AddTypeMap("", *result["_types"].as_table());
-  AddConversionsMap("", *result["_conversions"].as_table());
+  // Ah pq no existeixen
+  if(!!result["_"])            AddObjectsMap("", *result["_"].as_table());
+  if(!!result["_types"])       AddTypeMap("", *result["_types"].as_table());
+  if(!!result["_conversions"]) AddConversionsMap("", *result["_conversions"].as_table());
 }
 
 Package::~Package() {

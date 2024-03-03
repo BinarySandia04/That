@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
-project(_internal VERSION 0.1)
+project(std VERSION 0.1)
 
-set(CMAKE_CPP_COMPILER clang)
+# set(CMAKE_CPP_COMPILER c)
 
 SET(CMAKE_COLOR_MAKEFILE ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -21,7 +21,6 @@ file(GLOB src "src/*.h" "src/*.cpp")
 source_group("src" FILES ${src})
 
 set(ALL_FILES ${src}) 
-set(ROOT_NAMESPACE Z_Internal)
 
 add_library(${PROJECT_NAME} SHARED ${ALL_FILES})
 target_include_directories(${PROJECT_NAME} PUBLIC
