@@ -124,10 +124,10 @@ void PrintPackageInfo(ZagIR::Package *package) {
     } else if (ctype != nullptr) {
       if (ctype->internal) {
         PrintBindStatus("t", bind);
-        std::cout << ctype->typeName << " ~> " << ctype->parent;
+        std::cout << ctype->name<< " ~> " << ctype->parent;
       } else {
         PrintBindStatus("T", bind);
-        std::cout << ctype->typeName << " ~> " << ctype->parent;
+        std::cout << ctype->name<< " ~> " << ctype->parent;
       }
 
     } else if (conversion != nullptr) {

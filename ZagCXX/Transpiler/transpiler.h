@@ -1,10 +1,10 @@
 #pragma once
 
 #include <map>
-#include <unordered_map>
+#include <set>
 #include <string>
 #include <tuple>
-#include <set>
+#include <unordered_map>
 
 #include <ZagIR/Ast/ast.h>
 #include <ZagIR/Libs/packages.h>
@@ -21,12 +21,15 @@ public:
   ~Transpiler();
 
   std::string GenerateSource(ZagIR::Node *);
+
 private:
-
   void AddInclude(std::string);
-  ZagIR::Package* LoadPackage(std::string);
 
-  void ThrowError(ZagIR::Node*, std::string);
+  ZagIR::Package *LoadPackage(std::string);
+  void LoadSubPackage(ZagIR::Package *, std::string);
+  ZagIR::Package *GetLoadedPackage(std::string);
+
+  void ThrowError(ZagIR::Node *, std::string);
 
   std::string GenerateIncludes();
 
@@ -34,21 +37,21 @@ private:
   std::string TranspileStatement(ZagIR::Node *);
   std::string TranspileAssignation(ZagIR::Node *);
 
-  std::string TranspileIdentifier(ZagIR::Node *, ObjectType**);
-  std::string TranspileExpression(ZagIR::Node *, ObjectType**);
-  std::string TranspileBinary(ZagIR::Node *, ObjectType**);
-  std::string TranspileUnary(ZagIR::Node *, ObjectType**);
+  std::string TranspileIdentifier(ZagIR::Node *, ObjectType **);
+  std::string TranspileExpression(ZagIR::Node *, ObjectType **);
+  std::string TranspileBinary(ZagIR::Node *, ObjectType **);
+  std::string TranspileUnary(ZagIR::Node *, ObjectType **);
 
   std::string TranspileIf(ZagIR::Node *);
   std::string TranspileLup(ZagIR::Node *);
   std::string TranspileGet(ZagIR::Node *);
   std::string TranspileReturn(ZagIR::Node *);
-  
-  std::string TranspileCall(ZagIR::Node *, ObjectType**);
 
-  std::string TranspileGCall(ObjectFunction*, ZagIR::Node *);
+  std::string TranspileCall(ZagIR::Node *, ObjectType **);
 
-  std::string TranspileGetter(ZagIR::Node *, ObjectType**);
+  std::string TranspileGCall(ObjectFunction *, ZagIR::Node *);
+
+  std::string TranspileGetter(ZagIR::Node *, ObjectType **);
 
   std::string TranspileFunction(ZagIR::Node *);
 
@@ -56,20 +59,17 @@ private:
   void PopScope();
 
   void AddPackageToScope(ZagIR::Package *package);
-  void AddToRoot(std::string, Object*);
-  void AddToScope(std::string, Object*);
-  void AddBindingToScope(ZagIR::Binding *);
-  void AddCTypeToScope(ZagIR::CType*);
-  void AddCFunctionToScope(ZagIR::CFunction*);
-  void AddConversionToScope(ZagIR::Conversion*);
-  
+  void AddSubPackageToScope(ZagIR::Package *package, std::string subpackage);
+
+  void AddToRoot(std::string, Object *);
+  void AddToScope(std::string, Object *);
+
   bool ExistsInScope(std::string);
   bool ExistsInEnv(std::string);
 
-  Object* FetchEnvironment(std::string);
-  Object* FetchRootEnvironment(std::string);
-  ObjectType* FetchType(std::string);
-
+  Object *FetchEnvironment(std::string);
+  Object *FetchRootEnvironment(std::string);
+  ObjectType *FetchType(std::string);
 
   Formatter formatter;
 
@@ -77,8 +77,8 @@ private:
   std::string functionDefinition;
 
   std::vector<std::string> includes;
-  std::vector<ZagIR::Package*> loadedPackages;
-  
+  std::vector<ZagIR::Package *> loadedPackages;
+
   std::set<std::string> fileDeps;
   std::string GlobFileDeps();
 

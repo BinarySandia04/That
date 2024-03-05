@@ -39,6 +39,7 @@ public:
   void Print();
 
   void AddObject(Object *, std::string);
+  void AddBinding(ZagIR::Binding *);
   Object *GetObject(std::string);
 
 private:

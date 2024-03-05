@@ -18,6 +18,7 @@ void Error(std::string);
 void Success(std::string);
 void Warning(std::string);
 void Info(std::string);
+void Debug(std::string);
 
 std::string Ask(std::string);
 std::string color(Color c);

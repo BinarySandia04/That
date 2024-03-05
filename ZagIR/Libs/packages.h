@@ -13,9 +13,13 @@ class Binding {
 public:
   virtual ~Binding() = default;
 
+  std::string name;
   std::string bind;
+
+  bool global = false;
   bool good;
   bool duped;
+
   std::string foundBind;
   std::string realBind;
 
@@ -27,7 +31,6 @@ public:
   CFunction();
   CFunction(std::string);
 
-  std::string name;
   std::string retType;
   std::vector<std::string> funcArgs;
 };
@@ -36,7 +39,6 @@ class CType : public Binding {
 public:
   CType(std::string);
 
-  std::string typeName;
   std::string parent;
   std::string upgrades_to;
   std::vector<std::string> include;
@@ -45,7 +47,6 @@ public:
 
 class Conversion : public Binding {
 public:
-  std::string name;
   std::string lType;
   std::string rType;
   bool implicit;

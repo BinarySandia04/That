@@ -42,6 +42,7 @@ void ObjectContainer::AddObject(Object *obj, std::string path) {
       }
     }
   }
+  // TODO: Canviar això perque es faci bé collons
 
   if (containerData.find(firstPart) == containerData.end()) {
     if (secondPart.empty())
@@ -62,6 +63,20 @@ void ObjectContainer::AddObject(Object *obj, std::string path) {
     else
       Logs::Error("Error adding subcontainer");
   }
+}
+
+void ObjectContainer::AddBinding(ZagIR::Binding *b){
+    CType *ctype = dynamic_cast<CType *>(b);
+    CFunction *cfunction = dynamic_cast<CFunction *>(b);
+    Conversion *conversion = dynamic_cast<Conversion *>(b);
+
+    if (ctype != nullptr) {
+      AddObject(new ObjectCType(ctype), b->name);
+    } else if (cfunction != nullptr) {
+      AddObject(new ObjectCFunction(cfunction), b->name);
+    } else if (conversion != nullptr) {
+      AddObject(new ObjectConversion(conversion), b->name);
+    }
 }
 
 Object *ObjectContainer::GetObject(std::string key) {

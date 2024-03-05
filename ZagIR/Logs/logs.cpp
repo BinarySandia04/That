@@ -31,6 +31,10 @@ void ZagIR::Logs::Info(std::string msg){
   std::cout << termcolor::cyan << msg << termcolor::reset << std::endl;
 }
 
+void ZagIR::Logs::Debug(std::string msg){
+  std::cout << termcolor::yellow << "[DEBUG] " << termcolor::reset << msg << std::endl;
+}
+
 std::string ZagIR::Logs::Ask(std::string question){
   std::cout << termcolor::white << question << termcolor::reset;
   std::string res;

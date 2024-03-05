@@ -3,7 +3,7 @@ _name = "std"
 _display_name = "Zag Standard Library"
 _version = "0.1v"
 _root = ""
-_subspaces = ["io", "shader.frag"]
+_subpackages = ["io", "shader.frag"]
 
 # Dins del subespai "io".
 # Aixo vol dir per importar es

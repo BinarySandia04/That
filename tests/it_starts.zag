@@ -1,5 +1,3 @@
 get 'std.io
 
-std.print()
 
-a = "Hola" + 2

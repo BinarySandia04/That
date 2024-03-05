@@ -95,11 +95,12 @@ Package::Package(std::filesystem::path path, toml::parse_result result) {
     }
   }
 
-  if (toml::array *arr = result["_info"]["_subspaces"].as_array()) {
+  if (toml::array *arr = result["_info"]["_subpackages"].as_array()) {
     for (int i = 0; i < arr->size(); i++) {
       std::optional<std::string> str = (*arr).get(i)->value<std::string>();
       if (str.has_value()) {
         this->subpackages.push_back(*str);
+        Logs::Debug(*str);
       } else {
         Logs::Error("Error parsing package.toml");
       }
@@ -118,6 +119,7 @@ Package::Package(std::filesystem::path path, toml::parse_result result) {
 }
 
 void Package::LoadSubPackage(std::string subpackage) {
+
   auto it = std::find(subpackages.begin(), subpackages.end(), subpackage);
   if (it != subpackages.end()) {
     // Split string in .
@@ -126,12 +128,12 @@ void Package::LoadSubPackage(std::string subpackage) {
     std::string key = "";
     for (int i = 0; i < subpackage.size(); i++) {
       if (subpackage[i] == '.' || i == subpackage.size() - 1) {
-        if(i == subpackage.size() - 1) key += subpackage[i];
-        if (!!subTable[key]){
+        if (i == subpackage.size() - 1)
+          key += subpackage[i];
+        if (!!subTable[key]) {
           subTable = subTable[key];
           key = "";
-        }
-        else {
+        } else {
           throw std::runtime_error("Subpackage " + subpackage + " of " + name +
                                    " does not exist");
         }
@@ -157,7 +159,8 @@ Package::~Package() {
     delete binds[i];
 }
 
-void Package::AddObjectsMap(std::string rootName, toml::table table, std::string subpackage) {
+void Package::AddObjectsMap(std::string rootName, toml::table table,
+                            std::string subpackage) {
 
   bool hasBind = false;
   for (auto [k, v] : table) {
@@ -202,7 +205,8 @@ void Package::AddObjectsMap(std::string rootName, toml::table table, std::string
   }
 }
 
-void Package::AddTypeMap(std::string rootName, toml::table table, std::string subpackage) {
+void Package::AddTypeMap(std::string rootName, toml::table table,
+                         std::string subpackage) {
 
   for (auto [k, v] : table) {
     std::string key = std::string(k.str());
@@ -213,6 +217,7 @@ void Package::AddTypeMap(std::string rootName, toml::table table, std::string su
     toml::table t = *v.as_table();
 
     std::optional<bool> internal = t["internal"].value<bool>();
+    std::optional<bool> global = t["global"].value<bool>();
     std::optional<std::string> bind = t["bind"].value<std::string>();
     std::optional<std::string> parent = t["parent"].value<std::string>();
     std::optional<std::string> upgrades_to =
@@ -226,6 +231,9 @@ void Package::AddTypeMap(std::string rootName, toml::table table, std::string su
 
     if (internal.has_value())
       type->internal = *internal;
+
+    if (global.has_value())
+      type->global = *global;
 
     if (upgrades_to.has_value())
       type->upgrades_to = *upgrades_to;
@@ -245,7 +253,8 @@ void Package::AddTypeMap(std::string rootName, toml::table table, std::string su
   }
 }
 
-void Package::AddConversionsMap(std::string rootName, toml::table table, std::string subpackage) {
+void Package::AddConversionsMap(std::string rootName, toml::table table,
+                                std::string subpackage) {
   for (auto [k, v] : table) {
     std::string key = std::string(k.str());
 
@@ -344,4 +353,4 @@ CFunction::CFunction() {}
 
 CFunction::CFunction(std::string funcName) { this->name = funcName; }
 
-CType::CType(std::string typeName) { this->typeName = typeName; }
+CType::CType(std::string typeName) { this->name = typeName; }

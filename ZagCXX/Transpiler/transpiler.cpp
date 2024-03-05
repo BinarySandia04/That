@@ -32,9 +32,7 @@ void Transpiler::ThrowError(Node *node, std::string what) {
   Logs::Error(what);
 }
 
-void Transpiler::PushScope() {
-  environment.push_back(Scope());
-}
+void Transpiler::PushScope() { environment.push_back(Scope()); }
 
 void Transpiler::PopScope() {
   environment.back().Delete();
@@ -97,43 +95,25 @@ bool Transpiler::ExistsInScope(std::string key) {
 
 void Transpiler::AddPackageToScope(ZagIR::Package *package) {
   ObjectContainer *packContainer = new ObjectContainer();
+  packContainer->identifier = package->name;
 
   for (int i = 0; i < package->binds.size(); i++) {
     Binding *b = package->binds[i];
-    AddBindingToScope(b);
+    packContainer->AddBinding(b);
   }
+
+  AddToRoot(package->name, packContainer);
 }
 
-void Transpiler::AddBindingToScope(Binding *bind) {
-  CType *ctype = dynamic_cast<CType *>(bind);
-  CFunction *cfunction = dynamic_cast<CFunction *>(bind);
-  Conversion *conversion = dynamic_cast<Conversion *>(bind);
-
-  if (ctype != nullptr) {
-    AddCTypeToScope(ctype);
-  } else if (cfunction != nullptr) {
-    AddCFunctionToScope(cfunction);
-  } else if (conversion != nullptr) {
-    AddConversionToScope(conversion);
+void Transpiler::AddSubPackageToScope(ZagIR::Package *package, std::string subpackage){
+  ObjectContainer *packageContainer = dynamic_cast<ObjectContainer*>(FetchEnvironment(package->name));
+ 
+  for(int i = 0; i < package->binds.size(); i++){
+    Binding *b = package->binds[i];
+    if(b->subpackage == subpackage){
+      packageContainer->AddBinding(b);
+    }
   }
-}
-
-void Transpiler::AddCTypeToScope(CType *ctype) {
-  ObjectCType *newType = new ObjectCType(ctype);
-  if(newType->includes.size() != 0){
-    for(int i = 0; i < newType->includes.size(); i++) AddInclude(newType->includes[i]);
-  }
-  AddToRoot(ctype->typeName, newType);
-}
-
-void Transpiler::AddCFunctionToScope(CFunction *cfunction) {
-  ObjectCFunction *newConversion = new ObjectCFunction(cfunction);
-  AddToRoot(cfunction->name, newConversion);
-}
-
-void Transpiler::AddConversionToScope(Conversion *conversion) {
-  ObjectConversion *newConversion = new ObjectConversion(conversion);
-  AddToRoot(newConversion->identifier, newConversion);
 }
 
 std::string Transpiler::WriteFormat(std::string text) {
@@ -366,16 +346,16 @@ std::string Transpiler::TranspileBinary(Node *binary, ObjectType **retType) {
     ObjectType *upgrade;
     if (lType->upgrades_to != "") {
       upgrade = dynamic_cast<ObjectType *>(FetchType(lType->upgrades_to));
-      if (upgrade->Equals(rType)){
-        if(!typed){
+      if (upgrade->Equals(rType)) {
+        if (!typed) {
           typed = true;
           *retType = upgrade;
         }
       }
     } else if (rType->upgrades_to != "") {
       upgrade = dynamic_cast<ObjectType *>(FetchType(rType->upgrades_to));
-      if (upgrade->Equals(lType)){
-        if(!typed){
+      if (upgrade->Equals(lType)) {
+        if (!typed) {
           typed = true;
           *retType = upgrade;
         }
@@ -526,15 +506,32 @@ std::string Transpiler::TranspileGet(ZagIR::Node *getNode) {
     lib = true;
     realImport = value.substr(1, value.size() - 1);
 
-    std::string packageName, subpackageName;
+    std::string packageName = "", subpackageName = "";
     bool subpackage = false;
-    for(int i = 0; i < realImport.size(); i++){
-      if(realImport[i] == '.' && !subpackage) subpackage = true;
-      if(!subpackage) packageName += realImport[i];
-      else subpackageName += realImport[i];
+    for (int i = 0; i < realImport.size(); i++) {
+      if (realImport[i] == '.' && !subpackage) {
+        subpackage = true;
+        continue;
+      }
+      if (!subpackage)
+        packageName += realImport[i];
+      else
+        subpackageName += realImport[i];
     }
 
-    LoadPackage(packageName);
+    Package *loadedPackage = GetLoadedPackage(packageName);
+    if (loadedPackage == nullptr) {
+      loadedPackage = LoadPackage(packageName);
+      Logs::Debug("Loaded package " + packageName);
+    }
+
+    if (subpackage) {
+      loadedPackage->LoadSubPackage(subpackageName);
+      LoadSubPackage(loadedPackage, subpackageName);
+      Logs::Debug("Loaded subpackage " + subpackageName);
+    }
+  
+    loadedPackage->ComputeBinds();
   } else {
     lib = false;
     realImport = value.substr(1, value.size() - 2);
@@ -711,4 +708,16 @@ ZagIR::Package *Transpiler::LoadPackage(std::string packageName) {
   loadedPackages.push_back(package);
   AddPackageToScope(package);
   return package;
+}
+
+void Transpiler::LoadSubPackage(ZagIR::Package *package, std::string subpackage){
+  AddSubPackageToScope(package, subpackage);
+}
+
+ZagIR::Package *Transpiler::GetLoadedPackage(std::string packageName) {
+  for (int i = 0; i < loadedPackages.size(); i++) {
+    if (loadedPackages[i]->name == packageName)
+      return loadedPackages[i];
+  }
+  return nullptr;
 }
