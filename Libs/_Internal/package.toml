@@ -4,14 +4,15 @@ _display_name = "Internal library"
 _version = "0.1v"
 _root = ""
 
-[_types]
+[_]
+[_._types]
 Int = {internal = true, parent = "int", upgrades_to = "Num"}
 Str = {internal = true, parent = "std::string", include = ["<string>"]}
 Bul = {internal = true, parent = "bool", upgrades_to = "Int"}
 Num = {internal = true, parent = "double"}
 Nil = {internal = true, parent = "void"}
 
-[_conversions]
+[_._conversions]
 # Implicit conversions
 int_to_bul = {implicit = true, from = "Int", to = "Bul"}
 num_to_bul = {implicit = true, from = "Num", to = "Bul"}
@@ -21,7 +22,7 @@ int_to_num = {implicit = true, from = "Int", to = "Num"}
 int_to_str = {bind = "IntToString", from = "Int", to = "Str"}
 num_to_str = {bind = "NumToString", from = "Num", to = "Str"}
 
-[_operations]
+[_._operations]
 str_plus_int = {bind = "StrPlusInt", ltype = "Str", rtype = "Int", op = "+", return = "Str"}
 int_plus_str = {bind = "IntPlusStr", ltype = "Str", rtype = "Int", op = "+", return = "Str"}
 

@@ -88,11 +88,21 @@ void WriteFiles(std::vector<Resource> res) {
 }
 
 void PrintPackageInfo(ZagIR::Package *package) {
+  for (int j = 0; j < package->subpackages.size(); j++)
+    package->LoadSubPackage(package->subpackages[j]);
+
   PrintPackage(package);
 
   bool ok = true;
+
+  std::string currentSubpackage = "__________________";
   for (int i = 0; i < package->binds.size(); i++) {
     Binding *bind = package->binds[i];
+    if(currentSubpackage != bind->subpackage){
+      currentSubpackage = bind->subpackage;
+      if(currentSubpackage == "") std::cout << termcolor::bold << termcolor::cyan << "base" << termcolor::reset << ":" << std::endl;
+      else std::cout << termcolor::bold << currentSubpackage << termcolor::reset << ":" << std::endl; 
+    } 
 
     CFunction *cfunc = dynamic_cast<CFunction *>(bind);
     CType *ctype = dynamic_cast<CType *>(bind);
@@ -110,9 +120,9 @@ void PrintPackageInfo(ZagIR::Package *package) {
       }
       std::cout << ") -> ";
       std::cout << cfunc->retType;
-      ok = ok && cfunc ->good;
+      ok = ok && cfunc->good;
     } else if (ctype != nullptr) {
-      if(ctype->internal){
+      if (ctype->internal) {
         PrintBindStatus("t", bind);
         std::cout << ctype->typeName << " ~> " << ctype->parent;
       } else {
@@ -121,11 +131,10 @@ void PrintPackageInfo(ZagIR::Package *package) {
       }
 
     } else if (conversion != nullptr) {
-      if(conversion->implicit){
+      if (conversion->implicit) {
         PrintBindStatus("c", bind);
         std::cout << conversion->lType << " => " << conversion->rType;
-      }
-      else {
+      } else {
         PrintBindStatus("C", bind);
         std::cout << conversion->lType << " => " << conversion->rType;
 
@@ -187,7 +196,10 @@ void PrintPackage(ZagIR::Package *package) {
             << package->version << termcolor::color<255, 128, 0> << "]"
             << termcolor::reset << ": ";
 
-  std::cout << termcolor::bold << package->binds.size()
-            << termcolor::reset << " bindings" << termcolor::reset;
+  std::cout << termcolor::bold << package->binds.size() << termcolor::reset
+            << " bindings, ";
+  std::cout << termcolor::bold << package->subpackages.size()
+            << termcolor::reset << " subpackages";
+  std::cout << termcolor::reset;
   std::cout << std::endl;
 }

@@ -10,16 +10,17 @@ _subspaces = ["io", "shader.frag"]
 # get std.io
 # i llavors per executar
 # std.print
-[_.io.:.print]
+[_._.print]
 _function = {bind = "Print", args = ["Str"], return = "Nil"}
 
 # Per importar aixo també es std.io
 # Executar es
 # std.file.print
-[_.io.:.file.print]
+[_.io._.file.print]
+_function = {bind = "IoFilePrint", return = "Nil"}
 
 # Per importar això
 # get std.shader.frag
 # Executa es
 # std.shader.test
-[_.shader.frag.:.shader.test]
+[_.shader.frag._.shader.test]

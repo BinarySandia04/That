@@ -18,6 +18,8 @@ public:
   bool duped;
   std::string foundBind;
   std::string realBind;
+
+  std::string subpackage;
 };
 
 class CFunction : public Binding {
@@ -68,16 +70,22 @@ public:
 
   std::vector<std::string> fileDeps;
 
+  std::vector<std::string> subpackages;
+
   std::vector<Binding *> binds;
 
   // Ok si es prescindible el resultat d'això s'hauria de separar a un arxiu
   // Dins del mateix lloc que el .so
   void ComputeBinds();
 
+  void LoadSubPackage(std::string subPackage);
+
 private:
-  void AddObjectsMap(std::string, toml::table);
-  void AddTypeMap(std::string, toml::table);
-  void AddConversionsMap(std::string, toml::table);
+  toml::parse_result _res;
+
+  void AddObjectsMap(std::string, toml::table, std::string);
+  void AddTypeMap(std::string, toml::table, std::string);
+  void AddConversionsMap(std::string, toml::table, std::string);
   bool EndsWith(std::string, std::string);
 };
 
