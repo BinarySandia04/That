@@ -7,7 +7,7 @@ _root = ""
 [_]
 [_._types]
 Int = {internal = true, global = true, parent = "int", upgrades_to = "Num"}
-Str = {internal = true, global = true, parent = "std::string", include = ["<string>"]}
+Str = {internal = true, global = true, parent = "std::string", include = ["string"]}
 Bul = {internal = true, global = true, parent = "bool", upgrades_to = "Int"}
 Num = {internal = true, global = true, parent = "double"}
 Nil = {internal = true, global = true, parent = "void"}

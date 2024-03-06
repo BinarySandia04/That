@@ -11,7 +11,10 @@ _subpackages = ["io", "shader.frag"]
 # i llavors per executar
 # std.print
 [_._.print]
-_function = {bind = "Print", args = ["Str"], return = "Nil"}
+_function = {bind = "Print", args = ["Str"], return = "Nil", headers = ["io.h"]}
+
+[_._.test]
+_function = {bind = "Test", args = [], return = "Int"}
 
 # Per importar aixo també es std.io
 # Executar es

@@ -20,10 +20,10 @@ public:
   Transpiler();
   ~Transpiler();
 
-  std::string GenerateSource(ZagIR::Node *);
-
+  std::string GenerateSource(ZagIR::Node *, std::string*);
 private:
-  void AddInclude(std::string);
+
+  Environment* env;
 
   ZagIR::Package *LoadPackage(std::string);
   void LoadSubPackage(ZagIR::Package *, std::string);
@@ -55,35 +55,14 @@ private:
 
   std::string TranspileFunction(ZagIR::Node *);
 
-  void PushScope();
-  void PopScope();
-
-  void AddPackageToScope(ZagIR::Package *package);
-  void AddSubPackageToScope(ZagIR::Package *package, std::string subpackage);
-
-  void AddToRoot(std::string, Object *);
-  void AddToScope(std::string, Object *);
-
-  bool ExistsInScope(std::string);
-  bool ExistsInEnv(std::string);
-
-  Object *FetchEnvironment(std::string);
-  Object *FetchRootEnvironment(std::string);
-  ObjectType *FetchType(std::string);
-
-  Formatter formatter;
-
   std::string functionDeclaration;
   std::string functionDefinition;
 
   std::vector<std::string> includes;
   std::vector<ZagIR::Package *> loadedPackages;
 
-  std::set<std::string> fileDeps;
-  std::string GlobFileDeps();
-
-  void DumpEnvironment();
-  std::vector<Scope> environment;
+  // std::set<std::string> fileDeps;
+  // std::string GlobFileDeps();
 
   int currentFormat;
   std::unordered_map<int, std::string> formatList;

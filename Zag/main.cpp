@@ -142,6 +142,9 @@ void PrintPackageInfo(ZagIR::Package *package) {
       }
       ok = ok && conversion->good;
     }
+
+    if(bind->good) std::cout << " [" << bind->foundBind << "]";
+
     std::cout << std::endl;
   }
 

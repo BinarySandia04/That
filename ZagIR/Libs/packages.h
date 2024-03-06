@@ -7,11 +7,17 @@
 
 #include "toml.h"
 
+namespace fs = std::filesystem;
+
 namespace ZagIR {
+
+class Package;
 
 class Binding {
 public:
   virtual ~Binding() = default;
+
+  Package* package;
 
   std::string name;
   std::string bind;
@@ -24,6 +30,7 @@ public:
   std::string realBind;
 
   std::string subpackage;
+  std::vector<std::string> headers;
 };
 
 class CFunction : public Binding {
@@ -62,12 +69,12 @@ public:
   std::string display_name;
   std::string version;
   std::string root;
-  std::vector<std::string> file_deps;
+  // std::vector<std::string> file_deps;
   std::vector<std::string> include_directories;
   std::vector<std::string> link_directories;
   std::vector<std::string> link_libraries;
 
-  std::string path;
+  fs::path path;
 
   std::vector<std::string> fileDeps;
 
@@ -88,6 +95,8 @@ private:
   void AddTypeMap(std::string, toml::table, std::string);
   void AddConversionsMap(std::string, toml::table, std::string);
   bool EndsWith(std::string, std::string);
+
+  void SetupBinding(Binding*, toml::table);
 };
 
 void FetchPackages(std::vector<Package *> *packages);

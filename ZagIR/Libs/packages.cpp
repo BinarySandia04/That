@@ -67,6 +67,7 @@ Package *ZagIR::FetchPackage(std::string name) {
 Package::Package(std::filesystem::path path, toml::parse_result result) {
   _res = result;
   this->path = path;
+  std::cout << path.string() << std::endl;
 
   std::optional<std::string> name, display_name, version, space, root,
       file_deps, required;
@@ -84,23 +85,11 @@ Package::Package(std::filesystem::path path, toml::parse_result result) {
   if (root.has_value())
     this->root = *root;
 
-  if (toml::array *arr = result["_info"]["_file_deps"].as_array()) {
-    for (int i = 0; i < arr->size(); i++) {
-      std::optional<std::string> str = (*arr).get(i)->value<std::string>();
-      if (str.has_value()) {
-        this->file_deps.push_back(*str);
-      } else {
-        Logs::Error("Error parsing package.toml");
-      }
-    }
-  }
-
   if (toml::array *arr = result["_info"]["_subpackages"].as_array()) {
     for (int i = 0; i < arr->size(); i++) {
       std::optional<std::string> str = (*arr).get(i)->value<std::string>();
       if (str.has_value()) {
         this->subpackages.push_back(*str);
-        Logs::Debug(*str);
       } else {
         Logs::Error("Error parsing package.toml");
       }
@@ -168,15 +157,15 @@ void Package::AddObjectsMap(std::string rootName, toml::table table,
 
     if (EndsWith(key, "_function")) {
       CFunction *function = new CFunction(rootName);
+
+      function->package = this;
       function->subpackage = subpackage;
 
       toml::table t = *v.as_table();
 
-      std::optional<std::string> bind = t["bind"].value<std::string>();
-      std::optional<std::string> retType = t["return"].value<std::string>();
+      SetupBinding(function, t);
 
-      if (bind.has_value())
-        function->bind = *bind;
+      std::optional<std::string> retType = t["return"].value<std::string>();
 
       if (retType.has_value())
         function->retType = *retType;
@@ -212,19 +201,17 @@ void Package::AddTypeMap(std::string rootName, toml::table table,
     std::string key = std::string(k.str());
 
     CType *type = new CType(key);
+    type->package = this;
     type->subpackage = subpackage;
 
     toml::table t = *v.as_table();
+    SetupBinding(type, t);
 
     std::optional<bool> internal = t["internal"].value<bool>();
     std::optional<bool> global = t["global"].value<bool>();
-    std::optional<std::string> bind = t["bind"].value<std::string>();
     std::optional<std::string> parent = t["parent"].value<std::string>();
     std::optional<std::string> upgrades_to =
         t["upgrades_to"].value<std::string>();
-
-    if (bind.has_value())
-      type->bind = *bind;
 
     if (parent.has_value())
       type->parent = *parent;
@@ -259,26 +246,42 @@ void Package::AddConversionsMap(std::string rootName, toml::table table,
     std::string key = std::string(k.str());
 
     Conversion *conversion = new Conversion();
+    conversion->package = this;
     conversion->subpackage = subpackage;
     conversion->name = key;
 
     toml::table t = *v.as_table();
+    SetupBinding(conversion, t);
 
     std::optional<bool> implicit = t["implicit"].value<bool>();
-    std::optional<std::string> bind = t["bind"].value<std::string>();
     std::optional<std::string> from = t["from"].value<std::string>();
     std::optional<std::string> to = t["to"].value<std::string>();
 
     if (implicit.has_value())
       conversion->implicit = *implicit;
-    if (bind.has_value())
-      conversion->bind = *bind;
     if (from.has_value())
       conversion->lType = *from;
     if (to.has_value())
       conversion->rType = *to;
 
     binds.push_back(conversion);
+  }
+}
+
+void Package::SetupBinding(Binding *b, toml::table t) {
+  std::optional<std::string> bind = t["bind"].value<std::string>();
+  if (bind.has_value())
+    b->bind = *bind;
+
+  if (toml::array *arr = t["headers"].as_array()) {
+    for (int i = 0; i < arr->size(); i++) {
+      std::optional<std::string> str = (*arr).get(i)->value<std::string>();
+      if (str.has_value()) {
+        b->headers.push_back(*str);
+      } else {
+        Logs::Error("Error parsing package.toml");
+      }
+    }
   }
 }
 
@@ -333,8 +336,14 @@ void Package::ComputeBinds() {
       // std::cout << demangles[j] << " " << binds[i]->bind << std::endl;
       if (demangles[j].find(binds[i]->bind) != std::string::npos) {
         f++;
-        binds[i]->foundBind = demangles[j];
+
+        std::string firstManglePart = "";
+        for (int k = 0; k < demangles[j].size() && demangles[j][k] != '('; k++)
+          firstManglePart += demangles[j][k];
+        binds[i]->foundBind = firstManglePart;
+
         binds[i]->realBind = mangles[j];
+
         if (f > 1) {
           binds[i]->good = false;
           binds[i]->duped = true;

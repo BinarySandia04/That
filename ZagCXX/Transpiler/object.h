@@ -5,6 +5,8 @@
 
 #include <ZagIR/Libs/packages.h>
 
+#include "environment.h"
+
 namespace ZagCXX {
 
 class Object;
@@ -16,33 +18,37 @@ class ObjectFunction;
 class ObjectCFunction;
 class ObjectType;
 class ObjectCType;
+class Environment;
 class ObjectNativeType;
 
-Object* GetObjectFromBinding(ZagIR::Binding *);
+Object *GetObjectFromBinding(ZagIR::Binding *);
 
 class Object {
 public:
-  Object() {};
-  Object(ZagIR::Binding *);
-  virtual ~Object() {};
+  Object(){};
+  virtual ~Object(){};
   virtual void Print(int);
+  virtual void Use(Environment*);
   std::string identifier; // Hauriem de posar const XD
 };
 
 class ObjectEmpty : public Object {
 public:
   void Print(int);
+  void Use(Environment*);
 };
 
 class ObjectVariable : public Object {
 public:
   void Print(int);
+  void Use(Environment*);
   ObjectVariable(ObjectType *, std::string name);
 
   void SetType(ObjectType *);
   ObjectType *GetType();
 
   std::string Transpile();
+
 private:
   std::string name;
   ObjectType *type;
@@ -51,6 +57,7 @@ private:
 class ObjectContainer : public Object {
 public:
   void Print(int);
+  void Use(Environment*);
 
   void AddObject(Object *, std::string);
   void AddBinding(ZagIR::Binding *);
@@ -63,13 +70,13 @@ private:
 class ObjectFunction : public Object {
 public:
   void Print(int);
+  void Use(Environment*);
   virtual std::string GetName();
 
-  ObjectType* GetReturnType();
-  bool CheckArgs(std::vector<ObjectType *>&);
-  std::vector<ObjectType *> functionArgs;
-protected:
-  ObjectType *functionReturn;
+  bool CheckArgs(std::vector<ObjectType *> &);
+
+  std::vector<std::string> functionArgs;
+  std::string returnType;
 };
 
 class ObjectCFunction : public ObjectFunction {
@@ -77,22 +84,25 @@ public:
   std::string GetName();
   ObjectCFunction(ZagIR::CFunction *);
   void Print(int);
+  void Use(Environment*);
 
 private:
-  ZagIR::CFunction* cFunctionData;
+  ZagIR::CFunction *cFunctionData;
 };
 
 class ObjectNativeFunction : public ObjectFunction {
 public:
   std::string GetName();
   void Print(int);
-  void SetReturnType(ObjectType* );
+  void Use(Environment*);
 };
 
 class ObjectConversion : public Object {
 public:
   ObjectConversion(ZagIR::Conversion *);
   void Print(int);
+  void Use(Environment*);
+
 private:
   ZagIR::Conversion *conversion;
 };
@@ -100,6 +110,7 @@ private:
 class ObjectType : public Object {
 public:
   void Print(int);
+  void Use(Environment*);
   virtual bool Equals(ObjectType *);
 
   std::string upgrades_to;
@@ -115,6 +126,7 @@ class ObjectCType : public ObjectType {
 public:
   ObjectCType(ZagIR::CType *);
   void Print(int);
+  void Use(Environment*);
   bool Equals(ObjectType *);
 
   bool internal;
@@ -127,6 +139,7 @@ public:
 class ObjectNativeType : public ObjectType {
   bool Equals(ObjectType *);
   void Print(int);
+  void Use(Environment*);
   std::string Transpile();
 };
 } // namespace ZagCXX

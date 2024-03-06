@@ -10,7 +10,7 @@
 using namespace ZagIR;
 using namespace ZagCXX;
 
-Object* ZagCXX::GetObjectFromBinding(Binding *b){
+Object *ZagCXX::GetObjectFromBinding(Binding *b) {
   CType *ctype = dynamic_cast<CType *>(b);
   CFunction *cfunction = dynamic_cast<CFunction *>(b);
   Conversion *conversion = dynamic_cast<Conversion *>(b);
@@ -25,17 +25,21 @@ Object* ZagCXX::GetObjectFromBinding(Binding *b){
   return new ObjectEmpty();
 }
 
-void Object::Print(int space) {
-  std::cout << "[Object]" << std::endl;
-}
+void Object::Print(int space) { std::cout << "[Object]" << std::endl; }
+
+void Object::Use(Environment *t) {}
 
 void ObjectEmpty::Print(int space) {
   std::cout << "[ObjectEmpty]" << std::endl;
 }
 
+void ObjectEmpty::Use(Environment *t){};
+
 void ObjectVariable::Print(int space) {
   std::cout << "[ObjectVariable]" << std::endl;
 }
+
+void ObjectVariable::Use(Environment *t){};
 
 ObjectVariable::ObjectVariable(ObjectType *type, std::string name) {
   this->type = type;
@@ -50,12 +54,17 @@ std::string ObjectVariable::Transpile() { return "_v_" + this->name; }
 
 void ObjectContainer::Print(int space) {
   std::cout << std::string(space, ' ') << "[ObjectContainer]" << std::endl;
-  for(auto &p : containerData){
-    std::cout << std::string(space + 3, ' ') << termcolor::yellow << p.first << termcolor::reset << ": ";
-    if(p.second != nullptr) p.second->Print(space + 3);
-    else std::cout << "nullptr" << std::endl;
+  for (auto &p : containerData) {
+    std::cout << std::string(space + 3, ' ') << termcolor::yellow << p.first
+              << termcolor::reset << ": ";
+    if (p.second != nullptr)
+      p.second->Print(space + 3);
+    else
+      std::cout << "nullptr" << std::endl;
   }
 }
+
+void ObjectContainer::Use(Environment *t){};
 
 void ObjectContainer::AddObject(Object *obj, std::string path) {
   // FirstPart: io
@@ -78,10 +87,10 @@ void ObjectContainer::AddObject(Object *obj, std::string path) {
   if (secondPart == "") {
     containerData[firstPart] = obj;
   } else {
-    ObjectContainer* subContainer;
+    ObjectContainer *subContainer;
     if (containerData.find(firstPart) != containerData.end()) {
       // Comprovem que es container
-      subContainer = dynamic_cast<ObjectContainer*>(containerData[firstPart]);
+      subContainer = dynamic_cast<ObjectContainer *>(containerData[firstPart]);
       if (subContainer == nullptr) {
         std::cout << firstPart << "|" << secondPart << std::endl;
         Logs::Error("Tried to add object to an existing container");
@@ -108,13 +117,17 @@ void ObjectFunction::Print(int space) {
   std::cout << "[ObjectFunction]" << std::endl;
 }
 
+void ObjectFunction::Use(Environment *t){};
+
 std::string ObjectFunction::GetName() { return "_f_" + this->identifier; }
 
 bool ObjectFunction::CheckArgs(std::vector<ObjectType *> &args) {
-  if (args.size() != functionArgs.size())
+  if (args.size() != functionArgs.size()) {
     return false;
+  }
   for (int i = 0; i < args.size(); i++) {
-    if (!args[i]->Equals(functionArgs[i]))
+    if (args[i]->identifier !=
+        functionArgs[i]) // No m'agrada aquesta comparació
       return false;
   }
   return true;
@@ -122,39 +135,51 @@ bool ObjectFunction::CheckArgs(std::vector<ObjectType *> &args) {
 
 ObjectCFunction::ObjectCFunction(ZagIR::CFunction *cfunction) {
   this->cFunctionData = cfunction;
+  for (int i = 0; i < cfunction->funcArgs.size(); i++)
+    this->functionArgs.push_back(cfunction->funcArgs[i]);
+  this->returnType = cfunction->retType;
 }
 
 void ObjectCFunction::Print(int space) {
   std::cout << "[ObjectCFunction]" << std::endl;
 }
 
-std::string ObjectCFunction::GetName() { return "_fc_" + this->identifier; }
+void ObjectCFunction::Use(Environment *t) {
+  std::cout << "Hola" << std::endl;
+  for (int i = 0; i < cFunctionData->headers.size(); i++) {
+    fs::path filePath =
+        cFunctionData->package->path / "src" / cFunctionData->headers[i];
+    t->AddInclude(filePath);
+  }
+}
+
+std::string ObjectCFunction::GetName() {
+  return this->cFunctionData->foundBind;
+}
 
 void ObjectNativeFunction::Print(int space) {
   std::cout << "[ObjectNativeFunction]" << std::endl;
 }
 
+void ObjectNativeFunction::Use(Environment *t){};
+
 std::string ObjectNativeFunction::GetName() {
   return "_fn_" + this->identifier;
 }
-
-void ObjectNativeFunction::SetReturnType(ObjectType *type) {
-  this->functionReturn = type;
-}
-
-ObjectType *ObjectFunction::GetReturnType() { return this->functionReturn; }
 
 ObjectConversion::ObjectConversion(ZagIR::Conversion *conversion) {
   this->conversion = conversion;
 }
 
 void ObjectConversion::Print(int space) {
-  std::cout << "[ObjectConversion]" << std::endl;  
+  std::cout << "[ObjectConversion]" << std::endl;
 }
 
-void ObjectType::Print(int space) {
-  std::cout << "[ObjectType]" << std::endl;
-}
+void ObjectConversion::Use(Environment *t){};
+
+void ObjectType::Print(int space) { std::cout << "[ObjectType]" << std::endl; }
+
+void ObjectType::Use(Environment *t){};
 
 bool ObjectType::Equals(ObjectType *other) {
   // TODO
@@ -176,11 +201,17 @@ ObjectCType::ObjectCType(ZagIR::CType *type) {
   this->translation = type->parent;
   this->includes = type->include;
   this->upgrades_to = type->upgrades_to;
+  this->identifier = type->name;
 }
 
 void ObjectCType::Print(int space) {
-  std::cout << "[ObjectType > ObjectCType]" << std::endl;  
+  std::cout << "[ObjectType > ObjectCType]" << std::endl;
 }
+
+void ObjectCType::Use(Environment *t) {
+  for (int i = 0; i < includes.size(); i++)
+    t->AddInclude(includes[i]);
+};
 
 bool ObjectCType::Equals(ObjectType *other) {
   // TODO
@@ -192,6 +223,8 @@ std::string ObjectCType::Transpile() { return translation; }
 void ObjectNativeType::Print(int space) {
   std::cout << "[ObjectType > ObjectNativeType]" << std::endl;
 }
+
+void ObjectNativeType::Use(Environment *t){};
 
 bool ObjectNativeType::Equals(ObjectType *other) {
   // TODO

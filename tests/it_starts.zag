@@ -1,3 +1,7 @@
 get 'std.io
 
+a = 4
+b = 5
+
+std.print("Hello world!")
 

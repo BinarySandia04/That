@@ -27,6 +27,10 @@ int main(int argc, char *argv[]) {
     programFlags = programFlags | Flags::DEBUG;
   }
 
+  if(cmdl[{"-f", "--force"}]){
+    programFlags = programFlags | Flags::FORCE;
+  }
+
   if (cmdl.size() > 1) {
     for (int i = 1; i < cmdl.size(); i++) {
       try {
@@ -94,8 +98,8 @@ void Transpile(std::string code, std::string fileName) {
                                       std::filesystem::path("_tmp.cpp"));
   std::filesystem::path tmpOutPath(homePath / std::filesystem::path("_tmp"));
 
-  std::string transCode;
-  transCode = transpiler.GenerateSource(ast);
+  std::string transCode, cxxargs;
+  transCode = transpiler.GenerateSource(ast, &cxxargs);
 
   if(programFlags & DEBUG){
     std::cout << termcolor::green << "CODE: " << termcolor::reset << std::endl << transCode << std::endl;
@@ -106,14 +110,14 @@ void Transpile(std::string code, std::string fileName) {
   buffer << tmpSourceIn.rdbuf();
   std::string lastCode = buffer.str();
 
-  if (lastCode != transCode || !std::filesystem::exists(tmpOutPath)) {
+  if (lastCode != transCode || !std::filesystem::exists(tmpOutPath) || programFlags & FORCE) {
 
     std::ofstream tmpSourceOut(tmpSourcePath.string());
     tmpSourceOut << transCode;
     tmpSourceOut.close();
     delete ast;
 
-    if (Compile(tmpSourcePath, tmpOutPath)) {
+    if (Compile(tmpSourcePath, tmpOutPath, cxxargs)) {
       std::cout << termcolor::red << "Error compiling" << termcolor::reset
                 << std::endl;
       std::filesystem::remove(tmpSourcePath);
@@ -123,10 +127,10 @@ void Transpile(std::string code, std::string fileName) {
   Run(tmpOutPath);
 }
 
-int Compile(std::filesystem::path sourcePath, std::filesystem::path outPath) {
-  return system(
-      ("g++ -lm " + sourcePath.string() + " -o " + outPath.string())
-          .c_str());
+int Compile(std::filesystem::path sourcePath, std::filesystem::path outPath, std::string cxxargs) {
+  std::string compileRun = "g++ " + cxxargs + " " + sourcePath.string() + " -o " + outPath.string();
+  if(programFlags & DEBUG) std::cout << termcolor::red << compileRun << termcolor::reset << std::endl;
+  return system(compileRun.c_str());
 }
 
 void Run(std::filesystem::path outPath) { system(outPath.string().c_str()); }

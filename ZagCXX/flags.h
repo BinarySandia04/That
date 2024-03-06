@@ -5,6 +5,7 @@
 enum Flags {
   NONE = 1 << 0,
   DEBUG = 1 << 1,
+  FORCE = 1 << 2
 };
 
 constexpr enum Flags operator |( const enum Flags selfValue, const enum Flags inValue )
