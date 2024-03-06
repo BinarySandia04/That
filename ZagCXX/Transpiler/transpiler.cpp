@@ -99,7 +99,8 @@ void Transpiler::AddPackageToScope(ZagIR::Package *package) {
 
   for (int i = 0; i < package->binds.size(); i++) {
     Binding *b = package->binds[i];
-    packContainer->AddBinding(b);
+    if(b->global) AddToRoot(b->name, GetObjectFromBinding(b));
+    else packContainer->AddBinding(b);
   }
 
   AddToRoot(package->name, packContainer);

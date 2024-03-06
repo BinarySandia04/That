@@ -5,14 +5,37 @@
 
 #include <ZagIR/Logs/logs.h>
 
+#include "termcolor.h"
+
 using namespace ZagIR;
 using namespace ZagCXX;
 
-void Object::Print() { std::cout << "[Object]" << std::endl; }
+Object* ZagCXX::GetObjectFromBinding(Binding *b){
+  CType *ctype = dynamic_cast<CType *>(b);
+  CFunction *cfunction = dynamic_cast<CFunction *>(b);
+  Conversion *conversion = dynamic_cast<Conversion *>(b);
 
-void ObjectEmpty::Print() { std::cout << "[ObjectEmpty]" << std::endl; }
+  if (ctype != nullptr) {
+    return new ObjectCType(ctype);
+  } else if (cfunction != nullptr) {
+    return new ObjectCFunction(cfunction);
+  } else if (conversion != nullptr) {
+    return new ObjectConversion(conversion);
+  }
+  return new ObjectEmpty();
+}
 
-void ObjectVariable::Print() { std::cout << "[ObjectVariable]" << std::endl; }
+void Object::Print(int space) {
+  std::cout << "[Object]" << std::endl;
+}
+
+void ObjectEmpty::Print(int space) {
+  std::cout << "[ObjectEmpty]" << std::endl;
+}
+
+void ObjectVariable::Print(int space) {
+  std::cout << "[ObjectVariable]" << std::endl;
+}
 
 ObjectVariable::ObjectVariable(ObjectType *type, std::string name) {
   this->type = type;
@@ -25,9 +48,18 @@ ObjectType *ObjectVariable::GetType() { return type; }
 
 std::string ObjectVariable::Transpile() { return "_v_" + this->name; }
 
-void ObjectContainer::Print() { std::cout << "[ObjectContainer]" << std::endl; }
+void ObjectContainer::Print(int space) {
+  std::cout << std::string(space, ' ') << "[ObjectContainer]" << std::endl;
+  for(auto &p : containerData){
+    std::cout << std::string(space + 3, ' ') << termcolor::yellow << p.first << termcolor::reset << ": ";
+    if(p.second != nullptr) p.second->Print(space + 3);
+    else std::cout << "nullptr" << std::endl;
+  }
+}
 
 void ObjectContainer::AddObject(Object *obj, std::string path) {
+  // FirstPart: io
+  // SecondPart: hola.tal.print
   std::string firstPart = "", secondPart = "";
 
   // Populate firstPart and secondPart
@@ -42,48 +74,39 @@ void ObjectContainer::AddObject(Object *obj, std::string path) {
       }
     }
   }
-  // TODO: Canviar això perque es faci bé collons
 
-  if (containerData.find(firstPart) == containerData.end()) {
-    if (secondPart.empty())
-      containerData[firstPart] = obj;
-    else {
-      ObjectContainer *subContainer =
-          dynamic_cast<ObjectContainer *>(containerData[firstPart]);
-      if (subContainer != nullptr)
-        subContainer->AddObject(obj, secondPart);
-      else
-        Logs::Error("Error adding subcontainer");
-    }
+  if (secondPart == "") {
+    containerData[firstPart] = obj;
   } else {
-    ObjectContainer *subContainer =
-        dynamic_cast<ObjectContainer *>(containerData[firstPart]);
-    if (subContainer != nullptr)
-      subContainer->AddObject(obj, secondPart);
-    else
-      Logs::Error("Error adding subcontainer");
+    ObjectContainer* subContainer;
+    if (containerData.find(firstPart) != containerData.end()) {
+      // Comprovem que es container
+      subContainer = dynamic_cast<ObjectContainer*>(containerData[firstPart]);
+      if (subContainer == nullptr) {
+        std::cout << firstPart << "|" << secondPart << std::endl;
+        Logs::Error("Tried to add object to an existing container");
+        return;
+      }
+    } else {
+      subContainer = new ObjectContainer();
+      containerData[firstPart] = subContainer;
+    }
+
+    subContainer->AddObject(obj, secondPart);
   }
 }
 
-void ObjectContainer::AddBinding(ZagIR::Binding *b){
-    CType *ctype = dynamic_cast<CType *>(b);
-    CFunction *cfunction = dynamic_cast<CFunction *>(b);
-    Conversion *conversion = dynamic_cast<Conversion *>(b);
-
-    if (ctype != nullptr) {
-      AddObject(new ObjectCType(ctype), b->name);
-    } else if (cfunction != nullptr) {
-      AddObject(new ObjectCFunction(cfunction), b->name);
-    } else if (conversion != nullptr) {
-      AddObject(new ObjectConversion(conversion), b->name);
-    }
+void ObjectContainer::AddBinding(ZagIR::Binding *b) {
+  AddObject(GetObjectFromBinding(b), b->name);
 }
 
 Object *ObjectContainer::GetObject(std::string key) {
   return containerData[key];
 }
 
-void ObjectFunction::Print() { std::cout << "[ObjectFunction]" << std::endl; }
+void ObjectFunction::Print(int space) {
+  std::cout << "[ObjectFunction]" << std::endl;
+}
 
 std::string ObjectFunction::GetName() { return "_f_" + this->identifier; }
 
@@ -101,11 +124,13 @@ ObjectCFunction::ObjectCFunction(ZagIR::CFunction *cfunction) {
   this->cFunctionData = cfunction;
 }
 
-void ObjectCFunction::Print() { std::cout << "[ObjectCFunction]" << std::endl; }
+void ObjectCFunction::Print(int space) {
+  std::cout << "[ObjectCFunction]" << std::endl;
+}
 
 std::string ObjectCFunction::GetName() { return "_fc_" + this->identifier; }
 
-void ObjectNativeFunction::Print() {
+void ObjectNativeFunction::Print(int space) {
   std::cout << "[ObjectNativeFunction]" << std::endl;
 }
 
@@ -123,11 +148,13 @@ ObjectConversion::ObjectConversion(ZagIR::Conversion *conversion) {
   this->conversion = conversion;
 }
 
-void ObjectConversion::Print() {
-  std::cout << "[ObjectConversion]" << std::endl;
+void ObjectConversion::Print(int space) {
+  std::cout << "[ObjectConversion]" << std::endl;  
 }
 
-void ObjectType::Print() { std::cout << "[ObjectType]" << std::endl; }
+void ObjectType::Print(int space) {
+  std::cout << "[ObjectType]" << std::endl;
+}
 
 bool ObjectType::Equals(ObjectType *other) {
   // TODO
@@ -151,8 +178,8 @@ ObjectCType::ObjectCType(ZagIR::CType *type) {
   this->upgrades_to = type->upgrades_to;
 }
 
-void ObjectCType::Print() {
-  std::cout << "[ObjectType > ObjectCType]" << std::endl;
+void ObjectCType::Print(int space) {
+  std::cout << "[ObjectType > ObjectCType]" << std::endl;  
 }
 
 bool ObjectCType::Equals(ObjectType *other) {
@@ -162,7 +189,7 @@ bool ObjectCType::Equals(ObjectType *other) {
 
 std::string ObjectCType::Transpile() { return translation; }
 
-void ObjectNativeType::Print() {
+void ObjectNativeType::Print(int space) {
   std::cout << "[ObjectType > ObjectNativeType]" << std::endl;
 }
 

@@ -21,7 +21,7 @@ void Scope::Delete(){
 void Scope::Print(){
   for(auto &p : data){
     std::cout << termcolor::yellow << p.first << termcolor::reset << ": ";
-    if(p.second != nullptr) p.second->Print();
+    if(p.second != nullptr) p.second->Print(0);
     else std::cout << "nullptr" << std::endl;
   }
 }
