@@ -3,27 +3,21 @@ _name = "std"
 _display_name = "Zag Standard Library"
 _version = "0.1v"
 _root = ""
-_subpackages = ["io", "shader.frag"]
+_subpackages = ["io"]
 
 # Dins del subespai "io".
 # Aixo vol dir per importar es
 # get std.io
 # i llavors per executar
 # std.print
-[_._.print]
-_function = {bind = "Print", args = ["Str"], return = "Nil", headers = ["io.h"]}
+[_.io._.print]
+_function = {bind = "Print(", args = ["Str"], return = "Nil", headers = ["io.h"]}
 
-[_._.test]
-_function = {bind = "Test", args = [], return = "Int"}
+[_.io._.println]
+_function = {bind = "PrintLn", args = ["Str"], return = "Nil", headers = ["io.h"]}
 
-# Per importar aixo també es std.io
-# Executar es
-# std.file.print
-[_.io._.file.print]
-_function = {bind = "IoFilePrint", return = "Nil"}
+[_.io._.read.int]
+_function = {bind = "ReadInt", args = ["Str"], return = "Int", headers = ["io.h"]}
 
-# Per importar això
-# get std.shader.frag
-# Executa es
-# std.shader.test
-[_.shader.frag._.shader.test]
+[_.io._.read.str]
+_function = {bind = "ReadStr", args = ["Str"], return = "Str", headers = ["io.h"]}

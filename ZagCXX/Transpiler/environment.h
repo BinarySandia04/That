@@ -11,7 +11,14 @@ namespace ZagCXX {
 
 class Object;
 class ObjectType;
-class Scope;
+class ObjectCOperation;
+
+class Scope {
+public:
+  void Print();
+  void Delete();
+  std::unordered_map<std::string, Object*> data;
+};
 
 class Environment {
 public:
@@ -28,6 +35,7 @@ public:
 
   void AddToRoot(std::string, Object*);
   void AddToScope(std::string, Object*);
+  void AddToReserved(std::string, Object*);
 
   void AddInclude(std::string);
   void AddInclude(fs::path);
@@ -42,6 +50,9 @@ public:
   Object *Fetch(std::string);
   Object *FetchRoot(std::string);
   ObjectType *FetchType(std::string);
+
+  Object* FetchReserved(std::string);
+  ObjectCOperation *FetchOperation(ObjectType*, ObjectType*);
 private:
   std::vector<std::string> includes;
   std::vector<std::string> absoluteIncludes;
@@ -51,13 +62,7 @@ private:
   std::string includeGlob;
   std::vector<std::string> fileDeps;
   std::vector<Scope> environment;
-};
-
-class Scope {
-public:
-  void Print();
-  void Delete();
-  std::unordered_map<std::string, Object*> data;
+  Scope reserved;
 };
 
 }; // namespace ZagCXX

@@ -16,6 +16,7 @@ class ObjectVariable;
 class ObjectContainer;
 class ObjectFunction;
 class ObjectCFunction;
+class ObjectCOperation;
 class ObjectType;
 class ObjectCType;
 class Environment;
@@ -77,7 +78,7 @@ public:
 
   bool CheckArgs(std::vector<ObjectType *> &);
 
-  std::vector<std::string> functionArgs;
+  std::vector<ObjectType*> functionArgs;
   std::string returnType;
 };
 
@@ -144,4 +145,14 @@ class ObjectNativeType : public ObjectType {
   void Use(Environment*);
   std::string Transpile();
 };
+
+class ObjectCOperation : public Object {
+  public:
+    std::string GetName();
+    ObjectCOperation(ZagIR::COperation *);
+    void Print(int);
+    void Use(Environment*);
+    ZagIR::COperation *cOperationData;
+};
+
 } // namespace ZagCXX

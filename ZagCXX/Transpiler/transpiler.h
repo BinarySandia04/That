@@ -49,7 +49,7 @@ private:
 
   std::string TranspileCall(ZagIR::Node *, ObjectType **);
 
-  std::string TranspileGCall(ObjectFunction *, ZagIR::Node *);
+  std::string TranspileGCall(ObjectFunction *, ZagIR::Node *, ObjectType**);
 
   std::string TranspileGetter(ZagIR::Node *, ObjectType **);
 

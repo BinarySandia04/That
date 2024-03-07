@@ -12,19 +12,19 @@ Bul = {internal = true, global = true, parent = "bool", upgrades_to = "Int"}
 Num = {internal = true, global = true, parent = "double"}
 Nil = {internal = true, global = true, parent = "void"}
 
-[_._conversions]
+# [_._conversions]
 # Implicit conversions
-int_to_bul = {implicit = true, from = "Int", to = "Bul"}
-num_to_bul = {implicit = true, from = "Num", to = "Bul"}
-int_to_num = {implicit = true, from = "Int", to = "Num"}
+# int_to_bul = {implicit = true, from = "Int", to = "Bul"}
+# num_to_bul = {implicit = true, from = "Num", to = "Bul"}
+# int_to_num = {implicit = true, from = "Int", to = "Num"}
 
 # Explicit conversion
-int_to_str = {bind = "IntToString", from = "Int", to = "Str"}
-num_to_str = {bind = "NumToString", from = "Num", to = "Str"}
+# int_to_str = {bind = "IntToString", from = "Int", to = "Str"}
+# num_to_str = {bind = "NumToString", from = "Num", to = "Str"}
 
 [_._operations]
-str_plus_int = {bind = "StrPlusInt", ltype = "Str", rtype = "Int", op = "+", return = "Str"}
-int_plus_str = {bind = "IntPlusStr", ltype = "Str", rtype = "Int", op = "+", return = "Str"}
+str_plus_int = {bind = "StrPlusInt", ltype = "Str", rtype = "Int", op = "+", return = "Str", headers = ["operations.h"]}
+int_plus_str = {bind = "IntPlusStr", ltype = "Int", rtype = "Str", op = "+", return = "Str", headers = ["operations.h"]}
 
 #[_.io.print]
 #_function = {bind = "Print", args = ["Str"], return = "Nil"}

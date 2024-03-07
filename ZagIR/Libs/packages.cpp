@@ -67,7 +67,7 @@ Package *ZagIR::FetchPackage(std::string name) {
 Package::Package(std::filesystem::path path, toml::parse_result result) {
   _res = result;
   this->path = path;
-  std::cout << path.string() << std::endl;
+  // std::cout << path.string() << std::endl;
 
   std::optional<std::string> name, display_name, version, space, root,
       file_deps, required;
@@ -104,6 +104,8 @@ Package::Package(std::filesystem::path path, toml::parse_result result) {
       AddTypeMap("", *result["_"]["_types"].as_table(), "");
     if (!!result["_"]["_conversions"])
       AddConversionsMap("", *result["_"]["_conversions"].as_table(), "");
+    if (!!result["_"]["_operations"])
+      AddOperationsMap("", *result["_"]["_operations"].as_table(), "");
   }
 }
 
@@ -133,10 +135,14 @@ void Package::LoadSubPackage(std::string subpackage) {
     if (!!subTable["_"])
       AddObjectsMap("", *subTable["_"].as_table(), subpackage);
     if (!!subTable["_types"])
-      AddObjectsMap("", *subTable["_types"].as_table(), subpackage);
+      AddTypeMap("", *subTable["_types"].as_table(), subpackage);
     if (!!subTable["_conversions"])
-      AddObjectsMap("", *subTable["_conversions"].as_table(), subpackage);
+      AddConversionsMap("", *subTable["_conversions"].as_table(), subpackage);
+    if (!!subTable["_operations"])
+      AddOperationsMap("", *subTable["_operations"].as_table(), subpackage);
 
+    // No hauria pero idk
+    ComputeBinds();
     return;
   }
   throw std::runtime_error("Subpackage " + subpackage + "of " + name +
@@ -144,7 +150,8 @@ void Package::LoadSubPackage(std::string subpackage) {
 }
 
 Package::~Package() {
-  for (int i = 0; i < binds.size(); i++) delete binds[i];
+  for (int i = 0; i < binds.size(); i++)
+    delete binds[i];
 }
 
 void Package::AddObjectsMap(std::string rootName, toml::table table,
@@ -202,6 +209,7 @@ void Package::AddTypeMap(std::string rootName, toml::table table,
     CType *type = new CType(key);
     type->package = this;
     type->subpackage = subpackage;
+    type->name = key;
 
     toml::table t = *v.as_table();
     SetupBinding(type, t);
@@ -259,11 +267,45 @@ void Package::AddConversionsMap(std::string rootName, toml::table table,
     if (implicit.has_value())
       conversion->implicit = *implicit;
     if (from.has_value())
-      conversion->lType = *from;
+      conversion->fromType = *from;
     if (to.has_value())
-      conversion->rType = *to;
+      conversion->toType = *to;
 
     binds.push_back(conversion);
+  }
+}
+
+void Package::AddOperationsMap(std::string rootName, toml::table table,
+                               std::string subpackage) {
+  for (auto [k, v] : table) {
+    std::string key = std::string(k.str());
+
+    COperation *operation = new COperation();
+    operation->package = this;
+    operation->subpackage = subpackage;
+    operation->name = key;
+
+    toml::table t = *v.as_table();
+    SetupBinding(operation, t);
+
+    std::optional<bool> implicit = t["implicit"].value<bool>();
+    std::optional<std::string> ltype = t["ltype"].value<std::string>();
+    std::optional<std::string> rtype = t["rtype"].value<std::string>();
+    std::optional<std::string> op = t["op"].value<std::string>();
+    std::optional<std::string> resType = t["return"].value<std::string>();
+
+    if (implicit.has_value())
+      operation->implicit = *implicit;
+    if (ltype.has_value())
+      operation->lType = *ltype;
+    if (rtype.has_value())
+      operation->rType = *rtype;
+    if (op.has_value())
+      operation->op = *op;
+    if (resType.has_value())
+      operation->resType = *resType;
+
+    binds.push_back(operation);
   }
 }
 
@@ -324,6 +366,14 @@ void Package::ComputeBinds() {
     Conversion *conversion = dynamic_cast<Conversion *>(binds[i]);
     if (conversion != nullptr) {
       if (conversion->implicit) {
+        binds[i]->good = true;
+        continue;
+      }
+    }
+
+    COperation *coperation = dynamic_cast<COperation *>(binds[i]);
+    if (coperation != nullptr) {
+      if (coperation->implicit) {
         binds[i]->good = true;
         continue;
       }

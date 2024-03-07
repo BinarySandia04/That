@@ -36,20 +36,26 @@ Environment::Environment() { PushScope(); }
 Environment::~Environment() {}
 
 void Environment::DumpEnvironment() {
+  std::cout << "-------------------- RESERVED: -------------------"
+            << std::endl;
+  reserved.Print();
+  std::cout << std::endl;
   for (int i = 0; i < environment.size(); i++) {
-    std::cout << "--------------------------------------------" << std::endl;
-    if (i == 0)
-      std::cout << "Root:";
-    else
-      std::cout << i;
+    std::cout << "---------------------" + std::to_string(i) +
+                     "--------------------"
+              << std::endl;
     std::cout << std::endl;
     environment[i].Print();
   }
   std::cout << "--------------------------------------------" << std::endl;
 }
-void Environment::PushScope() { environment.push_back(Scope()); }
+void Environment::PushScope() {
+  // std::cout << "Pushed scope" << std::endl;
+  environment.push_back(Scope());
+}
 
 void Environment::PopScope() {
+  // std::cout << "Popped scope" << std::endl;
   environment.back().Delete();
   environment.pop_back();
 }
@@ -60,16 +66,26 @@ void Environment::AddPackageToScope(ZagIR::Package *package) {
 
   for (int i = 0; i < package->binds.size(); i++) {
     Binding *b = package->binds[i];
-    if (b->global)
-      AddToRoot(b->name, GetObjectFromBinding(b));
-    else
-      packContainer->AddBinding(b);
+
+    // Check if the binding goes to root or reserved
+    COperation *coperation = dynamic_cast<COperation *>(b);
+    if (coperation != nullptr) {
+      AddToReserved("C_" + package->name + "_" + coperation->name,
+                    GetObjectFromBinding(b));
+    } else {
+      if (b->global)
+        AddToRoot(b->name, GetObjectFromBinding(b));
+      else
+        packContainer->AddBinding(b);
+    }
   }
 
   AddToRoot(package->name, packContainer);
 
   // Now we load package to compiler
-  cxxargs += "-L" + package->path.string() + " -Wl,-rpath=" + package->path.string() + " -l" + package->name + " ";
+  cxxargs += "-L" + package->path.string() +
+             " -Wl,-rpath=" + package->path.string() + " -l" + package->name +
+             " ";
 }
 
 void Environment::AddSubPackageToScope(ZagIR::Package *package,
@@ -95,6 +111,10 @@ void Environment::AddToScope(std::string name, Object *obj) {
       std::pair<std::string, Object *>(name, obj));
 }
 
+void Environment::AddToReserved(std::string name, Object *obj) {
+  reserved.data.insert(std::pair<std::string, Object *>(name, obj));
+}
+
 void Environment::AddInclude(std::string name) {
   if (std::find(includes.begin(), includes.end(), name) == includes.end()) {
     includes.push_back(name);
@@ -102,20 +122,17 @@ void Environment::AddInclude(std::string name) {
   }
 }
 
-void Environment::AddInclude(fs::path p){
-  if(std::find(absoluteIncludes.begin(), absoluteIncludes.end(), p.string()) == absoluteIncludes.end()){
+void Environment::AddInclude(fs::path p) {
+  if (std::find(absoluteIncludes.begin(), absoluteIncludes.end(), p.string()) ==
+      absoluteIncludes.end()) {
     absoluteIncludes.push_back(p.string());
     includeGlob += "#include \"" + p.string() + "\"\n";
   }
 }
 
-std::string Environment::GetIncludes(){
-  return includeGlob;
-}
+std::string Environment::GetIncludes() { return includeGlob; }
 
-std::string Environment::GetCXXArgs(){
-  return cxxargs;
-}
+std::string Environment::GetCXXArgs() { return cxxargs; }
 
 bool Environment::Exists(std::string key) {
   for (int i = environment.size() - 1; i >= 0; i--) {
@@ -145,11 +162,25 @@ Object *Environment::FetchRoot(std::string key) {
 
 ObjectType *Environment::FetchType(std::string key) {
   // TODO: Suport per Type<> i que sigui safe?
-  ObjectType* t = dynamic_cast<ObjectType *>(FetchRoot(key));
-  if(t != nullptr){
+  ObjectType *t = dynamic_cast<ObjectType *>(FetchRoot(key));
+  if (t != nullptr) {
     t->Use(this);
     return t;
   } else {
     throw std::runtime_error("Type " + key + " not found");
   }
+}
+
+ObjectCOperation *Environment::FetchOperation(ObjectType *ltype,
+                                              ObjectType *rtype) {
+  for (auto &p : reserved.data) {
+    ObjectCOperation *operation = dynamic_cast<ObjectCOperation *>(p.second);
+    if (operation != nullptr) {
+      if (operation->cOperationData->lType == ltype->identifier &&
+          operation->cOperationData->rType == rtype->identifier) {
+        return operation;
+      }
+    }
+  }
+  return nullptr;
 }

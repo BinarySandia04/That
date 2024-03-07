@@ -54,8 +54,17 @@ public:
 
 class Conversion : public Binding {
 public:
+  std::string fromType;
+  std::string toType;
+  bool implicit;
+};
+
+class COperation : public Binding {
+public:
   std::string lType;
   std::string rType;
+  std::string resType;
+  std::string op;
   bool implicit;
 };
 
@@ -94,6 +103,9 @@ private:
   void AddObjectsMap(std::string, toml::table, std::string);
   void AddTypeMap(std::string, toml::table, std::string);
   void AddConversionsMap(std::string, toml::table, std::string);
+  void AddOperationsMap(std::string, toml::table, std::string);
+
+
   bool EndsWith(std::string, std::string);
 
   void SetupBinding(Binding*, toml::table);

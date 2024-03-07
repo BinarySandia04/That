@@ -26,7 +26,8 @@ Transpiler::Transpiler() {
 }
 
 Transpiler::~Transpiler() {
-  for(int i = 0; i < loadedPackages.size(); i++) delete loadedPackages[i];
+  for (int i = 0; i < loadedPackages.size(); i++)
+    delete loadedPackages[i];
   delete env;
 }
 
@@ -35,7 +36,7 @@ void Transpiler::ThrowError(Node *node, std::string what) {
   Logs::Error(what);
 }
 
-std::string Transpiler::GenerateSource(Node *ast, std::string* cxxargs) {
+std::string Transpiler::GenerateSource(Node *ast, std::string *cxxargs) {
   std::string main = "int main(){{";
 
   env->PushScope();
@@ -63,6 +64,7 @@ std::string Transpiler::GenerateIncludes() {
 }
 
 std::string Transpiler::TranspileBlock(Node *space) {
+  env->DumpEnvironment();
   std::string content = "";
   for (int i = 0; i < space->children.size(); i++) {
     content += TranspileStatement(space->children[i]);
@@ -120,7 +122,7 @@ std::string Transpiler::TranspileIdentifier(Node *identifier,
     }
 
   } else {
-    ThrowError(identifier, "Identifier" + idName + " does not exist");
+    ThrowError(identifier, "Identifier " + idName + " does not exist");
   }
   return "";
 }
@@ -223,7 +225,8 @@ std::string Transpiler::TranspileBinary(Node *binary, ObjectType **retType) {
 
   bool typed = false;
   if (binary->data == "==" || binary->data == ">=" || binary->data == "<=" ||
-      binary->data == "!=" || binary->data == "&&" || binary->data == "||") {
+      binary->data == "!=" || binary->data == "&&" || binary->data == "||" ||
+      binary->data == ">" || binary->data == "<") {
 
     returnType = env->FetchType("Bul");
     *retType = returnType;
@@ -251,17 +254,31 @@ std::string Transpiler::TranspileBinary(Node *binary, ObjectType **retType) {
           *retType = upgrade;
         }
       }
-    } else {
-      // Hem de veure si hi ha una conversió
+    }
+
+    if (!typed) {
+      // Hem de veure si hi ha una operació de tipus
       // I si no n'hi ha hem de fer un error
+      ObjectCOperation *operation = env->FetchOperation(lType, rType);
+
+      if (operation != nullptr) {
+        operation->Use(env);
+        *retType = env->FetchType(operation->cOperationData->resType);
+        return operation->GetName() + "(" + lExp + ", " + rExp + ")";
+      } else {
+        // No hi ha conversió
+      }
     }
   } else {
-    typed = true;
-    *retType = lType;
+    // typed = true;
+    if (!typed) {
+      typed = true;
+      *retType = lType;
+    }
   }
 
-  std::cout << "Si" << std::endl;
   // Es poden treure espais un cop fet bé
+
   return "(" + lExp + " " + binary->data + " " + rExp + ")";
 }
 
@@ -314,75 +331,90 @@ std::string Transpiler::TranspileLup(ZagIR::Node *lup) {
 
   std::string block;
   env->PushScope();
-  if (lup->arguments[0]->type == ZagIR::NODE_LUP_ITERATORS) {
-    Node *iterator = lup->arguments[0];
-    // Arguments are identifiers, childs are intervals
-    // We have or one child or same identifiers as childs
-    bool multiIterators = false;
-    if (iterator->children.size() > 1) {
-      multiIterators = true;
-      if (iterator->children.size() != iterator->arguments.size()) {
-        std::cout << "Invalid interval number" << std::endl;
-        return "";
+
+  if (lup->arguments.size() > 0) {
+    if (lup->arguments[0]->type == ZagIR::NODE_LUP_ITERATORS) {
+      Node *iterator = lup->arguments[0];
+      // Arguments are identifiers, childs are intervals
+      // We have or one child or same identifiers as childs
+      bool multiIterators = false;
+      if (iterator->children.size() > 1) {
+        multiIterators = true;
+        if (iterator->children.size() != iterator->arguments.size()) {
+          std::cout << "Invalid interval number" << std::endl;
+          return "";
+        }
       }
-    }
-    // We get all arguments and we create consecutive fors nested
-    for (int i = 0; i < iterator->arguments.size(); i++) {
-      Node *interval;
-      if (multiIterators)
-        interval = iterator->children[i];
-      else
-        interval = iterator->children[0];
-      std::string from = "0";
-      std::string to = "0";
+      // We get all arguments and we create consecutive fors nested
+      for (int i = 0; i < iterator->arguments.size(); i++) {
+        Node *interval;
+        if (multiIterators)
+          interval = iterator->children[i];
+        else
+          interval = iterator->children[0];
+        std::string from = "0";
+        std::string to = "0";
 
-      // De moment posem només ints
-      ObjectVariable *newVar = new ObjectVariable(env->FetchType("Int"),
-                                                  iterator->arguments[i]->data);
-      env->AddToScope(iterator->arguments[i]->data, newVar);
+        // De moment posem només ints
+        ObjectVariable *newVar = new ObjectVariable(
+            env->FetchType("Int"), iterator->arguments[i]->data);
+        env->AddToScope(iterator->arguments[i]->data, newVar);
+        std::cout << "ADDED TO SCEOPE " << iterator->arguments[i]->data << std::endl;
 
-      // TODO: Treure això
-      ObjectType *t, *fType, *tType;
-      std::string identifier = TranspileIdentifier(iterator->arguments[i], &t);
+        // TODO: Treure això
+        ObjectType *t, *fType, *tType;
+        std::string identifier =
+            TranspileIdentifier(iterator->arguments[i], &t);
 
-      if (interval->children.size() > 1) {
-        // TODO: Podem fer check netament de si són Int!!!
-        from = TranspileExpression(interval->children[0], &fType);
-        to = TranspileExpression(interval->children[1], &tType);
-      } else {
-        to = TranspileExpression(interval->children[0], &fType);
+        if (interval->children.size() > 1) {
+          // TODO: Podem fer check netament de si són Int!!!
+          from = TranspileExpression(interval->children[0], &fType);
+          to = TranspileExpression(interval->children[1], &tType);
+        } else {
+          to = TranspileExpression(interval->children[0], &fType);
+        }
+
+        res += "for(int " + identifier + " = ";
+        res += from + "; " + identifier + " <= " + to + "; " + identifier +
+               "++){{";
       }
+      // std::cout << iterator->arguments.size() << std::endl;
+std::cout << "SHOULD EXISTS" << std::endl;
+env->DumpEnvironment();
+      block = TranspileBlock(lup->children[0]);
+      env->PopScope();
+      res += block;
+      for (int i = 0; i < iterator->arguments.size(); i++)
+        res += "}}";
 
-      res += "for(int " + identifier + " = ";
-      res +=
-          from + "; " + identifier + " <= " + to + "; " + identifier + "++){{";
-    }
-    // std::cout << iterator->arguments.size() << std::endl;
-
-    block = TranspileBlock(lup->children[0]);
-    env->PopScope();
-    res += block;
-    for (int i = 0; i < iterator->arguments.size(); i++)
-      res += "}}";
-
-  } else {
-    // Simple while structure
-    if (lup->arguments.size() > 1) {
-      res += "for(" + TranspileAssignation(lup->arguments[0]) + "; ";
-
-      // Un altre cop això hauria d'avaluar a Bul
-      ObjectType *expType;
-      res += TranspileExpression(lup->arguments[1], &expType) + "; ";
-      res += TranspileAssignation(lup->arguments[2]) + ")";
     } else {
-      ObjectType *expType;
-      res += "while(" + TranspileExpression(lup->arguments[0], &expType) + ")";
-    }
+      // Simple while structure
+      if (lup->arguments.size() > 1) {
+        res += "for(" + TranspileAssignation(lup->arguments[0]) + "; ";
 
-    block = TranspileBlock(lup->children[0]);
-    env->PopScope();
-    res += "{{" + block + "}}";
+        // Un altre cop això hauria d'avaluar a Bul
+        ObjectType *expType;
+        res += TranspileExpression(lup->arguments[1], &expType) + "; ";
+        res += TranspileAssignation(lup->arguments[2]) + ")";
+      } else {
+        ObjectType *expType;
+        std::string exp = TranspileExpression(lup->arguments[0], &expType);
+
+        if (expType->Equals(env->FetchType("Int"))) {
+          res += "for(int i = 0; i < " + exp + "; i++)";
+        } else {
+          res += "while(" + exp + ")";
+        }
+      }
+
+    }
+  } else {
+    // Infinite lup
+    res += "for(;;)";
   }
+  block = TranspileBlock(lup->children[0]);
+  env->PopScope();
+  res += "{{" + block + "}}";
 
   return res;
 }
@@ -446,9 +478,11 @@ std::string Transpiler::TranspileFunction(ZagIR::Node *function) {
   std::string argPiled;
   std::string argType, argIdentifier;
 
+  func->identifier = function->data;
   env->AddToScope(function->data, func);
 
   env->PushScope();
+  std::cout << "Pushed function" << std::endl;
   for (int i = 0; i < function->arguments.size(); i++) {
     if (function->arguments[i]->type == ZagIR::NODE_TYPE) {
 
@@ -468,7 +502,7 @@ std::string Transpiler::TranspileFunction(ZagIR::Node *function) {
 
         env->AddToScope(argIdentifier, argVar);
 
-        func->functionArgs.push_back(argType->identifier); // TODO: Canviar
+        func->functionArgs.push_back(argType); // TODO: Canviar
 
         argPiled = argType->Transpile() + " " + argVar->Transpile();
         arguments += argPiled;
@@ -483,6 +517,7 @@ std::string Transpiler::TranspileFunction(ZagIR::Node *function) {
 
   returnType = env->FetchType(func->returnType)->Transpile();
 
+  std::cout << "Should remain" << std::endl;
   std::string defBlock = TranspileBlock(function->children[0]);
   env->PopScope();
 
@@ -509,13 +544,11 @@ std::string Transpiler::TranspileCall(ZagIR::Node *call,
                                       ObjectType **returnType) {
   // TODO: Comprovar que la funció existeix lmao
   ObjectFunction *func = dynamic_cast<ObjectFunction *>(env->Fetch(call->data));
-  std::string funcName = func->GetName();
-  *returnType = env->FetchType(func->returnType);
-  return TranspileGCall(func, call);
+  return TranspileGCall(func, call, returnType);
 }
 
-std::string Transpiler::TranspileGCall(ObjectFunction *func,
-                                       ZagIR::Node *call) {
+std::string Transpiler::TranspileGCall(ObjectFunction *func, ZagIR::Node *call,
+                                       ObjectType **returnType) {
   std::string args = "";
 
   std::vector<ObjectType *> argTypes;
@@ -535,11 +568,12 @@ std::string Transpiler::TranspileGCall(ObjectFunction *func,
     return "";
   }
 
-  ObjectCFunction *cFunc = dynamic_cast<ObjectCFunction*>(func);
-  if(cFunc != nullptr){
+  ObjectCFunction *cFunc = dynamic_cast<ObjectCFunction *>(func);
+  if (cFunc != nullptr) {
     cFunc->Use(env);
   }
 
+  *returnType = env->FetchType(func->returnType);
   return func->GetName() + "(" + args + ")";
 }
 
@@ -553,6 +587,8 @@ std::string Transpiler::TranspileGetter(ZagIR::Node *getter,
     ObjectContainer *scopedContainer = dynamic_cast<ObjectContainer *>(scoped);
 
     while ((scopedContainer != nullptr) && currentGetter->children.size() > 0) {
+
+      scoped->Print(0);
       currentGetter = currentGetter->children[0];
       if (!(currentGetter->type == ZagIR::NODE_GETTER ||
             currentGetter->type == ZagIR::NODE_CALL)) {
@@ -564,6 +600,7 @@ std::string Transpiler::TranspileGetter(ZagIR::Node *getter,
         scoped = scopedContainer->GetObject(currentGetter->data);
       } else
         scoped = scopedContainer->GetObject(currentGetter->arguments[0]->data);
+      scopedContainer = dynamic_cast<ObjectContainer *>(scoped);
     }
 
     if (currentGetter->type == NODE_GETTER) {
@@ -579,7 +616,7 @@ std::string Transpiler::TranspileGetter(ZagIR::Node *getter,
       // Add fileDeps and return
       ObjectFunction *ofunc = dynamic_cast<ObjectFunction *>(scoped);
       if (ofunc != nullptr) {
-        return TranspileGCall(ofunc, currentGetter);
+        return TranspileGCall(ofunc, currentGetter, returnType);
       } else {
         Logs::Error("Object is not a func (idk what happened)");
         return "";

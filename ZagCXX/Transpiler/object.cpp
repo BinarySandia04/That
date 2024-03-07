@@ -14,6 +14,7 @@ Object *ZagCXX::GetObjectFromBinding(Binding *b) {
   CType *ctype = dynamic_cast<CType *>(b);
   CFunction *cfunction = dynamic_cast<CFunction *>(b);
   Conversion *conversion = dynamic_cast<Conversion *>(b);
+  COperation *coperation = dynamic_cast<COperation *>(b);
 
   if (ctype != nullptr) {
     return new ObjectCType(ctype);
@@ -21,6 +22,8 @@ Object *ZagCXX::GetObjectFromBinding(Binding *b) {
     return new ObjectCFunction(cfunction);
   } else if (conversion != nullptr) {
     return new ObjectConversion(conversion);
+  } else if (coperation != nullptr){
+    return new ObjectCOperation(coperation);
   }
   return new ObjectEmpty();
 }
@@ -151,7 +154,6 @@ void ObjectCFunction::Print(int space) {
 }
 
 void ObjectCFunction::Use(Environment *t) {
-  std::cout << "Hola" << std::endl;
   for (int i = 0; i < cFunctionData->headers.size(); i++) {
     fs::path filePath =
         cFunctionData->package->path / "src" / cFunctionData->headers[i];
@@ -170,7 +172,7 @@ void ObjectNativeFunction::Print(int space) {
 void ObjectNativeFunction::Use(Environment *t){};
 
 std::string ObjectNativeFunction::GetName() {
-  return "_fn_" + this->identifier;
+  return "_f_" + this->identifier;
 }
 
 ObjectConversion::ObjectConversion(ZagIR::Conversion *conversion) {
@@ -240,6 +242,26 @@ bool ObjectNativeType::Equals(ObjectType *other) {
 std::string ObjectNativeType::Transpile() {
   std::cout << "Transpiling ObjectNativeType" << std::endl;
   return "";
+}
+
+ObjectCOperation::ObjectCOperation(COperation* operation){
+  this->cOperationData = operation;
+}
+
+void ObjectCOperation::Print(int n){
+  std::cout << "[ObjectCOperation]" << std::endl;
+}
+
+std::string ObjectCOperation::GetName(){
+  return this->cOperationData->foundBind;
+}
+
+void ObjectCOperation::Use(Environment* t){
+  for (int i = 0; i < cOperationData->headers.size(); i++) {
+    fs::path filePath =
+        cOperationData->package->path / "src" / cOperationData->headers[i];
+    t->AddInclude(filePath);
+  }
 }
 
 /*

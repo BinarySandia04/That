@@ -4,5 +4,7 @@
 
 namespace io {
 void Print(std::string s);
-int Test();
+void PrintLn(std::string s);
+int ReadInt(std::string s);
+std::string ReadStr(std::string s);
 }; // namespace io

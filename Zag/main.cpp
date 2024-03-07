@@ -107,6 +107,7 @@ void PrintPackageInfo(ZagIR::Package *package) {
     CFunction *cfunc = dynamic_cast<CFunction *>(bind);
     CType *ctype = dynamic_cast<CType *>(bind);
     Conversion *conversion = dynamic_cast<Conversion *>(bind);
+    COperation *coperation = dynamic_cast<COperation *>(bind);
 
     if (cfunc != nullptr) {
       PrintBindStatus("F", bind);
@@ -133,14 +134,23 @@ void PrintPackageInfo(ZagIR::Package *package) {
     } else if (conversion != nullptr) {
       if (conversion->implicit) {
         PrintBindStatus("c", bind);
-        std::cout << conversion->lType << " => " << conversion->rType;
+        std::cout << conversion->fromType << " => " << conversion->toType;
       } else {
         PrintBindStatus("C", bind);
-        std::cout << conversion->lType << " => " << conversion->rType;
+        std::cout << conversion->fromType << " => " << conversion->toType;
 
         std::cout << " (" << conversion->bind << ")";
       }
       ok = ok && conversion->good;
+    } else if(coperation != nullptr){
+      if(coperation->implicit){
+        PrintBindStatus("o", bind);
+        std::cout << coperation->lType << " " << coperation->op << " " << coperation->rType << " => " << coperation->resType;
+      } else {
+        PrintBindStatus("O", bind);
+        std::cout << coperation->lType << " " << coperation->op << " " << coperation->rType << " => " << coperation->resType;
+        std::cout << " (" << coperation->bind << ")";
+      }
     }
 
     if(bind->good) std::cout << " [" << bind->foundBind << "]";
