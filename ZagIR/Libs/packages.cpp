@@ -144,8 +144,7 @@ void Package::LoadSubPackage(std::string subpackage) {
 }
 
 Package::~Package() {
-  for (int i = 0; i < binds.size(); i++)
-    delete binds[i];
+  for (int i = 0; i < binds.size(); i++) delete binds[i];
 }
 
 void Package::AddObjectsMap(std::string rootName, toml::table table,

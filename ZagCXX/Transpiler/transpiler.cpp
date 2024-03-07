@@ -25,21 +25,15 @@ Transpiler::Transpiler() {
   functionDeclaration = "";
 }
 
-Transpiler::~Transpiler() {}
+Transpiler::~Transpiler() {
+  for(int i = 0; i < loadedPackages.size(); i++) delete loadedPackages[i];
+  delete env;
+}
 
 void Transpiler::ThrowError(Node *node, std::string what) {
   // Hauria de canviar això en el futur
   Logs::Error(what);
 }
-
-/*
-std::string Transpiler::WriteFormat(std::string text) {
-  formatList.insert(std::make_pair(currentFormat, text));
-  std::string res = "{" + std::to_string(currentFormat) + "}";
-  currentFormat++;
-  return res;
-}
-*/
 
 std::string Transpiler::GenerateSource(Node *ast, std::string* cxxargs) {
   std::string main = "int main(){{";

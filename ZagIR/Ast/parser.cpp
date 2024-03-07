@@ -832,6 +832,8 @@ void Parser::Call(Node **call) {
     if (child->type == NODE_CALL) {
       if (child->data == "") {
         child->data = child->arguments[0]->data;
+        // Remove from memory
+        delete child->arguments[0];
         child->arguments.erase(child->arguments.begin());
       }
     }

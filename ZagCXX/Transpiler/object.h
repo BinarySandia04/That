@@ -56,6 +56,8 @@ private:
 
 class ObjectContainer : public Object {
 public:
+  ~ObjectContainer();
+
   void Print(int);
   void Use(Environment*);
 

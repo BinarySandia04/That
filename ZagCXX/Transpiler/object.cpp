@@ -52,6 +52,12 @@ ObjectType *ObjectVariable::GetType() { return type; }
 
 std::string ObjectVariable::Transpile() { return "_v_" + this->name; }
 
+ObjectContainer::~ObjectContainer(){
+  for(auto &p : containerData){
+    delete p.second;
+  }
+}
+
 void ObjectContainer::Print(int space) {
   std::cout << std::string(space, ' ') << "[ObjectContainer]" << std::endl;
   for (auto &p : containerData) {

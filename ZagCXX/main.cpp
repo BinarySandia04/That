@@ -64,6 +64,8 @@ void TranspileFile(std::string fileName) {
       } catch (ZagIR::Error error) {
         error.Print(code);
       }
+
+      file.close();
     } else {
       throw(std::string("Error opening file " + fileName));
       return;
@@ -100,6 +102,7 @@ void Transpile(std::string code, std::string fileName) {
 
   std::string transCode, cxxargs;
   transCode = transpiler.GenerateSource(ast, &cxxargs);
+  delete ast;
 
   if(programFlags & DEBUG){
     std::cout << termcolor::green << "CODE: " << termcolor::reset << std::endl << transCode << std::endl;
@@ -115,7 +118,6 @@ void Transpile(std::string code, std::string fileName) {
     std::ofstream tmpSourceOut(tmpSourcePath.string());
     tmpSourceOut << transCode;
     tmpSourceOut.close();
-    delete ast;
 
     if (Compile(tmpSourcePath, tmpOutPath, cxxargs)) {
       std::cout << termcolor::red << "Error compiling" << termcolor::reset

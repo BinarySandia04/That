@@ -33,6 +33,8 @@ void Scope::Print() {
 
 Environment::Environment() { PushScope(); }
 
+Environment::~Environment() {}
+
 void Environment::DumpEnvironment() {
   for (int i = 0; i < environment.size(); i++) {
     std::cout << "--------------------------------------------" << std::endl;
