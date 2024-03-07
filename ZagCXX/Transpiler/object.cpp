@@ -135,9 +135,10 @@ bool ObjectFunction::CheckArgs(std::vector<ObjectType *> &args) {
     return false;
   }
   for (int i = 0; i < args.size(); i++) {
-    if (args[i]->identifier !=
-        functionArgs[i]) // No m'agrada aquesta comparació
+    if (args[i]->identifier != functionArgs[i]){ // No m'agrada aquesta comparació
+      std::cout << args[i]->identifier << " " << functionArgs[i] << std::endl;
       return false;
+    }
   }
   return true;
 }

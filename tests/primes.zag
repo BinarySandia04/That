@@ -2,7 +2,6 @@ get 'std.io
 std.println("Anem a trobar nombres primers!!")
 r: Int = std.read.int("Posa un número: ")
 
-/*
 fn primers [r: Int] {
   lup i | 1, r {
     t: Bul = nop
@@ -11,20 +10,8 @@ fn primers [r: Int] {
         t = yep
       }
     } 
-    if !t: std.print(i)
+    if !t: std.println(i + "")
   }
-}
-
-primers(r)
-*/
-
-
-fn primers [r: Int]{
-  std.print(r)
-  lup i | 1, r {
-    std.print(i + "")
-  }
-
 }
 
 primers(r)

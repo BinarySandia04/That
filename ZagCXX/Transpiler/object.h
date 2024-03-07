@@ -78,7 +78,7 @@ public:
 
   bool CheckArgs(std::vector<ObjectType *> &);
 
-  std::vector<ObjectType*> functionArgs;
+  std::vector<std::string> functionArgs;
   std::string returnType;
 };
 
