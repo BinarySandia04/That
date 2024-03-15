@@ -4,7 +4,7 @@
 #endif
 
 #include "packages.h"
-#include "toml.h"
+#include <toml++/toml.hpp>
 
 #include "Logs/logs.h"
 #include "Utils/system.h"
@@ -150,8 +150,10 @@ void Package::LoadSubPackage(std::string subpackage) {
 }
 
 Package::~Package() {
-  for (int i = 0; i < binds.size(); i++)
+  for (int i = 0; i < binds.size(); i++) {
+    // std::cout << binds[i]->name << std::endl;
     delete binds[i];
+  }
 }
 
 void Package::AddObjectsMap(std::string rootName, toml::table table,
@@ -214,23 +216,25 @@ void Package::AddTypeMap(std::string rootName, toml::table table,
     toml::table t = *v.as_table();
     SetupBinding(type, t);
 
-    std::optional<bool> internal = t["internal"].value<bool>();
     std::optional<bool> global = t["global"].value<bool>();
     std::optional<std::string> parent = t["parent"].value<std::string>();
     std::optional<std::string> upgrades_to =
         t["upgrades_to"].value<std::string>();
+    std::optional<int> templates = t["templates"].value<int>();
 
     if (parent.has_value())
       type->parent = *parent;
-
-    if (internal.has_value())
-      type->internal = *internal;
 
     if (global.has_value())
       type->global = *global;
 
     if (upgrades_to.has_value())
       type->upgrades_to = *upgrades_to;
+
+    if (templates.has_value())
+      type->templates = *templates;
+    else
+      type->templates = 0;
 
     if (toml::array *arr = t["include"].as_array()) {
       for (int i = 0; i < arr->size(); i++) {
@@ -357,10 +361,8 @@ void Package::ComputeBinds() {
 
     CType *ctype = dynamic_cast<CType *>(binds[i]);
     if (ctype != nullptr) {
-      if (ctype->internal) {
-        binds[i]->good = true;
-        continue;
-      }
+      binds[i]->good = true;
+      continue;
     }
 
     Conversion *conversion = dynamic_cast<Conversion *>(binds[i]);

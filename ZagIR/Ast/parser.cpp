@@ -1,3 +1,4 @@
+#include <ZagIR/Ast/token.h>
 #include <initializer_list>
 #include <iostream>
 
@@ -664,8 +665,20 @@ void Parser::Primary(Node **exp) {
   }
   default:
     Panic("Unexpected primary type with lexeme " + t.lexeme);
-    break;
+    return;
   }
+
+  if (Match(TOKEN_LEFT_BRACKET)) {
+    Node *expression = *exp;
+    Node *index = new Node();
+    Bool(&index);
+    Node *accessor = new Node(NODE_ACCESSOR);
+    accessor->arguments.push_back(index);
+    accessor->children.push_back(expression);
+    *exp = accessor;
+    Expect(TOKEN_RIGHT_BRACKET, "Expected ']' at end of accessor");
+  }
+  // Check if we are inside an array
 }
 
 void Parser::Array(Node **array) {
@@ -687,6 +700,7 @@ void Parser::Array(Node **array) {
       return;
     }
   }
+  Expect(TOKEN_RIGHT_BRACKET, "Expected closing ']' at end of array");
 }
 
 void Parser::LupIterators(Node **iterators) {
@@ -993,3 +1007,4 @@ void Parser::Expression(Node **exp) {
   (*exp)->type = NODE_EXPRESSION;
   Bool(exp);
 }
+

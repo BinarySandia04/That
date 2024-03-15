@@ -12,7 +12,7 @@
 
 #include "argh.h"
 #include "termcolor.h"
-#include "toml.h"
+#include <toml++/toml.hpp>
 
 #include "ZagIR/Ast/ast.h"
 

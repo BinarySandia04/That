@@ -2,6 +2,7 @@
 
 #include "termcolor.h"
 
+#include <ZagIR/Logs/logs.h>
 #include <algorithm>
 #include <stdexcept>
 
@@ -12,10 +13,8 @@ void Scope::Delete() {
   for (auto &p : data) {
     // std::cout << termcolor::yellow << p.first << termcolor::reset << ": ";
     if (p.second != nullptr) {
-      /*
-      std::cout << "Deleted ";
-      p.second->Print();
-      */
+      // std::cout << "Deleted ";
+      // p.second->Print(0);
       delete p.second;
     }
   }
@@ -33,7 +32,12 @@ void Scope::Print() {
 
 Environment::Environment() { PushScope(); }
 
-Environment::~Environment() {}
+Environment::~Environment() {
+  // std::cout << termcolor::red << ScopeCount() << termcolor::reset <<
+  // std::endl;
+  PopScope();
+  reserved.Delete();
+}
 
 void Environment::DumpEnvironment() {
   std::cout << "-------------------- RESERVED: -------------------"
@@ -50,15 +54,19 @@ void Environment::DumpEnvironment() {
   std::cout << "--------------------------------------------" << std::endl;
 }
 void Environment::PushScope() {
-  // std::cout << "Pushed scope" << std::endl;
+  // std::cout << termcolor::green << "Pushed scope" << termcolor::reset <<
+  // std::endl;
   environment.push_back(Scope());
 }
 
 void Environment::PopScope() {
-  // std::cout << "Popped scope" << std::endl;
+  // std::cout << termcolor::red<< "Popped scope" << termcolor::reset <<
+  // std::endl;
   environment.back().Delete();
   environment.pop_back();
 }
+
+int Environment::ScopeCount() { return environment.size(); }
 
 void Environment::AddPackageToScope(ZagIR::Package *package) {
   ObjectContainer *packContainer = new ObjectContainer();
@@ -147,6 +155,10 @@ bool Environment::ExistsInScope(std::string key) {
   return environment.back().data.find(key) != environment.back().data.end();
 }
 
+bool Environment::ExistsInReserved(std::string key) {
+  return reserved.data.find(key) != reserved.data.end();
+}
+
 Object *Environment::Fetch(std::string key) {
   for (int i = environment.size() - 1; i >= 0; i--) {
     if (environment[i].data.find(key) != environment[i].data.end()) {
@@ -157,18 +169,98 @@ Object *Environment::Fetch(std::string key) {
 }
 
 Object *Environment::FetchRoot(std::string key) {
-  return environment[0].data[key];
+  if (environment[0].data.find(key) != environment[0].data.end())
+    return environment[0].data[key];
+  return nullptr;
 }
 
-ObjectType *Environment::FetchType(std::string key) {
-  // TODO: Suport per Type<> i que sigui safe?
-  ObjectType *t = dynamic_cast<ObjectType *>(FetchRoot(key));
-  if (t != nullptr) {
-    t->Use(this);
-    return t;
+Object *Environment::FetchReserved(std::string key) {
+  if (ExistsInReserved(key))
+    return reserved.data[key];
+  else
+    return nullptr;
+}
+
+ObjectProtoType *Environment::FetchProtoType(std::string key) {
+  ObjectProtoType *proto = dynamic_cast<ObjectProtoType *>(FetchRoot(key));
+  if (proto != nullptr) {
+    proto->Use(this);
+    return proto;
   } else {
-    throw std::runtime_error("Type " + key + " not found");
+    throw std::runtime_error("ProtoType " + key + " not found");
   }
+}
+
+ObjectType *Environment::FetchExistingType(std::string key) {
+  return dynamic_cast<ObjectType *>(FetchReserved(key));
+}
+
+ObjectType *Environment::FetchType(Node *type) {
+  Logs::Debug(recurseGetType(type));
+  return FetchType(recurseGetType(type));
+}
+
+// Recurse get type
+std::string Environment::recurseGetType(Node *type) {
+  std::string res = type->data;
+  if (type->children.size() > 0) {
+    res += "<";
+    for (int i = 0; i < type->children.size(); i++) {
+      res += type->children[i]->data;
+      if (i < type->children.size() - 1)
+        res += ",";
+    }
+    res += ">";
+  }
+  return res;
+}
+
+ObjectType *Environment::FetchType(std::string typeId) {
+  // TODO: Suport per Type<> i que sigui safe?
+  // T<A1<...>,A2<...>,...,AN<...>>
+  // Volem trobar el ProtoType T i després fetchejar recursivament els de dins
+
+  ObjectType *res;
+  res = FetchExistingType(typeId);
+  if (res != nullptr)
+    return res;
+
+  std::string baseProtoType = "";
+  int i = 0;
+  while (i < typeId.size() && typeId[i] != '<') {
+    baseProtoType += typeId[i];
+    i++;
+  }
+
+  if (i >= typeId.size()) {
+    // ProtoType terminal
+    res = FetchProtoType(baseProtoType)->Construct({}, this);
+    return res;
+  }
+
+  i++;
+  int stack = 0;
+  std::string argProtoType = "";
+  std::vector<ObjectType *> args;
+  do {
+    if (typeId[i] == '<')
+      stack++;
+    if (typeId[i] == '>')
+      stack--;
+
+    if ((typeId[i] == ',' && stack == 0) || stack == -1) {
+      args.push_back(FetchType(argProtoType));
+      argProtoType = "";
+      i++;
+    } else {
+      argProtoType += typeId[i];
+    }
+
+    i++;
+  } while (i < typeId.size() && stack > -1);
+
+  res = FetchProtoType(baseProtoType)->Construct(args, this);
+  return res;
 }
 
 ObjectCOperation *Environment::FetchOperation(ObjectType *ltype,
@@ -178,6 +270,9 @@ ObjectCOperation *Environment::FetchOperation(ObjectType *ltype,
     if (operation != nullptr) {
       if (operation->cOperationData->lType == ltype->identifier &&
           operation->cOperationData->rType == rtype->identifier) {
+        Usable *u = dynamic_cast<Usable *>(operation);
+        if (u != nullptr)
+          u->Use(this);
         return operation;
       }
     }

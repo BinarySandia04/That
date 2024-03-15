@@ -1,9 +1,0 @@
-get 'std.io
-
-a = 1
-lup a {
-  gay = std.read.str("Qui es gay? ")
-  std.println(gay + " es gay")
-  a += 1
-}
-

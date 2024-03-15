@@ -1,6 +1,7 @@
 #include "object.h"
 
 #include <iostream>
+#include <stdexcept>
 #include <string>
 
 #include <ZagIR/Logs/logs.h>
@@ -17,12 +18,12 @@ Object *ZagCXX::GetObjectFromBinding(Binding *b) {
   COperation *coperation = dynamic_cast<COperation *>(b);
 
   if (ctype != nullptr) {
-    return new ObjectCType(ctype);
+    return new ObjectProtoType(ctype);
   } else if (cfunction != nullptr) {
     return new ObjectCFunction(cfunction);
   } else if (conversion != nullptr) {
     return new ObjectConversion(conversion);
-  } else if (coperation != nullptr){
+  } else if (coperation != nullptr) {
     return new ObjectCOperation(coperation);
   }
   return new ObjectEmpty();
@@ -30,19 +31,13 @@ Object *ZagCXX::GetObjectFromBinding(Binding *b) {
 
 void Object::Print(int space) { std::cout << "[Object]" << std::endl; }
 
-void Object::Use(Environment *t) {}
-
 void ObjectEmpty::Print(int space) {
   std::cout << "[ObjectEmpty]" << std::endl;
 }
 
-void ObjectEmpty::Use(Environment *t){};
-
 void ObjectVariable::Print(int space) {
   std::cout << "[ObjectVariable]" << std::endl;
 }
-
-void ObjectVariable::Use(Environment *t){};
 
 ObjectVariable::ObjectVariable(ObjectType *type, std::string name) {
   this->type = type;
@@ -55,8 +50,8 @@ ObjectType *ObjectVariable::GetType() { return type; }
 
 std::string ObjectVariable::Transpile() { return "_v_" + this->name; }
 
-ObjectContainer::~ObjectContainer(){
-  for(auto &p : containerData){
+ObjectContainer::~ObjectContainer() {
+  for (auto &p : containerData) {
     delete p.second;
   }
 }
@@ -72,8 +67,6 @@ void ObjectContainer::Print(int space) {
       std::cout << "nullptr" << std::endl;
   }
 }
-
-void ObjectContainer::Use(Environment *t){};
 
 void ObjectContainer::AddObject(Object *obj, std::string path) {
   // FirstPart: io
@@ -126,8 +119,6 @@ void ObjectFunction::Print(int space) {
   std::cout << "[ObjectFunction]" << std::endl;
 }
 
-void ObjectFunction::Use(Environment *t){};
-
 std::string ObjectFunction::GetName() { return "_f_" + this->identifier; }
 
 bool ObjectFunction::CheckArgs(std::vector<ObjectType *> &args) {
@@ -135,7 +126,8 @@ bool ObjectFunction::CheckArgs(std::vector<ObjectType *> &args) {
     return false;
   }
   for (int i = 0; i < args.size(); i++) {
-    if (args[i]->identifier != functionArgs[i]){ // No m'agrada aquesta comparació
+    if (args[i]->identifier !=
+        functionArgs[i]) { // No m'agrada aquesta comparació
       std::cout << args[i]->identifier << " " << functionArgs[i] << std::endl;
       return false;
     }
@@ -170,11 +162,7 @@ void ObjectNativeFunction::Print(int space) {
   std::cout << "[ObjectNativeFunction]" << std::endl;
 }
 
-void ObjectNativeFunction::Use(Environment *t){};
-
-std::string ObjectNativeFunction::GetName() {
-  return "_f_" + this->identifier;
-}
+std::string ObjectNativeFunction::GetName() { return "_f_" + this->identifier; }
 
 ObjectConversion::ObjectConversion(ZagIR::Conversion *conversion) {
   this->conversion = conversion;
@@ -184,80 +172,90 @@ void ObjectConversion::Print(int space) {
   std::cout << "[ObjectConversion]" << std::endl;
 }
 
-void ObjectConversion::Use(Environment *t){};
+ObjectProtoType::ObjectProtoType(CType *cTypeInfo) {
+  this->cTypeInfo = cTypeInfo;
+}
+
+void ObjectProtoType::Print(int n) {
+  std::cout << "[ObjectProtoType]" << std::endl;
+}
+
+void ObjectProtoType::Use(Environment *env) {
+  Logs::Debug("Used");
+  for (int i = 0; i < cTypeInfo->headers.size(); i++) {
+    fs::path filePath =
+        cTypeInfo->package->path / "src" / cTypeInfo->headers[i];
+    env->AddInclude(filePath);
+  }
+  for (int i = 0; i < cTypeInfo->include.size(); i++){
+    env->AddInclude(cTypeInfo->include[i]);
+  }
+}
+
+ObjectType *ObjectProtoType::Construct(std::vector<ObjectType *> args,
+                                       Environment *env) {
+  // If we construct it we suppose that it doesnt exists
+  // We check first that the number of args are the same
+  Use(env);
+  if(args.size() != cTypeInfo->templates){
+    throw std::runtime_error("Tried to construct type with an invalid number of arguments.");
+    return nullptr;
+  }
+
+  ObjectType *constructed = new ObjectType();
+  constructed->children = args;
+  constructed->identifier = cTypeInfo->name;
+  constructed->translation = cTypeInfo->parent;
+  constructed->constructedBy = this;
+  if (args.size() > 0) {
+    constructed->identifier += "<";
+    for (int i = 0; i < args.size(); i++) {
+      constructed->identifier += args[i]->identifier;
+      if (i < args.size() - 1)
+        constructed->identifier += ",";
+    }
+    constructed->identifier += ">";
+  }
+
+  env->AddToReserved(constructed->identifier, constructed);
+  return constructed;
+}
 
 void ObjectType::Print(int space) { std::cout << "[ObjectType]" << std::endl; }
-
-void ObjectType::Use(Environment *t){};
 
 bool ObjectType::Equals(ObjectType *other) {
   // TODO
   return other->identifier == identifier;
 }
 
+bool ObjectType::ConstructedBy(ObjectProtoType *protoType){
+  return constructedBy == protoType && constructedBy != nullptr && protoType != nullptr;
+}
+
 std::string ObjectType::Transpile() {
-  std::cout << "Transpiling normal ObjectType" << std::endl;
-  return "";
+  std::string t = translation;
+
+  if (children.size() > 0) {
+    t += "<";
+    for (int i = 0; i < children.size(); i++) t += children[i]->Transpile();
+    t += ">";
+  }
+  return t;
 }
 
-std::string ObjectType::TranspileChildren() {
-  std::cout << "Transpile children" << std::endl;
-  return "";
-}
-
-ObjectCType::ObjectCType(ZagIR::CType *type) {
-  this->internal = type->internal;
-  this->translation = type->parent;
-  this->includes = type->include;
-  this->upgrades_to = type->upgrades_to;
-  this->identifier = type->name;
-}
-
-void ObjectCType::Print(int space) {
-  std::cout << "[ObjectType > ObjectCType]" << std::endl;
-}
-
-void ObjectCType::Use(Environment *t) {
-  for (int i = 0; i < includes.size(); i++)
-    t->AddInclude(includes[i]);
-};
-
-bool ObjectCType::Equals(ObjectType *other) {
-  // TODO
-  return other->identifier == identifier;
-}
-
-std::string ObjectCType::Transpile() { return translation; }
-
-void ObjectNativeType::Print(int space) {
-  std::cout << "[ObjectType > ObjectNativeType]" << std::endl;
-}
-
-void ObjectNativeType::Use(Environment *t){};
-
-bool ObjectNativeType::Equals(ObjectType *other) {
-  // TODO
-  return other->identifier == identifier;
-}
-
-std::string ObjectNativeType::Transpile() {
-  std::cout << "Transpiling ObjectNativeType" << std::endl;
-  return "";
-}
-
-ObjectCOperation::ObjectCOperation(COperation* operation){
+ObjectCOperation::ObjectCOperation(COperation *operation) {
   this->cOperationData = operation;
 }
 
-void ObjectCOperation::Print(int n){
+void ObjectCOperation::Print(int n) {
   std::cout << "[ObjectCOperation]" << std::endl;
 }
 
-std::string ObjectCOperation::GetName(){
+std::string ObjectCOperation::GetName() {
   return this->cOperationData->foundBind;
 }
 
-void ObjectCOperation::Use(Environment* t){
+void ObjectCOperation::Use(Environment *t) {
   for (int i = 0; i < cOperationData->headers.size(); i++) {
     fs::path filePath =
         cOperationData->package->path / "src" / cOperationData->headers[i];

@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "toml.h"
+#include <toml++/toml.hpp>
 
 namespace fs = std::filesystem;
 
@@ -49,7 +49,7 @@ public:
   std::string parent;
   std::string upgrades_to;
   std::vector<std::string> include;
-  bool internal;
+  int templates;
 };
 
 class Conversion : public Binding {

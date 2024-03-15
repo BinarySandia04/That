@@ -8,3 +8,4 @@ _build/
 .oldlibs/
 CMakeFiles/
 TODO
+vgcore.*

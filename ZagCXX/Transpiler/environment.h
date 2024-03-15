@@ -3,8 +3,11 @@
 #include <string>
 #include <vector>
 
+#include <ZagIR/Ast/node.h>
+
 #include "object.h"
 
+using namespace ZagIR;
 namespace fs = std::filesystem;
 
 namespace ZagCXX {
@@ -12,6 +15,7 @@ namespace ZagCXX {
 class Object;
 class ObjectType;
 class ObjectCOperation;
+class ObjectProtoType;
 
 class Scope {
 public:
@@ -29,6 +33,7 @@ public:
 
   void PushScope();
   void PopScope();
+  int ScopeCount();
 
   void AddPackageToScope(ZagIR::Package *package);
   void AddSubPackageToScope(ZagIR::Package *package, std::string subpackage);
@@ -46,14 +51,21 @@ public:
 
   bool ExistsInScope(std::string);
   bool Exists(std::string);
+  bool ExistsInReserved(std::string);
 
   Object *Fetch(std::string);
   Object *FetchRoot(std::string);
+  ObjectProtoType *FetchProtoType(std::string);
+  
   ObjectType *FetchType(std::string);
+  ObjectType *FetchType(Node*);
 
   Object* FetchReserved(std::string);
   ObjectCOperation *FetchOperation(ObjectType*, ObjectType*);
 private:
+  std::string recurseGetType(Node* );
+  ObjectType* FetchExistingType(std::string);
+
   std::vector<std::string> includes;
   std::vector<std::string> absoluteIncludes;
 

@@ -12,6 +12,8 @@
 #include "environment.h"
 #include "formatter.h"
 
+using namespace ZagIR;
+
 namespace ZagCXX {
 
 class Transpiler {
@@ -20,46 +22,46 @@ public:
   Transpiler();
   ~Transpiler();
 
-  std::string GenerateSource(ZagIR::Node *, std::string*);
+  std::string GenerateSource(Node *, std::string*);
 private:
 
   Environment* env;
 
-  ZagIR::Package *LoadPackage(std::string);
-  void LoadSubPackage(ZagIR::Package *, std::string);
-  ZagIR::Package *GetLoadedPackage(std::string);
+  Package *LoadPackage(std::string);
+  void LoadSubPackage(Package *, std::string);
+  Package *GetLoadedPackage(std::string);
 
-  void ThrowError(ZagIR::Node *, std::string);
+  void ThrowError(Node *, std::string);
 
   std::string GenerateIncludes();
 
-  std::string TranspileBlock(ZagIR::Node *);
-  std::string TranspileStatement(ZagIR::Node *);
-  std::string TranspileAssignation(ZagIR::Node *);
+  std::string TranspileBlock(Node *);
+  std::string TranspileStatement(Node *);
+  std::string TranspileAssignation(Node *, std::string *);
 
-  std::string TranspileIdentifier(ZagIR::Node *, ObjectType **);
-  std::string TranspileExpression(ZagIR::Node *, ObjectType **);
-  std::string TranspileBinary(ZagIR::Node *, ObjectType **);
-  std::string TranspileUnary(ZagIR::Node *, ObjectType **);
+  std::string TranspileIdentifier(Node *, ObjectType **);
+  std::string TranspileExpression(Node *, ObjectType **, std::string *);
+  std::string TranspileBinary(Node *, ObjectType **, std::string *);
+  std::string TranspileUnary(Node *, ObjectType **, std::string *);
 
-  std::string TranspileIf(ZagIR::Node *);
-  std::string TranspileLup(ZagIR::Node *);
-  std::string TranspileGet(ZagIR::Node *);
-  std::string TranspileReturn(ZagIR::Node *);
+  std::string TranspileIf(Node *, std::string *);
+  std::string TranspileLup(Node *, std::string *);
+  std::string TranspileGet(Node *);
+  std::string TranspileReturn(Node *, std::string *);
 
-  std::string TranspileCall(ZagIR::Node *, ObjectType **);
-
-  std::string TranspileGCall(ObjectFunction *, ZagIR::Node *, ObjectType**);
-
-  std::string TranspileGetter(ZagIR::Node *, ObjectType **);
-
-  std::string TranspileFunction(ZagIR::Node *);
+  std::string TranspileCall(Node *, ObjectType **, std::string *);
+  std::string TranspileGCall(ObjectFunction *, Node *, ObjectType**, std::string *);
+  std::string TranspileGetter(Node *, ObjectType **, std::string *);
+  std::string TranspileFunction(Node *);
+  
+  std::string TranspileArray(Node*, ObjectType**, std::string *);
+  std::string TranspileAccessor(Node*, ObjectType**, std::string *);
 
   std::string functionDeclaration;
   std::string functionDefinition;
 
   std::vector<std::string> includes;
-  std::vector<ZagIR::Package *> loadedPackages;
+  std::vector<Package *> loadedPackages;
 
   // std::set<std::string> fileDeps;
   // std::string GlobFileDeps();

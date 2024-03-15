@@ -6,11 +6,13 @@ _root = ""
 
 [_]
 [_._types]
-Int = {internal = true, global = true, parent = "int", upgrades_to = "Num"}
-Str = {internal = true, global = true, parent = "std::string", include = ["string"]}
-Bul = {internal = true, global = true, parent = "bool", upgrades_to = "Int"}
-Num = {internal = true, global = true, parent = "double"}
-Nil = {internal = true, global = true, parent = "void"}
+Int = {global = true, parent = "int", upgrades_to = "Num", templates = 0}
+Str = {global = true, parent = "std::string", include = ["string"], templates = 0}
+Bul = {global = true, parent = "bool", upgrades_to = "Int", templates = 0}
+Num = {global = true, parent = "double", templates = 0}
+Nil = {global = true, parent = "void", templates = 0}
+Arr = {global = true, parent = "std::vector", include = ["vector"], templates = 1 }
+Any = {global = true, parent = "std::any", include = ["any"]}
 
 # [_._conversions]
 # Implicit conversions
@@ -25,6 +27,7 @@ Nil = {internal = true, global = true, parent = "void"}
 [_._operations]
 str_plus_int = {bind = "StrPlusInt", ltype = "Str", rtype = "Int", op = "+", return = "Str", headers = ["operations.h"]}
 int_plus_str = {bind = "IntPlusStr", ltype = "Int", rtype = "Str", op = "+", return = "Str", headers = ["operations.h"]}
+
 
 #[_.io.print]
 #_function = {bind = "Print", args = ["Str"], return = "Nil"}

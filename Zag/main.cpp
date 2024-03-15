@@ -98,11 +98,15 @@ void PrintPackageInfo(ZagIR::Package *package) {
   std::string currentSubpackage = "__________________";
   for (int i = 0; i < package->binds.size(); i++) {
     Binding *bind = package->binds[i];
-    if(currentSubpackage != bind->subpackage){
+    if (currentSubpackage != bind->subpackage) {
       currentSubpackage = bind->subpackage;
-      if(currentSubpackage == "") std::cout << termcolor::bold << termcolor::cyan << "base" << termcolor::reset << ":" << std::endl;
-      else std::cout << termcolor::bold << currentSubpackage << termcolor::reset << ":" << std::endl; 
-    } 
+      if (currentSubpackage == "")
+        std::cout << termcolor::bold << termcolor::cyan << "base"
+                  << termcolor::reset << ":" << std::endl;
+      else
+        std::cout << termcolor::bold << currentSubpackage << termcolor::reset
+                  << ":" << std::endl;
+    }
 
     CFunction *cfunc = dynamic_cast<CFunction *>(bind);
     CType *ctype = dynamic_cast<CType *>(bind);
@@ -123,13 +127,8 @@ void PrintPackageInfo(ZagIR::Package *package) {
       std::cout << cfunc->retType;
       ok = ok && cfunc->good;
     } else if (ctype != nullptr) {
-      if (ctype->internal) {
-        PrintBindStatus("t", bind);
-        std::cout << ctype->name<< " ~> " << ctype->parent;
-      } else {
-        PrintBindStatus("T", bind);
-        std::cout << ctype->name<< " ~> " << ctype->parent;
-      }
+      PrintBindStatus("T", bind);
+      std::cout << ctype->name << " ~> " << ctype->parent;
 
     } else if (conversion != nullptr) {
       if (conversion->implicit) {
@@ -142,18 +141,21 @@ void PrintPackageInfo(ZagIR::Package *package) {
         std::cout << " (" << conversion->bind << ")";
       }
       ok = ok && conversion->good;
-    } else if(coperation != nullptr){
-      if(coperation->implicit){
+    } else if (coperation != nullptr) {
+      if (coperation->implicit) {
         PrintBindStatus("o", bind);
-        std::cout << coperation->lType << " " << coperation->op << " " << coperation->rType << " => " << coperation->resType;
+        std::cout << coperation->lType << " " << coperation->op << " "
+                  << coperation->rType << " => " << coperation->resType;
       } else {
         PrintBindStatus("O", bind);
-        std::cout << coperation->lType << " " << coperation->op << " " << coperation->rType << " => " << coperation->resType;
+        std::cout << coperation->lType << " " << coperation->op << " "
+                  << coperation->rType << " => " << coperation->resType;
         std::cout << " (" << coperation->bind << ")";
       }
     }
 
-    if(bind->good) std::cout << " [" << bind->foundBind << "]";
+    if (bind->good)
+      std::cout << " [" << bind->foundBind << "]";
 
     std::cout << std::endl;
   }

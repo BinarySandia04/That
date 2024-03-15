@@ -10,6 +10,7 @@
 namespace ZagCXX {
 
 class Object;
+class Usable;
 class ObjectType;
 class ObjectEmpty;
 class ObjectVariable;
@@ -17,10 +18,9 @@ class ObjectContainer;
 class ObjectFunction;
 class ObjectCFunction;
 class ObjectCOperation;
+class ObjectProtoType;
 class ObjectType;
-class ObjectCType;
 class Environment;
-class ObjectNativeType;
 
 Object *GetObjectFromBinding(ZagIR::Binding *);
 
@@ -29,20 +29,22 @@ public:
   Object(){};
   virtual ~Object(){};
   virtual void Print(int);
-  virtual void Use(Environment*);
   std::string identifier; // Hauriem de posar const XD
+};
+
+class Usable {
+public:
+  virtual void Use(Environment *){};
 };
 
 class ObjectEmpty : public Object {
 public:
   void Print(int);
-  void Use(Environment*);
 };
 
 class ObjectVariable : public Object {
 public:
   void Print(int);
-  void Use(Environment*);
   ObjectVariable(ObjectType *, std::string name);
 
   void SetType(ObjectType *);
@@ -60,7 +62,6 @@ public:
   ~ObjectContainer();
 
   void Print(int);
-  void Use(Environment*);
 
   void AddObject(Object *, std::string);
   void AddBinding(ZagIR::Binding *);
@@ -73,7 +74,6 @@ private:
 class ObjectFunction : public Object {
 public:
   void Print(int);
-  void Use(Environment*);
   virtual std::string GetName();
 
   bool CheckArgs(std::vector<ObjectType *> &);
@@ -82,12 +82,12 @@ public:
   std::string returnType;
 };
 
-class ObjectCFunction : public ObjectFunction {
+class ObjectCFunction : public ObjectFunction, public Usable {
 public:
   std::string GetName();
   ObjectCFunction(ZagIR::CFunction *);
   void Print(int);
-  void Use(Environment*);
+  void Use(Environment *);
 
 private:
   ZagIR::CFunction *cFunctionData;
@@ -97,62 +97,57 @@ class ObjectNativeFunction : public ObjectFunction {
 public:
   std::string GetName();
   void Print(int);
-  void Use(Environment*);
 };
 
 class ObjectConversion : public Object {
 public:
   ObjectConversion(ZagIR::Conversion *);
   void Print(int);
-  void Use(Environment*);
 
 private:
   ZagIR::Conversion *conversion;
 };
 
+// Objecte que crea classes
+class ObjectProtoType : public Object, public Usable {
+public:
+  ObjectProtoType(ZagIR::CType *);
+  void Print(int);
+  void Use(Environment *);
+  ObjectType *Construct(std::vector<ObjectType *>, Environment *);
+
+private:
+  // Com que els tipus de classe són purament C, els abstraim
+  // des d'aqui
+  ZagIR::CType *cTypeInfo;
+};
+
 class ObjectType : public Object {
 public:
   void Print(int);
-  void Use(Environment*);
-  virtual bool Equals(ObjectType *);
+  bool Equals(ObjectType *);
+  bool ConstructedBy(ObjectProtoType *);
 
+  std::string identifier;
+  std::string translation;
   std::string upgrades_to;
-  std::vector<ObjectVariable *> children;
+  std::vector<ObjectType *> children;
 
-  virtual std::string Transpile();
+  std::string Transpile();
 
 private:
-  std::string TranspileChildren();
+  ObjectProtoType* constructedBy;
+
+  friend class ObjectProtoType;
 };
 
-class ObjectCType : public ObjectType {
+class ObjectCOperation : public Object, public Usable {
 public:
-  ObjectCType(ZagIR::CType *);
+  std::string GetName();
+  ObjectCOperation(ZagIR::COperation *);
   void Print(int);
-  void Use(Environment*);
-  bool Equals(ObjectType *);
-
-  bool internal;
-  std::string translation;
-  std::vector<std::string> includes;
-
-  std::string Transpile();
-};
-
-class ObjectNativeType : public ObjectType {
-  bool Equals(ObjectType *);
-  void Print(int);
-  void Use(Environment*);
-  std::string Transpile();
-};
-
-class ObjectCOperation : public Object {
-  public:
-    std::string GetName();
-    ObjectCOperation(ZagIR::COperation *);
-    void Print(int);
-    void Use(Environment*);
-    ZagIR::COperation *cOperationData;
+  void Use(Environment *);
+  ZagIR::COperation *cOperationData;
 };
 
 } // namespace ZagCXX
