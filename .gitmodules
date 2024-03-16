@@ -10,12 +10,6 @@
 [submodule "external/tomlplusplus"]
 	path = external/tomlplusplus
 	url = https://github.com/marzer/tomlplusplus.git
-[submodule "external/cppparser/CppParser"]
-	path = external/cppparser/CppParser
-	url = https://github.com/satya-das/CppParser.git
-[submodule "external/cppparser/common"]
-	path = external/cppparser/common
-	url = https://github.com/satya-das/common.git
 [submodule "external/imgui"]
 	path = external/imgui
 	url = https://github.com/ocornut/imgui

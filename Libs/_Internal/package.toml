@@ -25,8 +25,8 @@ Any = {global = true, parent = "std::any", include = ["any"]}
 # num_to_str = {bind = "NumToString", from = "Num", to = "Str"}
 
 [_._operations]
-str_plus_int = {bind = "StrPlusInt", ltype = "Str", rtype = "Int", op = "+", return = "Str", headers = ["operations.h"]}
-int_plus_str = {bind = "IntPlusStr", ltype = "Int", rtype = "Str", op = "+", return = "Str", headers = ["operations.h"]}
+str_plus_int = {bind = "_internal::StrPlusInt", ltype = "Str", rtype = "Int", op = "+", return = "Str", headers = ["operations.h"]}
+int_plus_str = {bind = "_internal::IntPlusStr", ltype = "Int", rtype = "Str", op = "+", return = "Str", headers = ["operations.h"]}
 
 
 #[_.io.print]
