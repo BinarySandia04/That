@@ -36,7 +36,10 @@ add_executable(${PROJECT_NAME} ${ALL_FILES} ${resources})
 target_link_libraries(${PROJECT_NAME} PRIVATE
   ZagIR
 )
-target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../vendors") 
+
+target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../external") 
+target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../external/argh/include")
+target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../external/termcolor/include")
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../external/tomlplusplus/include")
 
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "zag")

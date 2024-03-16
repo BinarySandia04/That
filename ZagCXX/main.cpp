@@ -10,9 +10,9 @@
 #include <sys/types.h>
 #endif
 
-#include "argh.h"
-#include "termcolor.h"
-#include <toml++/toml.hpp>
+#include "argh/argh.h"
+#include "termcolor/termcolor.hpp"
+#include "toml++/toml.hpp"
 
 #include "ZagIR/Ast/ast.h"
 

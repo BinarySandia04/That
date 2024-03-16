@@ -6,7 +6,7 @@
 
 #include <ZagIR/Logs/logs.h>
 
-#include "termcolor.h"
+#include "termcolor/termcolor.hpp"
 
 using namespace ZagIR;
 using namespace ZagCXX;

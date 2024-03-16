@@ -7,8 +7,8 @@
 #include <stdexcept>
 #include <vector>
 
-#include "argh.h"
-#include "termcolor.h"
+#include "argh/argh.h"
+#include "termcolor/termcolor.hpp"
 
 #include <ZagIR/Libs/packages.h>
 #include <ZagIR/Logs/logs.h>

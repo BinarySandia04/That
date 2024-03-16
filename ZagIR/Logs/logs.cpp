@@ -1,7 +1,7 @@
 #include "logs.h"
 
 #include <stdint.h>
-#include "termcolor.h"
+#include "termcolor/termcolor.hpp"
 // Small hack will comment later
 #define TERMCOLOR_USE_ANSI_ESCAPE_SEQUENCES
 

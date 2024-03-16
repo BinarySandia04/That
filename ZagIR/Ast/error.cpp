@@ -1,6 +1,7 @@
 #include "error.h"
 
-#include "termcolor.h"
+#include <cstdint>
+#include "termcolor/termcolor.hpp"
 #include <iostream>
 #include <cmath>
 

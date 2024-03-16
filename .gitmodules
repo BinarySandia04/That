@@ -16,3 +16,9 @@
 [submodule "external/glfw"]
 	path = external/glfw
 	url = https://github.com/glfw/glfw
+[submodule "external/argh"]
+	path = external/argh
+	url = https://github.com/adishavit/argh
+[submodule "external/termcolor"]
+	path = external/termcolor
+	url = https://github.com/ikalnytskyi/termcolor

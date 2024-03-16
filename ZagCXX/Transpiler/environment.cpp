@@ -1,6 +1,6 @@
 #include "environment.h"
 
-#include "termcolor.h"
+#include "termcolor/termcolor.hpp"
 
 #include <ZagIR/Logs/logs.h>
 #include <algorithm>
