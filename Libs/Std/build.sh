@@ -7,8 +7,10 @@ cmake ../
 cmake --build . -j 
 cd ..
 
-sudo mkdir -p /usr/local/lib/zag/packages/Std 2>/dev/null
+# sudo mkdir -p /usr/local/lib/zag/packages/Std 2>/dev/null
+# sudo cp .build/libstd.so /usr/local/lib/zag/packages/Std/.
+# sudo cp package.toml /usr/local/lib/zag/packages/Std/.
+# sudo cp -r src /usr/local/lib/zag/packages/Std/.
 
-sudo cp .build/libstd.so /usr/local/lib/zag/packages/Std/.
-sudo cp package.toml /usr/local/lib/zag/packages/Std/.
-sudo cp -r src /usr/local/lib/zag/packages/Std/.
+mkdir -p ~/.zag/sources/Std
+cp -r * ~/.zag/sources/Std/.

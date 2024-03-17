@@ -2,8 +2,6 @@
 # sudo rm -R .build 2>/dev/null
 # sudo rm -R /usr/local/include/ZagIR/
 # ./build-vendors.sh
-sudo rm -R /usr/local/lib/zag
-
 sudo mkdir /usr/local/lib/zag 2>/dev/null
 sudo mkdir /usr/local/lib/zag/packages 2>/dev/null
 sudo mkdir /usr/local/lib/zag/binaries 2>/dev/null

@@ -4,6 +4,7 @@
 #include <sstream>
 #include <iostream>
 #include <string>
+#include <cinttypes>
 
 #include "termcolor/termcolor.hpp"
 
@@ -20,4 +21,8 @@ void Resource::RunScript(){
   }
 
   return;
+}
+
+std::string Resource::string(){
+  return std::string(mData, mSize);
 }

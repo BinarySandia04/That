@@ -7,7 +7,7 @@
 
 using namespace ZagCXX;
 
-std::string Formatter::Format(std::string preFormat, std::unordered_map<int, std::string> &formatList){
+std::string Formatter::Format(std::string preFormat, std::unordered_map<int, std::string> formatList){
   std::string formatted = "";
   std::string key = "";
 
@@ -25,7 +25,7 @@ std::string Formatter::Format(std::string preFormat, std::unordered_map<int, std
               key += preFormat[k];
               k++;
             }
-            i = k;
+            i = k + 1;
             try {
               formatted += formatList[std::stoi(key)];
             } catch (std::exception) {

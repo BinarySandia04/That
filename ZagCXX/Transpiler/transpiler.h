@@ -10,7 +10,7 @@
 #include <ZagIR/Libs/packages.h>
 
 #include "environment.h"
-#include "formatter.h"
+#include "../Formatter/formatter.h"
 
 using namespace ZagIR;
 
@@ -22,7 +22,7 @@ public:
   Transpiler();
   ~Transpiler();
 
-  std::string GenerateSource(Node *, std::string*);
+  std::string GenerateSource(Node *, std::string*, std::vector<std::string>*);
 private:
 
   Environment* env;

@@ -1,23 +1,25 @@
 #include "main.h"
 
+#include <ZagIR/Logs/logs.h>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <string>
-#ifdef __linux__
-#include <pwd.h>
-#include <sys/types.h>
-#endif
 
 #include "argh/argh.h"
+#include "resource.h"
 #include "termcolor/termcolor.hpp"
 #include "toml++/toml.hpp"
 
-#include "ZagIR/Ast/ast.h"
+#include <ZagIR/Ast/ast.h>
+#include <ZagIR/Utils/zagpath.h>
 
+#include "Formatter/formatter.h"
 #include "Transpiler/transpiler.h"
 #include "flags.h"
+
+namespace fs = std::filesystem;
 
 int main(int argc, char *argv[]) {
 
@@ -26,8 +28,8 @@ int main(int argc, char *argv[]) {
   if (cmdl[{"-d", "--debug"}]) {
     programFlags = programFlags | Flags::DEBUG;
   }
-
-  if(cmdl[{"-f", "--force"}]){
+  
+  if (cmdl[{"-f", "--force"}]) {
     programFlags = programFlags | Flags::FORCE;
   }
 
@@ -48,7 +50,7 @@ int main(int argc, char *argv[]) {
 }
 
 void TranspileFile(std::string fileName) {
-  if (std::filesystem::exists(fileName)) {
+  if (fs::exists(fileName)) {
     std::ifstream file;
     std::string code = "";
     std::string buffer;
@@ -83,56 +85,124 @@ void Transpile(std::string code, std::string fileName) {
   ZagCXX::Transpiler transpiler;
 
 #ifdef __linux
-  std::filesystem::path homePath =
-      std::filesystem::path(getenv("HOME")) / std::filesystem::path(".zag");
+  fs::path homePath = fs::path(getenv("HOME")) / fs::path(".zag");
 #elif _WIN32
   std::filesystem::path homePath(getenv("USERPROFILE"));
 #endif
 
-
-  if (!std::filesystem::is_directory(homePath) ||
-      !std::filesystem::exists(homePath)) {      // Check if src folder exists
-    std::filesystem::create_directory(homePath); // create src folder
-    std::cout << termcolor::yellow << "Created env directory" << termcolor::reset << std::endl;
+  if (!fs::is_directory(homePath) ||
+      !fs::exists(homePath)) {      // Check if src folder exists
+    fs::create_directory(homePath); // create src folder
+    std::cout << termcolor::yellow << "Created env directory"
+              << termcolor::reset << std::endl;
   }
 
-  std::filesystem::path tmpSourcePath(homePath /
-                                      std::filesystem::path("_tmp.cpp"));
-  std::filesystem::path tmpOutPath(homePath / std::filesystem::path("_tmp"));
+  // De moment serà _tmp, dependrà del projecte
+  fs::path tmpSourcePath(homePath / "_tmp");
+
+  // La regenerem cada cop per debugging
+  if (fs::exists(tmpSourcePath) && programFlags & DEBUG) {
+    fs::remove_all(tmpSourcePath);
+  }
+  if (!fs::is_directory(tmpSourcePath) || !fs::exists(tmpSourcePath)) {
+    fs::create_directory(tmpSourcePath);
+  }
+
+  if (!fs::exists(tmpSourcePath / "src")) {
+    fs::create_directory(tmpSourcePath / "src");
+  }
+
+  fs::path tmpSourceMainPath(tmpSourcePath / "main.cpp");
+  // fs::path tmpOutPath(homePath / std::filesystem::path("_tmp"));
 
   std::string transCode, cxxargs;
-  transCode = transpiler.GenerateSource(ast, &cxxargs);
+  std::vector<std::string> libNames;
+  transCode = transpiler.GenerateSource(ast, &cxxargs, &libNames);
   delete ast;
 
-  if(programFlags & DEBUG){
-    std::cout << termcolor::green << "CODE: " << termcolor::reset << std::endl << transCode << std::endl;
+  // We populate our source with the libs
+  for (int i = 0; i < libNames.size(); i++) {
+    fs::path zagUsrLib(ZAG_PATH);
+    fs::copy(homePath / "sources" / libNames[i] / "src",
+             tmpSourcePath / "src" / libNames[i],
+             fs::copy_options::overwrite_existing |
+                 fs::copy_options::recursive);
   }
 
-  std::ifstream tmpSourceIn(tmpSourcePath.string());
+  if (programFlags & DEBUG) {
+    std::cout << termcolor::green << "CODE: " << termcolor::reset << std::endl
+              << transCode << std::endl;
+  }
+
+  std::ifstream tmpSourceIn(tmpSourceMainPath.string());
   std::stringstream buffer;
   buffer << tmpSourceIn.rdbuf();
   std::string lastCode = buffer.str();
 
-  if (lastCode != transCode || !std::filesystem::exists(tmpOutPath) || programFlags & FORCE) {
+  if (lastCode != transCode || !fs::exists(tmpSourceMainPath) ||
+      programFlags & FORCE) {
 
-    std::ofstream tmpSourceOut(tmpSourcePath.string());
+    std::ofstream tmpSourceOut(tmpSourceMainPath.string());
     tmpSourceOut << transCode;
     tmpSourceOut.close();
 
+    // Generate CMakeFile.txt
+    Resource res = LOAD_RESOURCE(CMakeLists_txt, "CMakeLists.txt");
+    ZagCXX::Formatter formatter;
+    std::string cMakeListsContent =
+        formatter.Format(res.string(), {{1, "Project"}, {2, ""}});
+
+    std::ofstream tmpCMakeListsOut(tmpSourcePath / "CMakeLists.txt");
+    tmpCMakeListsOut << cMakeListsContent;
+    tmpCMakeListsOut.close();
+
+    CompileCMake(tmpSourcePath);
+    /*
     if (Compile(tmpSourcePath, tmpOutPath, cxxargs)) {
       std::cout << termcolor::red << "Error compiling" << termcolor::reset
                 << std::endl;
-      std::filesystem::remove(tmpSourcePath);
+      fs::remove(tmpSourcePath);
       return;
     }
+    */
   }
-  Run(tmpOutPath);
+  Logs::Success("Running...");
+  Run(tmpSourcePath / ".build" / "Project");
+  // Run(tmpOutPath);
 }
 
-int Compile(std::filesystem::path sourcePath, std::filesystem::path outPath, std::string cxxargs) {
-  std::string compileRun = "g++ " + cxxargs + " " + sourcePath.string() + " -o " + outPath.string();
-  if(programFlags & DEBUG) std::cout << termcolor::red << compileRun << termcolor::reset << std::endl;
-  return system(compileRun.c_str());
+// TODO: Windows???
+int CompileCMake(fs::path sourcePath) {
+  if (!fs::exists(sourcePath / ".build") ||
+      !fs::is_directory(sourcePath / ".build")) {
+    fs::create_directory(sourcePath / ".build");
+  }
+
+  fs::current_path(sourcePath / ".build");
+  if (programFlags & DEBUG) {
+    system("cmake ../");
+    system("cmake --build .");
+  } else {
+    Logs::Info("Compiling...");
+    system("cmake ../ >/dev/null");
+    system("cmake --build . >/dev/null");
+  }
+  return 0;
 }
 
-void Run(std::filesystem::path outPath) { system(outPath.string().c_str()); }
+/*
+int Compile(fs::path sourcePath, fs::path outPath, std::string cxxargs) {
+  std::string compileRun = "g++ " + cxxargs + " " + sourcePath.string() + " -o "
++ outPath.string(); if(programFlags & DEBUG) std::cout << termcolor::red <<
+compileRun << termcolor::reset << std::endl; return system(compileRun.c_str());
+}
+*/
+
+void Run(fs::path outPath) {
+
+  if (programFlags & DEBUG)
+    std::cout << termcolor::yellow
+              << "------------------ Exec -----------------------"
+              << termcolor::reset << std::endl;
+  system(outPath.string().c_str());
+}

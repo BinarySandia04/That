@@ -93,7 +93,7 @@ public:
 
   // Ok si es prescindible el resultat d'això s'hauria de separar a un arxiu
   // Dins del mateix lloc que el .so
-  void ComputeBinds();
+  // void ComputeBinds();
 
   void LoadSubPackage(std::string subPackage);
 

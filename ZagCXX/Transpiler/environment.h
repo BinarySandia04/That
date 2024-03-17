@@ -48,6 +48,7 @@ public:
 
   std::string GetIncludes();
   std::string GetCXXArgs();
+  void GetLibNames(std::vector<std::string> *);
 
   bool ExistsInScope(std::string);
   bool Exists(std::string);
@@ -68,6 +69,7 @@ private:
 
   std::vector<std::string> includes;
   std::vector<std::string> absoluteIncludes;
+  std::vector<std::string> packageNames;
 
   std::string cxxargs;
 

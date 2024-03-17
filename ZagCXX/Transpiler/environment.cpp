@@ -94,6 +94,7 @@ void Environment::AddPackageToScope(ZagIR::Package *package) {
   cxxargs += "-L" + package->path.string() +
              " -Wl,-rpath=" + package->path.string() + " -l" + package->name +
              " ";
+  packageNames.push_back(fs::path(package->path.string()).filename());
 }
 
 void Environment::AddSubPackageToScope(ZagIR::Package *package,
@@ -130,6 +131,7 @@ void Environment::AddInclude(std::string name) {
   }
 }
 
+// Dep
 void Environment::AddInclude(fs::path p) {
   if (std::find(absoluteIncludes.begin(), absoluteIncludes.end(), p.string()) ==
       absoluteIncludes.end()) {
@@ -138,7 +140,12 @@ void Environment::AddInclude(fs::path p) {
   }
 }
 
+// Dep
 std::string Environment::GetIncludes() { return includeGlob; }
+
+void Environment::GetLibNames(std::vector<std::string>* libNames){
+  *libNames = packageNames;
+}
 
 std::string Environment::GetCXXArgs() { return cxxargs; }
 
@@ -196,7 +203,7 @@ ObjectType *Environment::FetchExistingType(std::string key) {
 }
 
 ObjectType *Environment::FetchType(Node *type) {
-  Logs::Debug(recurseGetType(type));
+  // Logs::Debug(recurseGetType(type));
   return FetchType(recurseGetType(type));
 }
 

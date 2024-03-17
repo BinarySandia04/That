@@ -13,6 +13,7 @@
 #include <ZagIR/Libs/packages.h>
 #include <ZagIR/Logs/logs.h>
 #include <ZagIR/Utils/system.h>
+#include <ZagIR/Utils/zagpath.h>
 
 using namespace ZagIR;
 namespace fs = std::filesystem;
@@ -84,6 +85,7 @@ void WriteFiles(std::vector<Resource> res) {
   for (int i = 0; i < res.size(); i++) {
     fs::path currentPath = fs::current_path();
     std::cout << currentPath.string() << std::endl;
+    // TODO
   }
 }
 

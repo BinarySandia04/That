@@ -11,13 +11,13 @@ _subpackages = ["io"]
 # i llavors per executar
 # std.print
 [_.io._.print]
-_function = {bind = "Print(", args = ["Str"], return = "Nil", headers = ["io.h"]}
+_function = {bind = "io::Print", args = ["Str"], return = "Nil", headers = ["io.h"]}
 
 [_.io._.println]
-_function = {bind = "PrintLn", args = ["Str"], return = "Nil", headers = ["io.h"]}
+_function = {bind = "io::PrintLn", args = ["Str"], return = "Nil", headers = ["io.h"]}
 
 [_.io._.read.int]
-_function = {bind = "ReadInt", args = ["Str"], return = "Int", headers = ["io.h"]}
+_function = {bind = "io::ReadInt", args = ["Str"], return = "Int", headers = ["io.h"]}
 
 [_.io._.read.str]
-_function = {bind = "ReadStr", args = ["Str"], return = "Str", headers = ["io.h"]}
+_function = {bind = "io::ReadStr", args = ["Str"], return = "Str", headers = ["io.h"]}

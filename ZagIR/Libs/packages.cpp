@@ -1,12 +1,9 @@
 #include <stdexcept>
-#ifndef ZAG_PATH
-#define ZAG_PATH "/usr/local/lib/zag/"
-#endif
-
 #include "packages.h"
 
 #include "Logs/logs.h"
 #include "Utils/system.h"
+#include "Utils/zagpath.h"
 
 #include <algorithm>
 #include <filesystem>
@@ -15,20 +12,16 @@
 #include <string>
 #include <vector>
 
-// https://stackoverflow.com/questions/307765/how-do-i-check-if-an-objects-type-is-a-particular-subclass-in-c
-
 using namespace ZagIR;
 namespace fs = std::filesystem;
 
 void ZagIR::FetchPackages(std::vector<Package *> *packages) {
-  for (auto &p : fs::directory_iterator(ZAG_PATH "packages")) {
+  for (auto &p : fs::directory_iterator(ZAG_PATH / "sources")) {
     if (p.is_directory()) {
       if (fs::exists(p.path() / "package.toml")) {
         try {
-
           Package *pack = new Package(
               p.path(), toml::parse_file((p.path() / "package.toml").string()));
-          pack->ComputeBinds();
           packages->push_back(pack);
         } catch (int e) {
           throw std::runtime_error("Error parsing package.toml");
@@ -39,7 +32,7 @@ void ZagIR::FetchPackages(std::vector<Package *> *packages) {
 }
 
 Package *ZagIR::FetchPackage(std::string name) {
-  for (auto &p : std::filesystem::directory_iterator(ZAG_PATH "packages")) {
+  for (auto &p : std::filesystem::directory_iterator(ZAG_PATH / "sources")) {
     if (p.is_directory()) {
       if (std::filesystem::exists(p.path() / "package.toml")) {
         try {
@@ -50,7 +43,6 @@ Package *ZagIR::FetchPackage(std::string name) {
           if (packName.has_value()) {
             if (*packName == name) {
               Package *pack = new Package(p.path(), packageToml);
-              pack->ComputeBinds();
               return pack;
             }
           }
@@ -141,7 +133,7 @@ void Package::LoadSubPackage(std::string subpackage) {
       AddOperationsMap("", *subTable["_operations"].as_table(), subpackage);
 
     // No hauria pero idk
-    ComputeBinds();
+    // ComputeBinds();
     return;
   }
   throw std::runtime_error("Subpackage " + subpackage + "of " + name +
@@ -335,77 +327,6 @@ bool Package::EndsWith(std::string fullString, std::string ending) {
 
   return fullString.compare(fullString.size() - ending.size(), ending.size(),
                             ending) == 0;
-}
-
-void Package::ComputeBinds() {
-  fs::path path = this->path;
-  std::vector<std::string> mangles, demangles;
-  std::string nmm, nmdm;
-  nmm = Utils::Exec("nm -gDjUv " +
-                    (path / ("lib" + this->name + ".so")).string());
-  nmdm = Utils::Exec("nm -gDjUvC " +
-                     (path / ("lib" + this->name + ".so")).string());
-
-  auto nmmss = std::stringstream(nmm);
-  auto nmdmss = std::stringstream(nmdm);
-
-  for (std::string line; std::getline(nmmss, line, '\n');)
-    mangles.push_back(line);
-  for (std::string line; std::getline(nmdmss, line, '\n');)
-    demangles.push_back(line);
-
-  for (int i = 0; i < binds.size(); i++) {
-    binds[i]->good = false;
-    binds[i]->duped = false;
-
-    CType *ctype = dynamic_cast<CType *>(binds[i]);
-    if (ctype != nullptr) {
-      binds[i]->good = true;
-      continue;
-    }
-
-    Conversion *conversion = dynamic_cast<Conversion *>(binds[i]);
-    if (conversion != nullptr) {
-      if (conversion->implicit) {
-        binds[i]->good = true;
-        continue;
-      }
-    }
-
-    COperation *coperation = dynamic_cast<COperation *>(binds[i]);
-    if (coperation != nullptr) {
-      if (coperation->implicit) {
-        binds[i]->good = true;
-        continue;
-      }
-    }
-
-    int f = 0;
-    for (int j = 0; j < mangles.size(); j++) {
-
-      // std::cout << demangles[j] << " " << binds[i]->bind << std::endl;
-      if (demangles[j].find(binds[i]->bind) != std::string::npos) {
-        f++;
-
-        std::string firstManglePart = "";
-        for (int k = 0; k < demangles[j].size() && demangles[j][k] != '('; k++)
-          firstManglePart += demangles[j][k];
-        binds[i]->foundBind = firstManglePart;
-
-        binds[i]->realBind = mangles[j];
-
-        if (f > 1) {
-          binds[i]->good = false;
-          binds[i]->duped = true;
-          break;
-        }
-      }
-    }
-
-    if (f == 1) {
-      binds[i]->good = true;
-    }
-  }
 }
 
 CFunction::CFunction() {}

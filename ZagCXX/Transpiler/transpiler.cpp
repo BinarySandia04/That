@@ -36,15 +36,16 @@ void Transpiler::ThrowError(Node *node, std::string what) {
   Logs::Error(what);
 }
 
-std::string Transpiler::GenerateSource(Node *ast, std::string *cxxargs) {
+std::string Transpiler::GenerateSource(Node *ast, std::string *cxxargs, std::vector<std::string> *libNames) {
   std::string main = "int main(){";
 
-  env->DumpEnvironment();
+  // env->DumpEnvironment();
   std::string mainFunc = TranspileBlock(ast);
 
   std::string preFormat = env->GetIncludes() + functionDeclaration + main +
                           mainFunc + "}" + functionDefinition;
   *cxxargs = env->GetCXXArgs();
+  env->GetLibNames(libNames);
   // env->DumpEnvironment();
 
   return preFormat;
@@ -157,7 +158,7 @@ std::string Transpiler::TranspileAssignation(Node *assignation,
         Node *type = assignation->arguments[0];
 
         ogTypeStr = type->data;
-        Logs::Debug("Fetched type " + ogTypeStr);
+        // Logs::Debug("Fetched type " + ogTypeStr);
         ObjectType *declType = dynamic_cast<ObjectType *>(env->FetchType(type));
 
         if (declType == nullptr) {
@@ -471,7 +472,6 @@ std::string Transpiler::TranspileGet(ZagIR::Node *getNode) {
       LoadSubPackage(loadedPackage, subpackageName);
     }
 
-    loadedPackage->ComputeBinds();
   } else {
     lib = false;
     realImport = value.substr(1, value.size() - 2);
@@ -664,7 +664,7 @@ std::string Transpiler::TranspileArray(ZagIR::Node *array,
   }
   result += "}";
 
-  std::cout << result << std::endl;
+  // std::cout << result << std::endl;
 
   bool equals = true;
   // Polimorfismo?

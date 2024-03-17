@@ -1,6 +1,6 @@
 get 'std.io
 
 a: Int = 3
-
 b: Arr<Int> = []
+std.println("Hola ")
 

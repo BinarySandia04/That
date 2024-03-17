@@ -149,13 +149,13 @@ void ObjectCFunction::Print(int space) {
 void ObjectCFunction::Use(Environment *t) {
   for (int i = 0; i < cFunctionData->headers.size(); i++) {
     fs::path filePath =
-        cFunctionData->package->path / "src" / cFunctionData->headers[i];
+        fs::path("src") / cFunctionData->package->path.filename() / cFunctionData->headers[i];
     t->AddInclude(filePath);
   }
 }
 
 std::string ObjectCFunction::GetName() {
-  return this->cFunctionData->foundBind;
+  return this->cFunctionData->bind;
 }
 
 void ObjectNativeFunction::Print(int space) {
@@ -181,7 +181,7 @@ void ObjectProtoType::Print(int n) {
 }
 
 void ObjectProtoType::Use(Environment *env) {
-  Logs::Debug("Used");
+  // Logs::Debug("Used");
   for (int i = 0; i < cTypeInfo->headers.size(); i++) {
     fs::path filePath =
         cTypeInfo->package->path / "src" / cTypeInfo->headers[i];
