@@ -37,6 +37,7 @@ En aquests moments Zag es troba en fase de desenvolupament
 - [ ] Gestor de paquets
 - [ ] Web oficial de paquets de Zag
 - [ ] Documentació
+- [ ] Crear una mascota (Important !!!!!!)
 - [ ] Llibreria estàndard (std)
   - [ ] io (Input, output)
   - [ ] file (Fitxers)
