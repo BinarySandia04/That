@@ -53,6 +53,8 @@ public:
   bool ExistsInScope(std::string);
   bool Exists(std::string);
   bool ExistsInReserved(std::string);
+  
+  bool IsConcretedFrom(ObjectType*, std::string); // Type from left is concreted from right
 
   Object *Fetch(std::string);
   Object *FetchRoot(std::string);

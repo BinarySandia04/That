@@ -76,7 +76,7 @@ public:
   void Print(int);
   virtual std::string GetName();
 
-  bool CheckArgs(std::vector<ObjectType *> &);
+  bool CheckArgs(std::vector<ObjectType *> &, Environment *env);
 
   std::vector<std::string> functionArgs;
   std::string returnType;
@@ -126,17 +126,19 @@ class ObjectType : public Object {
 public:
   void Print(int);
   bool Equals(ObjectType *);
-  bool ConstructedBy(ObjectProtoType *);
+  bool AbstractedFrom(ObjectType *);
 
   std::string identifier;
   std::string translation;
   std::string upgrades_to;
+
+  // ObjectType *parent;
   std::vector<ObjectType *> children;
 
   std::string Transpile();
 
+  ObjectProtoType* constructor;
 private:
-  ObjectProtoType* constructedBy;
 
   friend class ObjectProtoType;
 };

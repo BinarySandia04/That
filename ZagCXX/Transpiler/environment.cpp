@@ -166,6 +166,9 @@ bool Environment::ExistsInReserved(std::string key) {
   return reserved.data.find(key) != reserved.data.end();
 }
 
+bool Environment::IsConcretedFrom(ObjectType* type, std::string from){
+}
+
 Object *Environment::Fetch(std::string key) {
   for (int i = environment.size() - 1; i >= 0; i--) {
     if (environment[i].data.find(key) != environment[i].data.end()) {

@@ -1,6 +1,6 @@
 get 'std.io
 
-a: Int = 3
-b: Arr<Int> = []
-std.println("Hola ")
+lup 10 {
+  std.println("Aixo es mostra 10 cops")
+}
 

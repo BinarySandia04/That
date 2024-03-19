@@ -1,3 +1,18 @@
 get 'std.io
+get 'std.arr
 
-std.println(3 + "")
+r: Int = std.read.int("Posa un num: ")
+std.println("Has posat: " + r)
+
+l: Arr<Int> = []
+lup i | r {
+  std.arr.push(l, i)
+}
+
+std.println("El array té " + std.arr.getsize(l) + " elements")
+
+lup i | r {
+  std.print(l[i] + " ")
+}
+std.println("")
+

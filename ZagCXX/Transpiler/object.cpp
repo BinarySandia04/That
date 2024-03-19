@@ -121,13 +121,16 @@ void ObjectFunction::Print(int space) {
 
 std::string ObjectFunction::GetName() { return "_f_" + this->identifier; }
 
-bool ObjectFunction::CheckArgs(std::vector<ObjectType *> &args) {
+bool ObjectFunction::CheckArgs(std::vector<ObjectType *> &args, Environment *env) {
   if (args.size() != functionArgs.size()) {
     return false;
   }
   for (int i = 0; i < args.size(); i++) {
-    if (args[i]->identifier !=
-        functionArgs[i]) { // No m'agrada aquesta comparació
+
+    if(functionArgs[i] == "Any") continue;
+
+    ObjectType* argType = env->FetchType(functionArgs[i]);
+    if(!args[i]->AbstractedFrom(argType)){
       std::cout << args[i]->identifier << " " << functionArgs[i] << std::endl;
       return false;
     }
@@ -148,15 +151,14 @@ void ObjectCFunction::Print(int space) {
 
 void ObjectCFunction::Use(Environment *t) {
   for (int i = 0; i < cFunctionData->headers.size(); i++) {
-    fs::path filePath =
-        fs::path("src") / cFunctionData->package->path.filename() / cFunctionData->headers[i];
+    fs::path filePath = fs::path("src") /
+                        cFunctionData->package->path.filename() /
+                        cFunctionData->headers[i];
     t->AddInclude(filePath);
   }
 }
 
-std::string ObjectCFunction::GetName() {
-  return this->cFunctionData->bind;
-}
+std::string ObjectCFunction::GetName() { return this->cFunctionData->bind; }
 
 void ObjectNativeFunction::Print(int space) {
   std::cout << "[ObjectNativeFunction]" << std::endl;
@@ -183,11 +185,11 @@ void ObjectProtoType::Print(int n) {
 void ObjectProtoType::Use(Environment *env) {
   // Logs::Debug("Used");
   for (int i = 0; i < cTypeInfo->headers.size(); i++) {
-    fs::path filePath =
-        cTypeInfo->package->path / "src" / cTypeInfo->headers[i];
+    fs::path filePath = fs::path("src") / cTypeInfo->package->path.filename() /
+                        cTypeInfo->headers[i];
     env->AddInclude(filePath);
   }
-  for (int i = 0; i < cTypeInfo->include.size(); i++){
+  for (int i = 0; i < cTypeInfo->include.size(); i++) {
     env->AddInclude(cTypeInfo->include[i]);
   }
 }
@@ -197,16 +199,21 @@ ObjectType *ObjectProtoType::Construct(std::vector<ObjectType *> args,
   // If we construct it we suppose that it doesnt exists
   // We check first that the number of args are the same
   Use(env);
-  if(args.size() != cTypeInfo->templates){
-    throw std::runtime_error("Tried to construct type with an invalid number of arguments.");
+
+  /*
+  if (args.size() != cTypeInfo->templates) {
+    throw std::runtime_error(
+        "Tried to construct type with an invaliof arguments.");
     return nullptr;
   }
+  */
 
   ObjectType *constructed = new ObjectType();
   constructed->children = args;
+
   constructed->identifier = cTypeInfo->name;
   constructed->translation = cTypeInfo->parent;
-  constructed->constructedBy = this;
+  constructed->constructor = this;
   if (args.size() > 0) {
     constructed->identifier += "<";
     for (int i = 0; i < args.size(); i++) {
@@ -223,13 +230,16 @@ ObjectType *ObjectProtoType::Construct(std::vector<ObjectType *> args,
 
 void ObjectType::Print(int space) { std::cout << "[ObjectType]" << std::endl; }
 
-bool ObjectType::Equals(ObjectType *other) {
-  // TODO
-  return other->identifier == identifier;
-}
+bool ObjectType::Equals(ObjectType *other) { return this == other; }
 
-bool ObjectType::ConstructedBy(ObjectProtoType *protoType){
-  return constructedBy == protoType && constructedBy != nullptr && protoType != nullptr;
+bool ObjectType::AbstractedFrom(ObjectType *abstract) {
+  if (abstract->constructor == constructor) {
+    bool res = true;
+    for (int i = 0; i < abstract->children.size(); i++)
+      res = res && children[i]->AbstractedFrom(abstract->children[i]);
+    return res;
+  }
+  return false;
 }
 
 std::string ObjectType::Transpile() {
@@ -237,7 +247,8 @@ std::string ObjectType::Transpile() {
 
   if (children.size() > 0) {
     t += "<";
-    for (int i = 0; i < children.size(); i++) t += children[i]->Transpile();
+    for (int i = 0; i < children.size(); i++)
+      t += children[i]->Transpile();
     t += ">";
   }
   return t;
@@ -251,14 +262,13 @@ void ObjectCOperation::Print(int n) {
   std::cout << "[ObjectCOperation]" << std::endl;
 }
 
-std::string ObjectCOperation::GetName() {
-  return this->cOperationData->foundBind;
-}
+std::string ObjectCOperation::GetName() { return this->cOperationData->bind; }
 
 void ObjectCOperation::Use(Environment *t) {
   for (int i = 0; i < cOperationData->headers.size(); i++) {
-    fs::path filePath =
-        cOperationData->package->path / "src" / cOperationData->headers[i];
+    fs::path filePath = fs::path("src") /
+                        cOperationData->package->path.filename() /
+                        cOperationData->headers[i];
     t->AddInclude(filePath);
   }
 }

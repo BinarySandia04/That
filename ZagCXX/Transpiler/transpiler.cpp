@@ -403,7 +403,7 @@ std::string Transpiler::TranspileLup(ZagIR::Node *lup, std::string *before) {
 
         res += "for(int " + identifier + " = ";
         res +=
-            from + "; " + identifier + " <= " + to + "; " + identifier + "++)";
+            from + "; " + identifier + " < " + to + "; " + identifier + "++)";
       }
       // std::cout << iterator->arguments.size() << std::endl;
     } else {
@@ -579,7 +579,7 @@ std::string Transpiler::TranspileGCall(ObjectFunction *func, ZagIR::Node *call,
       args += ",";
   }
 
-  if (!func->CheckArgs(argTypes)) {
+  if (!func->CheckArgs(argTypes, env)) {
     // ERROR
     Logs::Error("Invalid arguments");
     return "";
@@ -704,7 +704,7 @@ std::string Transpiler::TranspileAccessor(Node *accessor,
 
   // std::cout << "LeftType: " << containerType->Transpile() << " IndexType: "
   // << indexType->Transpile() << std::endl;
-  if (containerType->ConstructedBy(env->FetchProtoType("Arr"))) {
+  if (containerType->constructor == env->FetchProtoType("Arr")) {
     // std::cout << "Is from array" << std::endl;
     *returnType = containerType->children[0];
   }
