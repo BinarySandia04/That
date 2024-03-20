@@ -36,8 +36,16 @@ void ObjectEmpty::Print(int space) {
   std::cout << "[ObjectEmpty]" << std::endl;
 }
 
+Object* ObjectEmpty::Clone(){
+  return new ObjectEmpty();
+}
+
 void ObjectVariable::Print(int space) {
   std::cout << "[ObjectVariable]" << std::endl;
+}
+
+Object* ObjectVariable::Clone(){
+  return new ObjectVariable(type, name);
 }
 
 ObjectVariable::ObjectVariable(ObjectType *type, std::string name) {
@@ -75,6 +83,14 @@ void ObjectContainer::Print(int space) {
     else
       std::cout << "nullptr" << std::endl;
   }
+}
+
+Object* ObjectContainer::Clone(){
+  ObjectContainer* newContainer = new ObjectContainer();
+  for(auto &p : containerData){
+    newContainer->AddObject(p.second->Clone(), p.first);
+  }
+  return newContainer;
 }
 
 void ObjectContainer::AddObject(Object *obj, std::string path) {
@@ -124,8 +140,21 @@ Object *ObjectContainer::GetObject(std::string key) {
   return containerData[key];
 }
 
+void ObjectContainer::Merge(ObjectContainer* other){
+  for(auto &p : other->containerData){
+    AddObject(p.second->Clone(), p.first);
+  }
+}
+
 void ObjectFunction::Print(int space) {
   std::cout << "[ObjectFunction]" << std::endl;
+}
+
+Object* ObjectFunction::Clone(){
+  ObjectFunction* copy = new ObjectFunction();
+  copy->functionArgs = functionArgs;
+  copy->returnType = returnType;
+  copy->inheritedType = inheritedType;
 }
 
 void ObjectFunction::SetInheritedType(ObjectType *type) {
@@ -176,6 +205,10 @@ void ObjectCFunction::Print(int space) {
   std::cout << "[ObjectCFunction]" << std::endl;
 }
 
+Object* ObjectCFunction::Clone(){
+  return new ObjectCFunction(cFunctionData);
+}
+
 void ObjectCFunction::Use(Environment *t) {
   for (int i = 0; i < cFunctionData->headers.size(); i++) {
     fs::path filePath = fs::path("src") /
@@ -191,6 +224,10 @@ void ObjectNativeFunction::Print(int space) {
   std::cout << "[ObjectNativeFunction]" << std::endl;
 }
 
+Object* ObjectNativeFunction::Clone(){
+  return new ObjectNativeFunction();
+}
+
 std::string ObjectNativeFunction::GetName() { return "_f_" + this->identifier; }
 
 ObjectConversion::ObjectConversion(ZagIR::Conversion *conversion) {
@@ -199,6 +236,10 @@ ObjectConversion::ObjectConversion(ZagIR::Conversion *conversion) {
 
 void ObjectConversion::Print(int space) {
   std::cout << "[ObjectConversion]" << std::endl;
+}
+
+Object* ObjectConversion::Clone(){
+  return new ObjectConversion(conversion);
 }
 
 ObjectProtoType::ObjectProtoType(CType *cTypeInfo) {
@@ -252,6 +293,22 @@ ObjectType *ObjectProtoType::Construct(std::vector<ObjectType *> args,
 
 void ObjectType::Print(int space) { std::cout << "[ObjectType]" << std::endl; }
 
+Object* ObjectType::Clone(){
+  ObjectType* newType = new ObjectType();
+  newType->identifier = identifier;
+  newType->translation = translation;
+  newType->upgrades_to = upgrades_to;
+
+  for(int i = 0; i < children.size(); i++) newType->children.push_back(dynamic_cast<ObjectType*>(children[i]->Clone()));
+  newType->constructor = constructor;
+}
+
+Object* ObjectProtoType::Clone(){
+  ObjectProtoType* newProtoType = new ObjectProtoType(cTypeInfo);
+  newProtoType->typeMethods = dynamic_cast<ObjectContainer*>(typeMethods->Clone());
+  return newProtoType;
+}
+
 bool ObjectType::Equals(ObjectType *other) { return this == other; }
 
 bool ObjectType::AbstractedFrom(ObjectType *abstract) {
@@ -282,6 +339,10 @@ ObjectCOperation::ObjectCOperation(COperation *operation) {
 
 void ObjectCOperation::Print(int n) {
   std::cout << "[ObjectCOperation]" << std::endl;
+}
+
+Object* ObjectCOperation::Clone(){
+  return new ObjectCOperation(cOperationData);
 }
 
 std::string ObjectCOperation::GetName() { return this->cOperationData->bind; }

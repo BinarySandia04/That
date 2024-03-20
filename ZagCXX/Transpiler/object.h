@@ -31,6 +31,9 @@ public:
   Object(){};
   virtual ~Object(){};
   virtual void Print(int);
+
+  virtual Object* Clone() = 0;
+
   std::string identifier; // Hauriem de posar const XD
 };
 
@@ -42,11 +45,14 @@ public:
 class ObjectEmpty : public Object {
 public:
   void Print(int);
+  Object* Clone();
 };
 
 class ObjectVariable : public Object {
 public:
   void Print(int);
+  Object* Clone();
+
   ObjectVariable(ObjectType *, std::string name);
 
   void SetType(ObjectType *);
@@ -66,10 +72,12 @@ public:
   ~ObjectContainer();
 
   void Print(int);
+  Object* Clone();
 
   void AddObject(Object *, std::string);
   void AddBinding(Binding *);
   Object *GetObject(std::string);
+  void Merge(ObjectContainer *);
 
 private:
   std::unordered_map<std::string, Object *> containerData;
@@ -78,6 +86,8 @@ private:
 class ObjectFunction : public Object {
 public:
   void Print(int);
+  Object* Clone();
+
   void SetInheritedType(ObjectType *);
 
   virtual std::string GetName();
@@ -95,6 +105,8 @@ public:
   std::string GetName();
   ObjectCFunction(CFunction *);
   void Print(int);
+  Object* Clone();
+
   void Use(Environment *);
 
 private:
@@ -105,12 +117,14 @@ class ObjectNativeFunction : public ObjectFunction {
 public:
   std::string GetName();
   void Print(int);
+  Object* Clone();
 };
 
 class ObjectConversion : public Object {
 public:
   ObjectConversion(Conversion *);
   void Print(int);
+  Object* Clone();
 
 private:
   Conversion *conversion;
@@ -123,6 +137,7 @@ public:
   ~ObjectProtoType();
 
   void Print(int);
+  Object* Clone();
   void Use(Environment *);
   ObjectType *Construct(std::vector<ObjectType *>, Environment *);
 
@@ -137,6 +152,7 @@ private:
 class ObjectType : public Object {
 public:
   void Print(int);
+  Object* Clone();
   bool Equals(ObjectType *);
   bool AbstractedFrom(ObjectType *);
 
@@ -160,6 +176,7 @@ public:
   std::string GetName();
   ObjectCOperation(COperation *);
   void Print(int);
+  Object* Clone();
   void Use(Environment *);
   COperation *cOperationData;
 };

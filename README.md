@@ -40,7 +40,7 @@ En aquests moments Zag es troba en fase de desenvolupament
 - [ ] Documentació
 - [ ] Crear una mascota (Important !!!!!!)
 - [ ] Llibreria estàndard (std)
-  - [ ] io (Input, output)
+  - [X] io (Input, output)
   - [ ] file (Fitxers)
   - [ ] math (Matemàtiques)
   - [ ] random (Random)

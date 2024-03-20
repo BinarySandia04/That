@@ -17,4 +17,9 @@ std::string zstd::ReadStr(std::string s){
   return r;
 }
 
-
+double zstd::ReadNum(std::string s){
+  double d;
+  Print(s);
+  std::cin >> d;
+  return d;
+}

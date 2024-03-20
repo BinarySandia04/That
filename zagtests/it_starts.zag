@@ -1,6 +1,0 @@
-get 'std.io
-
-lup 10 {
-  std.println("Aixo es mostra 10 cops")
-}
-

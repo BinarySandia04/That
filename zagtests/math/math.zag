@@ -1,0 +1,8 @@
+get 'std.io
+get 'std.math
+
+x = std.read.num("Posa un valor per calcular coses: ")
+std.println("cos(x) = " + std.math.cos(x))
+std.println("sin(x) = " + std.math.sin(x))
+std.println("tan(x) = " + std.math.tan(x))
+

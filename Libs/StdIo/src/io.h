@@ -17,6 +17,7 @@ void PrintLn(T s){
 }
 
 int ReadInt(std::string s);
+double ReadNum(std::string s);
 std::string ReadStr(std::string s);
 
 }; // namespace io

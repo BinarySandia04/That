@@ -43,8 +43,12 @@ std::string Transpiler::GenerateSource(Node *ast, std::string *cxxargs,
 
   std::string mainFunc = TranspileBlock(ast);
 
+
   std::string preFormat = env->GetIncludes() + functionDeclaration + main +
                           mainFunc + "}" + functionDefinition;
+
+
+    env->DumpEnvironment();
   *cxxargs = env->GetCXXArgs();
   env->GetLibNames(libNames);
 
@@ -241,6 +245,7 @@ std::string Transpiler::TranspileExpression(Node *expression,
     expression->Debug(0);
     break;
   }
+
   return "";
 }
 
@@ -448,32 +453,10 @@ std::string Transpiler::TranspileGet(ZagIR::Node *getNode) {
     lib = true;
     realImport = value.substr(1, value.size() - 1);
 
-    /*
-    std::string packageName = "", subpackageName = "";
-    bool subpackage = false;
-    for (int i = 0; i < realImport.size(); i++) {
-      if (realImport[i] == '.' && !subpackage) {
-        subpackage = true;
-        continue;
-      }
-      if (!subpackage)
-        packageName += realImport[i];
-      else
-        subpackageName += realImport[i];
-    }
-    */
-
     Package *loadedPackage = GetLoadedPackage(realImport);
     if (loadedPackage == nullptr) {
       loadedPackage = LoadPackage(realImport);
     }
-
-    /*
-    if (subpackage) {
-      loadedPackage->LoadSubPackage(subpackageName);
-      LoadSubPackage(loadedPackage, subpackageName);
-    }
-    */
 
   } else {
     lib = false;
@@ -677,6 +660,8 @@ Object *Transpiler::NavigateContainer(Node **getter,
     // Més getters que el que hi ha al objecte
     // Podria donar support a constants???
     std::cout << "Invalid" << std::endl;
+
+    env->DumpEnvironment();
     throw std::logic_error("Error invalid getter");
   }
 

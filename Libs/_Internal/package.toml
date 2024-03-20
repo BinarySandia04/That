@@ -56,3 +56,5 @@ include = ["any"]
 [_operations]
 str_plus_int = {bind = "_internal::StrPlusInt", ltype = "Str", rtype = "Int", op = "+", return = "Str", headers = ["operations.h"]}
 int_plus_str = {bind = "_internal::IntPlusStr", ltype = "Int", rtype = "Str", op = "+", return = "Str", headers = ["operations.h"]}
+str_plus_num = {bind = "_internal::StrPlusNum", ltype = "Str", rtype = "Num", op = "+", return = "Str", headers = ["operations.h"]}
+num_plus_str = {bind = "_internal::NumPlusStr", ltype = "Num", rtype = "Str", op = "+", return = "Str", headers = ["operations.h"]}

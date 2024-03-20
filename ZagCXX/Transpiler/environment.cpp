@@ -88,9 +88,20 @@ void Environment::AddPackageToScope(ZagIR::Package *package) {
     }
   }
 
-  if (package->root != "")
-    AddToRoot(package->root, packContainer);
-  else
+  if (package->root != "") {
+    if (Exists(package->root)) {
+      // Hem de fer merge dels dos ObjectContainer s
+      ObjectContainer *oldContainer =
+          dynamic_cast<ObjectContainer *>(FetchRoot(package->root));
+      if (oldContainer == nullptr)
+        throw std::logic_error("Existing root is not a package");
+
+      oldContainer->Merge(packContainer);
+      delete packContainer;
+    } else {
+      AddToRoot(package->root, packContainer);
+    }
+  } else
     delete packContainer;
 
   // Now we load package to compiler
@@ -242,10 +253,10 @@ ObjectType *Environment::FetchType(std::string typeId) {
   std::string argProtoType = "";
   std::vector<ObjectType *> args;
   do {
-    if (typeId[i] == '<'){
+    if (typeId[i] == '<') {
       stack++;
     }
-    if (typeId[i] == '>'){
+    if (typeId[i] == '>') {
       stack--;
     }
 

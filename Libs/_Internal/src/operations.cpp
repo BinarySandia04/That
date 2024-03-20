@@ -9,3 +9,11 @@ std::string _internal::StrPlusInt(std::string s, int n){
 std::string _internal::IntPlusStr(int n, std::string s){
   return std::to_string(n) + s;
 }
+
+std::string _internal::NumPlusStr(double d, std::string s){
+  return std::to_string(d) + s;
+}
+
+std::string _internal::StrPlusNum(std::string s, double d){
+  return s + std::to_string(d);
+}
