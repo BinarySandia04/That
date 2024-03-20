@@ -719,13 +719,13 @@ void Parser::Interval(Node **interval) {
   (*interval)->type = NODE_INTERVAL;
   // We get the first expression
   Node *exp = new Node(NODE_EXPRESSION);
-  Primary(&exp);
+  Expression(&exp);
   (*interval)->children.push_back(exp);
 
   // If we have comma we consume a second one
   if (Match(TOKEN_COMMA)) {
     exp = new Node(NODE_EXPRESSION);
-    Primary(&exp);
+    Expression(&exp);
     (*interval)->children.push_back(exp);
   }
 }

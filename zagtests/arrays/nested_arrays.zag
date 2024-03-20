@@ -5,27 +5,27 @@ mx: Int = std.read.int("Introdueix x: ")
 my: Int = std.read.int("Introdueix y: ")
 
 fn mega_array [mx: Int, my: Int] {
-l: Arr<Arr<Int>> = []
-lup i | mx {
-  fila: Arr<Int> = []
-  lup j | my {
-    fila.push(i * j)
+  l: Arr<Arr<Int>> = []
+  lup i | mx {
+    fila: Arr<Int> = []
+    lup j | my {
+      fila.push(i * j)
+    }
+    l.push(fila)
   }
-  l.push(fila)
-}
-
-std.println("Array final:")
-std.print("[")
-lup i | mx {
+  
+  std.println("Array final:")
   std.print("[")
-  lup j | my {
-    std.print(l[i][j] + "")
-    if j < my - 1: std.print(", ")
+  lup i | l.size() {
+    std.print("[")
+    lup j | my {
+      std.print(l[i][j])
+      if j < my - 1: std.print(", ")
+    }
+    std.print("]")
+    if i < mx - 1: std.println(",")
   }
-  std.print("]")
-  if i < mx - 1: std.println(",")
-}
-std.println("]")
+  std.println("]")
 }
 
 mega_array(mx, my)

@@ -3,14 +3,6 @@
 #include <iostream>
 #include <string>
 
-void zstd::Print(std::string s){
-  std::cout << s;
-}
-
-void zstd::PrintLn(std::string s){
-  std::cout << s << std::endl;
-}
-
 int zstd::ReadInt(std::string s){
   int n;
   Print(s);

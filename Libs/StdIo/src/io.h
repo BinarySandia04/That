@@ -2,22 +2,21 @@
 
 #include <string>
 #include <vector>
+#include <iostream>
 
 namespace zstd {
-void Print(std::string s);
-void PrintLn(std::string s);
+
+template <typename T>
+void Print(T s){
+  std::cout << s;
+}
+
+template <typename T>
+void PrintLn(T s){
+  std::cout << s << std::endl;
+}
 
 int ReadInt(std::string s);
 std::string ReadStr(std::string s);
-
-template <typename T>
-void PushArr(std::vector<T>& vec, T element){
-  vec.push_back(element);
-}
-
-template <typename T>
-int GetArrSize(std::vector<T>& vec){
-  return vec.size();
-}
 
 }; // namespace io

@@ -10,7 +10,7 @@ fn primers [r: Int] {
         t = yep
       }
     } 
-    if !t: std.println(i + "")
+    if !t: std.println(i)
   }
 }
 

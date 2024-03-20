@@ -12,10 +12,10 @@ _root = "std"
 # i llavors per executar
 # std.print
 [_.print]
-_function = {bind = "zstd::Print", args = ["Str"], return = "Nil", headers = ["io.h"]}
+_function = {bind = "zstd::Print", args = ["Any"], return = "Nil", headers = ["io.h"]}
 
 [_.println]
-_function = {bind = "zstd::PrintLn", args = ["Str"], return = "Nil", headers = ["io.h"]}
+_function = {bind = "zstd::PrintLn", args = ["Any"], return = "Nil", headers = ["io.h"]}
 
 [_.read.int]
 _function = {bind = "zstd::ReadInt", args = ["Str"], return = "Int", headers = ["io.h"]}
