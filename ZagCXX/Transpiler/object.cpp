@@ -1,5 +1,6 @@
 #include "object.h"
 
+#include <exception>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -49,6 +50,14 @@ void ObjectVariable::SetType(ObjectType *type) { this->type = type; }
 ObjectType *ObjectVariable::GetType() { return type; }
 
 std::string ObjectVariable::Transpile() { return "_v_" + this->name; }
+
+ObjectContainer::ObjectContainer() {}
+
+ObjectContainer::ObjectContainer(std::vector<Binding *> *bindings) {
+  for (int i = 0; i < bindings->size(); i++) {
+    AddBinding((*bindings)[i]);
+  }
+}
 
 ObjectContainer::~ObjectContainer() {
   for (auto &p : containerData) {
@@ -119,19 +128,39 @@ void ObjectFunction::Print(int space) {
   std::cout << "[ObjectFunction]" << std::endl;
 }
 
+void ObjectFunction::SetInheritedType(ObjectType *type) {
+  this->inheritedType = type;
+  for (int i = 0; i < functionArgs.size(); i++) {
+    std::string arg = functionArgs[i];
+    if (arg.size() == 0)
+      continue; // ??? HUH
+    if (arg[0] == '$') {
+      try {
+        int posArg = std::stoi(arg.substr(1, arg.size() - 1)) - 1;
+        // std::cout << type->children[posArg]->identifier << std::endl;
+        functionArgs[i] = type->children[posArg]->identifier;
+      } catch (std::exception &ex) {
+        Logs::Error(ex.what());
+      }
+    }
+  }
+}
+
 std::string ObjectFunction::GetName() { return "_f_" + this->identifier; }
 
-bool ObjectFunction::CheckArgs(std::vector<ObjectType *> &args, Environment *env) {
+bool ObjectFunction::CheckArgs(std::vector<ObjectType *> &args,
+                               Environment *env) {
   if (args.size() != functionArgs.size()) {
     return false;
   }
   for (int i = 0; i < args.size(); i++) {
 
-    if(functionArgs[i] == "Any") continue;
+    if (functionArgs[i] == "Any")
+      continue;
 
-    ObjectType* argType = env->FetchType(functionArgs[i]);
-    if(!args[i]->AbstractedFrom(argType)){
-      std::cout << args[i]->identifier << " " << functionArgs[i] << std::endl;
+    ObjectType *argType = env->FetchType(functionArgs[i]);
+    if (!args[i]->AbstractedFrom(argType)) {
+      // std::cout << args[i]->identifier << " " << functionArgs[i] << std::endl;
       return false;
     }
   }
@@ -176,7 +205,10 @@ void ObjectConversion::Print(int space) {
 
 ObjectProtoType::ObjectProtoType(CType *cTypeInfo) {
   this->cTypeInfo = cTypeInfo;
+  this->typeMethods = new ObjectContainer(&(cTypeInfo->children));
 }
+
+ObjectProtoType::~ObjectProtoType() { delete typeMethods; }
 
 void ObjectProtoType::Print(int n) {
   std::cout << "[ObjectProtoType]" << std::endl;
@@ -199,14 +231,6 @@ ObjectType *ObjectProtoType::Construct(std::vector<ObjectType *> args,
   // If we construct it we suppose that it doesnt exists
   // We check first that the number of args are the same
   Use(env);
-
-  /*
-  if (args.size() != cTypeInfo->templates) {
-    throw std::runtime_error(
-        "Tried to construct type with an invaliof arguments.");
-    return nullptr;
-  }
-  */
 
   ObjectType *constructed = new ObjectType();
   constructed->children = args;
@@ -272,54 +296,3 @@ void ObjectCOperation::Use(Environment *t) {
     t->AddInclude(filePath);
   }
 }
-
-/*
-VarType::VarType() {
-  this->name = "Nil";
-  this->translation = "void";
-  this->includes = "";
-}
-
-VarType::VarType(std::string name, std::string translation,
-                 std::string includes) {
-  this->name = name;
-  this->translation = translation;
-  this->includes = includes;
-}
-
-std::string VarType::Transpile() {
-  std::string formatted = "";
-
-  for (int i = 0; i < translation.size(); i++) {
-    if (i < translation.size() - 1) {
-      switch (translation[i]) {
-      case '{':
-        i++;
-        if (translation[i + 1] != '{') {
-          formatted += TranspileChildren();
-        }
-        break;
-      case '}':
-        if (translation[i + 1] == '}') {
-          i++;
-        }
-        break;
-      default:
-        break;
-      }
-    }
-    formatted += translation[i];
-  }
-
-  return formatted;
-}
-
-std::string VarType::TranspileChildren(){
-  std::string res = "";
-  for(int i = 0; i < children.size(); i++){
-    res += children[i]->Transpile();
-    if(i < children.size() - 1) res += ",";
-  }
-  return res;
-}
-*/

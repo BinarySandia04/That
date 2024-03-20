@@ -1,29 +1,30 @@
 [_info]
-_name = "std"
-_display_name = "Zag Standard Library"
+_name = "StdIo"
+_import_name = "std.io"
+_display_name = "Zag standard input and output"
 _version = "0.1v"
-_root = ""
-_subpackages = ["io", "arr"]
+_root = "std"
+# _subpackages = ["io"]
 
 # Dins del subespai "io".
 # Aixo vol dir per importar es
 # get std.io
 # i llavors per executar
 # std.print
-[_.io._.print]
+[_.print]
 _function = {bind = "zstd::Print", args = ["Str"], return = "Nil", headers = ["io.h"]}
 
-[_.io._.println]
+[_.println]
 _function = {bind = "zstd::PrintLn", args = ["Str"], return = "Nil", headers = ["io.h"]}
 
-[_.io._.read.int]
+[_.read.int]
 _function = {bind = "zstd::ReadInt", args = ["Str"], return = "Int", headers = ["io.h"]}
 
-[_.io._.read.str]
+[_.read.str]
 _function = {bind = "zstd::ReadStr", args = ["Str"], return = "Str", headers = ["io.h"]}
 
-[_.arr._.arr.push]
-_function = {bind = "zstd::PushArr", args = ["Arr", "Any"], return = "Nil", headers = ["io.h"]}
 
-[_.arr._.arr.getsize]
-_function = {bind = "zstd::GetArrSize", args = ["Arr"], return = "Int", headers = ["io.h"]}
+#[_.arr._.arr.push]
+#_function = {bind = "zstd::PushArr", args = ["Arr", "Any"], return = "Nil", headers = ["io.h"]}
+#[_.arr._.arr.getsize]
+#_function = {bind = "zstd::GetArrSize", args = ["Arr"], return = "Int", headers = ["io.h"]}

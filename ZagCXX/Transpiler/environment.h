@@ -36,7 +36,6 @@ public:
   int ScopeCount();
 
   void AddPackageToScope(ZagIR::Package *package);
-  void AddSubPackageToScope(ZagIR::Package *package, std::string subpackage);
 
   void AddToRoot(std::string, Object*);
   void AddToScope(std::string, Object*);

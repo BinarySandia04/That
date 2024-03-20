@@ -7,7 +7,7 @@ sudo mkdir /usr/local/lib/zag/packages 2>/dev/null
 sudo mkdir /usr/local/lib/zag/binaries 2>/dev/null
 
 Libs/_Internal/build.sh
-Libs/Std/build.sh
+Libs/StdIo/build.sh
 
 mkdir .build 2>/dev/null
 

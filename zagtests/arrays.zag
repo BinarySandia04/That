@@ -1,5 +1,0 @@
-get 'std
-
-std.print("Arrays:")
-a = [1, 2, 3]
-lup i | 0, 2: std.print(a[i])

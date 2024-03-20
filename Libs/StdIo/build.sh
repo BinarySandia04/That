@@ -1,8 +1,8 @@
 #!/bin/bash
 cd "$(dirname "$0")"
 
-cd .build
 mkdir .build 2>/dev/null
+cd .build
 cmake ../
 cmake --build . -j 
 cd ..
@@ -12,5 +12,5 @@ cd ..
 # sudo cp package.toml /usr/local/lib/zag/packages/Std/.
 # sudo cp -r src /usr/local/lib/zag/packages/Std/.
 
-mkdir -p ~/.zag/sources/Std
-cp -r * ~/.zag/sources/Std/.
+mkdir -p ~/.zag/sources/StdIo
+cp -r * ~/.zag/sources/StdIo/.

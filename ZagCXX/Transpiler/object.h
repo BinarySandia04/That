@@ -7,6 +7,8 @@
 
 #include "environment.h"
 
+using namespace ZagIR;
+
 namespace ZagCXX {
 
 class Object;
@@ -22,7 +24,7 @@ class ObjectProtoType;
 class ObjectType;
 class Environment;
 
-Object *GetObjectFromBinding(ZagIR::Binding *);
+Object *GetObjectFromBinding(Binding *);
 
 class Object {
 public:
@@ -59,12 +61,14 @@ private:
 
 class ObjectContainer : public Object {
 public:
+  ObjectContainer();
+  ObjectContainer(std::vector<Binding*>*);
   ~ObjectContainer();
 
   void Print(int);
 
   void AddObject(Object *, std::string);
-  void AddBinding(ZagIR::Binding *);
+  void AddBinding(Binding *);
   Object *GetObject(std::string);
 
 private:
@@ -74,23 +78,27 @@ private:
 class ObjectFunction : public Object {
 public:
   void Print(int);
+  void SetInheritedType(ObjectType *);
+
   virtual std::string GetName();
 
   bool CheckArgs(std::vector<ObjectType *> &, Environment *env);
 
   std::vector<std::string> functionArgs;
   std::string returnType;
+private:
+  ObjectType *inheritedType;
 };
 
 class ObjectCFunction : public ObjectFunction, public Usable {
 public:
   std::string GetName();
-  ObjectCFunction(ZagIR::CFunction *);
+  ObjectCFunction(CFunction *);
   void Print(int);
   void Use(Environment *);
 
 private:
-  ZagIR::CFunction *cFunctionData;
+  CFunction *cFunctionData;
 };
 
 class ObjectNativeFunction : public ObjectFunction {
@@ -101,25 +109,29 @@ public:
 
 class ObjectConversion : public Object {
 public:
-  ObjectConversion(ZagIR::Conversion *);
+  ObjectConversion(Conversion *);
   void Print(int);
 
 private:
-  ZagIR::Conversion *conversion;
+  Conversion *conversion;
 };
 
 // Objecte que crea classes
 class ObjectProtoType : public Object, public Usable {
 public:
-  ObjectProtoType(ZagIR::CType *);
+  ObjectProtoType(CType *);
+  ~ObjectProtoType();
+
   void Print(int);
   void Use(Environment *);
   ObjectType *Construct(std::vector<ObjectType *>, Environment *);
 
+  ObjectContainer *typeMethods;
+
 private:
   // Com que els tipus de classe són purament C, els abstraim
   // des d'aqui
-  ZagIR::CType *cTypeInfo;
+  CType *cTypeInfo;
 };
 
 class ObjectType : public Object {
@@ -146,10 +158,10 @@ private:
 class ObjectCOperation : public Object, public Usable {
 public:
   std::string GetName();
-  ObjectCOperation(ZagIR::COperation *);
+  ObjectCOperation(COperation *);
   void Print(int);
   void Use(Environment *);
-  ZagIR::COperation *cOperationData;
+  COperation *cOperationData;
 };
 
 } // namespace ZagCXX

@@ -1,0 +1,6 @@
+get 'std.io
+
+l: Arr<Arr<Int>> = []
+// std.println("El array té " + l.size() + " elements")
+
+

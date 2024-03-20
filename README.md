@@ -33,6 +33,7 @@ En aquests moments Zag es troba en fase de desenvolupament
 - [X] Representació intermitja (ZagIR)
 - [X] Transpilador (ZagCXX) (S'accepten noms millors)
 - [ ] Binari principal per gestionar projectes (Zag) 
+- [ ] Canviar .toml per alguna cosa que doni menys fàstic
 - [ ] Intèrpret (VM) (ZagINT) (S'accepten noms millors)
 - [ ] Gestor de paquets
 - [ ] Web oficial de paquets de Zag

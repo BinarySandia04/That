@@ -70,7 +70,7 @@ int Environment::ScopeCount() { return environment.size(); }
 
 void Environment::AddPackageToScope(ZagIR::Package *package) {
   ObjectContainer *packContainer = new ObjectContainer();
-  packContainer->identifier = package->name;
+  packContainer->identifier = package->root;
 
   for (int i = 0; i < package->binds.size(); i++) {
     Binding *b = package->binds[i];
@@ -88,26 +88,16 @@ void Environment::AddPackageToScope(ZagIR::Package *package) {
     }
   }
 
-  AddToRoot(package->name, packContainer);
+  if (package->root != "")
+    AddToRoot(package->root, packContainer);
+  else
+    delete packContainer;
 
   // Now we load package to compiler
   cxxargs += "-L" + package->path.string() +
              " -Wl,-rpath=" + package->path.string() + " -l" + package->name +
              " ";
   packageNames.push_back(fs::path(package->path.string()).filename());
-}
-
-void Environment::AddSubPackageToScope(ZagIR::Package *package,
-                                       std::string subpackage) {
-  ObjectContainer *packageContainer =
-      dynamic_cast<ObjectContainer *>(Fetch(package->name));
-
-  for (int i = 0; i < package->binds.size(); i++) {
-    Binding *b = package->binds[i];
-    if (b->subpackage == subpackage) {
-      packageContainer->AddBinding(b);
-    }
-  }
 }
 
 void Environment::AddToRoot(std::string name, Object *obj) {
@@ -143,7 +133,7 @@ void Environment::AddInclude(fs::path p) {
 // Dep
 std::string Environment::GetIncludes() { return includeGlob; }
 
-void Environment::GetLibNames(std::vector<std::string>* libNames){
+void Environment::GetLibNames(std::vector<std::string> *libNames) {
   *libNames = packageNames;
 }
 
@@ -166,8 +156,7 @@ bool Environment::ExistsInReserved(std::string key) {
   return reserved.data.find(key) != reserved.data.end();
 }
 
-bool Environment::IsConcretedFrom(ObjectType* type, std::string from){
-}
+bool Environment::IsConcretedFrom(ObjectType *type, std::string from) {}
 
 Object *Environment::Fetch(std::string key) {
   for (int i = environment.size() - 1; i >= 0; i--) {
@@ -270,6 +259,7 @@ ObjectType *Environment::FetchType(std::string typeId) {
   } while (i < typeId.size() && stack > -1);
 
   res = FetchProtoType(baseProtoType)->Construct(args, this);
+  res->identifier = typeId;
   return res;
 }
 

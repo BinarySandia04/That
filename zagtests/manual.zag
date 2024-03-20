@@ -104,7 +104,7 @@ kin Entity {
   $ alive: Bol
 
   fn Debug {
-    "Gay"
+    std.println("Test")
   }
 }
 

@@ -28,7 +28,6 @@ private:
   Environment* env;
 
   Package *LoadPackage(std::string);
-  void LoadSubPackage(Package *, std::string);
   Package *GetLoadedPackage(std::string);
 
   void ThrowError(Node *, std::string);
@@ -57,14 +56,13 @@ private:
   std::string TranspileArray(Node*, ObjectType**, std::string *);
   std::string TranspileAccessor(Node*, ObjectType**, std::string *);
 
+  Object* NavigateContainer(Node**, ObjectContainer*);
+
   std::string functionDeclaration;
   std::string functionDefinition;
 
   std::vector<std::string> includes;
   std::vector<Package *> loadedPackages;
-
-  // std::set<std::string> fileDeps;
-  // std::string GlobFileDeps();
 
   int currentFormat;
   std::unordered_map<int, std::string> formatList;

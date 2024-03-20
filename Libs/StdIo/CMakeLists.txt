@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(std VERSION 0.1)
+project(stdio VERSION 0.1)
 
 # set(CMAKE_CPP_COMPILER c)
 

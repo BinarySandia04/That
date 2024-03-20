@@ -10,6 +10,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 
 using namespace ZagCXX;
 using namespace ZagIR;
@@ -36,17 +37,16 @@ void Transpiler::ThrowError(Node *node, std::string what) {
   Logs::Error(what);
 }
 
-std::string Transpiler::GenerateSource(Node *ast, std::string *cxxargs, std::vector<std::string> *libNames) {
+std::string Transpiler::GenerateSource(Node *ast, std::string *cxxargs,
+                                       std::vector<std::string> *libNames) {
   std::string main = "int main(){";
 
-  // env->DumpEnvironment();
   std::string mainFunc = TranspileBlock(ast);
 
   std::string preFormat = env->GetIncludes() + functionDeclaration + main +
                           mainFunc + "}" + functionDefinition;
   *cxxargs = env->GetCXXArgs();
   env->GetLibNames(libNames);
-  // env->DumpEnvironment();
 
   return preFormat;
 }
@@ -146,13 +146,11 @@ std::string Transpiler::TranspileAssignation(Node *assignation,
 
   if (assignation->children[0]->type == ZagIR::NODE_IDENTIFIER) {
     ogIdentifier = assignation->children[0]->data;
-    bool declaring = false;
 
     if (!env->Exists(ogIdentifier)) {
       ObjectVariable *newVariable = new ObjectVariable(expType, ogIdentifier);
       newVariable->SetType(expType);
 
-      declaring = true;
       if (assignation->arguments.size() > 0) {
         // Es typed
         Node *type = assignation->arguments[0];
@@ -180,12 +178,13 @@ std::string Transpiler::TranspileAssignation(Node *assignation,
            dynamic_cast<ObjectVariable *>(env->Fetch(ogIdentifier))
                ->Transpile() +
            " " + assignation->data + " " + Texpression;
-  } else if(assignation->children[0]->type == ZagIR::NODE_ACCESSOR){
+  } else if (assignation->children[0]->type == ZagIR::NODE_ACCESSOR) {
     // We are assigning an accessor
     // Podem tenir part de getters de moment ho ometem
-    Node* accessor = assignation->children[0];
-    ObjectType* accessorType;
-    std::string accessorStr = TranspileAccessor(accessor, &accessorType, before);
+    Node *accessor = assignation->children[0];
+    ObjectType *accessorType;
+    std::string accessorStr =
+        TranspileAccessor(accessor, &accessorType, before);
     return accessorStr + " = " + Texpression;
   }
 }
@@ -442,13 +441,13 @@ std::string Transpiler::TranspileLup(ZagIR::Node *lup, std::string *before) {
 std::string Transpiler::TranspileGet(ZagIR::Node *getNode) {
   std::string value = getNode->data;
   std::string realImport;
-  Package *package;
   bool lib;
   // std::cout << "Value size: " << value.size() << std::endl;
   if (value[0] == '\'') {
     lib = true;
     realImport = value.substr(1, value.size() - 1);
 
+    /*
     std::string packageName = "", subpackageName = "";
     bool subpackage = false;
     for (int i = 0; i < realImport.size(); i++) {
@@ -461,16 +460,19 @@ std::string Transpiler::TranspileGet(ZagIR::Node *getNode) {
       else
         subpackageName += realImport[i];
     }
+    */
 
-    Package *loadedPackage = GetLoadedPackage(packageName);
+    Package *loadedPackage = GetLoadedPackage(realImport);
     if (loadedPackage == nullptr) {
-      loadedPackage = LoadPackage(packageName);
+      loadedPackage = LoadPackage(realImport);
     }
 
+    /*
     if (subpackage) {
       loadedPackage->LoadSubPackage(subpackageName);
       LoadSubPackage(loadedPackage, subpackageName);
     }
+    */
 
   } else {
     lib = false;
@@ -603,47 +605,76 @@ std::string Transpiler::TranspileGetter(ZagIR::Node *getter,
     ZagIR::Node *currentGetter = getter;
 
     ObjectContainer *scopedContainer = dynamic_cast<ObjectContainer *>(scoped);
+    ObjectVariable *scopedVariable = dynamic_cast<ObjectVariable *>(scoped);
 
-    while ((scopedContainer != nullptr) && currentGetter->children.size() > 0) {
+    if (scopedContainer != nullptr) {
+      scoped = NavigateContainer(&currentGetter, scopedContainer);
 
-      // scoped->Print(0);
-      currentGetter = currentGetter->children[0];
-      if (!(currentGetter->type == ZagIR::NODE_GETTER ||
-            currentGetter->type == ZagIR::NODE_CALL)) {
-        // Ens hem quedat sense getters
-        std::cout << "Not reached till the end" << std::endl;
+      // En principi estariem al final de la cadena de getters.
+      // Podriem tenir una call o un identificador
+      if (currentGetter->type == NODE_CALL) {
+        // ZagIR::PackCall pack = scoped->GetCFunctionData();
+        // Add fileDeps and return
+        ObjectFunction *ofunc = dynamic_cast<ObjectFunction *>(scoped);
+        if (ofunc != nullptr) {
+          return TranspileGCall(ofunc, currentGetter, returnType, before);
+        } else {
+          Logs::Error("Object is not a func (idk what happened)");
+          return "";
+        }
       }
+      // Hem de carregar fileDeps
+    } else if (scopedVariable != nullptr) {
+      scopedContainer = scopedVariable->GetType()->constructor->typeMethods;
+      scoped = NavigateContainer(&currentGetter, scopedContainer);
 
-      if (currentGetter->type == ZagIR::NODE_CALL) {
-        scoped = scopedContainer->GetObject(currentGetter->data);
-      } else
-        scoped = scopedContainer->GetObject(currentGetter->arguments[0]->data);
-      scopedContainer = dynamic_cast<ObjectContainer *>(scoped);
-    }
-
-    if (currentGetter->type == NODE_GETTER) {
-      // Més getters que el que hi ha al objecte
-      // Podria donar support a constants???
-      std::cout << "Invalid" << std::endl;
-    }
-
-    // En principi estariem al final de la cadena de getters.
-    // Podriem tenir una call o un identificador
-    if (currentGetter->type == NODE_CALL) {
-      // ZagIR::PackCall pack = scoped->GetCFunctionData();
-      // Add fileDeps and return
-      ObjectFunction *ofunc = dynamic_cast<ObjectFunction *>(scoped);
-      if (ofunc != nullptr) {
-        return TranspileGCall(ofunc, currentGetter, returnType, before);
-      } else {
-        Logs::Error("Object is not a func (idk what happened)");
-        return "";
+      if (currentGetter->type == NODE_CALL) {
+        ObjectFunction *ofunc = dynamic_cast<ObjectFunction *>(scoped);
+        if (ofunc != nullptr) {
+          ofunc->SetInheritedType(scopedVariable->GetType());
+          return scopedVariable->Transpile() + "." + TranspileGCall(ofunc, currentGetter, returnType, before);
+        } else {
+          // A part, afegir mètodes aquí també
+          Logs::Error("Object is not a func (idk what happened)");
+          return "";
+        }
       }
     }
-    // Hem de carregar fileDeps
   }
   Logs::Error("Getter not cached");
   return "";
+}
+
+Object *Transpiler::NavigateContainer(Node **getter,
+                                      ObjectContainer *scopedContainer) {
+
+  Object *scoped;
+  while ((scopedContainer != nullptr) && (*getter)->children.size() > 0) {
+
+    *getter = (*getter)->children[0];
+    // (*getter)->Debug(0);
+    if (!((*getter)->type == ZagIR::NODE_GETTER ||
+          (*getter)->type == ZagIR::NODE_CALL)) {
+      // Ens hem quedat sense getters
+      std::cout << "Not reached till the end" << std::endl;
+    }
+
+    if ((*getter)->type == ZagIR::NODE_CALL)
+      scoped = scopedContainer->GetObject((*getter)->data);
+    else
+      scoped = scopedContainer->GetObject((*getter)->arguments[0]->data);
+
+    scopedContainer = dynamic_cast<ObjectContainer *>(scoped);
+  }
+
+  if ((*getter)->type == NODE_GETTER) {
+    // Més getters que el que hi ha al objecte
+    // Podria donar support a constants???
+    std::cout << "Invalid" << std::endl;
+    throw std::logic_error("Error invalid getter");
+  }
+
+  return scoped;
 }
 
 std::string Transpiler::TranspileArray(ZagIR::Node *array,
@@ -695,8 +726,6 @@ std::string Transpiler::TranspileAccessor(Node *accessor,
                                           std::string *before) {
   // Uhh això pot ser un array!
   ObjectType *containerType, *indexType;
-  std::cout << "Hola" << std::endl;
-  accessor->Debug(0);
   std::string content =
       TranspileExpression(accessor->children[0], &containerType, before);
   std::string index =
@@ -716,11 +745,6 @@ ZagIR::Package *Transpiler::LoadPackage(std::string packageName) {
   loadedPackages.push_back(package);
   env->AddPackageToScope(package);
   return package;
-}
-
-void Transpiler::LoadSubPackage(ZagIR::Package *package,
-                                std::string subpackage) {
-  env->AddSubPackageToScope(package, subpackage);
 }
 
 ZagIR::Package *Transpiler::GetLoadedPackage(std::string packageName) {
