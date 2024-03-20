@@ -137,7 +137,6 @@ void ObjectFunction::SetInheritedType(ObjectType *type) {
     if (arg[0] == '$') {
       try {
         int posArg = std::stoi(arg.substr(1, arg.size() - 1)) - 1;
-        // std::cout << type->children[posArg]->identifier << std::endl;
         functionArgs[i] = type->children[posArg]->identifier;
       } catch (std::exception &ex) {
         Logs::Error(ex.what());
@@ -154,13 +153,12 @@ bool ObjectFunction::CheckArgs(std::vector<ObjectType *> &args,
     return false;
   }
   for (int i = 0; i < args.size(); i++) {
-
     if (functionArgs[i] == "Any")
       continue;
 
     ObjectType *argType = env->FetchType(functionArgs[i]);
     if (!args[i]->AbstractedFrom(argType)) {
-      // std::cout << args[i]->identifier << " " << functionArgs[i] << std::endl;
+      Logs::Error(args[i]->identifier + " " + functionArgs[i]);
       return false;
     }
   }

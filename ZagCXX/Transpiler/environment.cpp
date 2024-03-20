@@ -205,7 +205,7 @@ std::string Environment::recurseGetType(Node *type) {
   if (type->children.size() > 0) {
     res += "<";
     for (int i = 0; i < type->children.size(); i++) {
-      res += type->children[i]->data;
+      res += recurseGetType(type->children[i]);
       if (i < type->children.size() - 1)
         res += ",";
     }
@@ -242,10 +242,12 @@ ObjectType *Environment::FetchType(std::string typeId) {
   std::string argProtoType = "";
   std::vector<ObjectType *> args;
   do {
-    if (typeId[i] == '<')
+    if (typeId[i] == '<'){
       stack++;
-    if (typeId[i] == '>')
+    }
+    if (typeId[i] == '>'){
       stack--;
+    }
 
     if ((typeId[i] == ',' && stack == 0) || stack == -1) {
       args.push_back(FetchType(argProtoType));

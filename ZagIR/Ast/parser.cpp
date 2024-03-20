@@ -574,13 +574,6 @@ void Parser::Get(Node **get) {
 
 void Parser::Type(Node **type) {
   (*type)->type = NODE_TYPE;
-
-  if (PeekType() == TOKEN_STAR) {
-    (*type)->data = "*";
-    Advance();
-    return;
-  }
-
   if (PeekType() == TOKEN_IDENTIFIER) {
     (*type)->data = Peek().literal;
     Advance();
@@ -592,14 +585,11 @@ void Parser::Type(Node **type) {
         return;
       }
       do {
-        if (PeekType() == TOKEN_IDENTIFIER || PeekType() == TOKEN_STAR) {
+        if (PeekType() == TOKEN_IDENTIFIER) {
           Node *subType = new Node;
-          bool isStar = PeekType() == TOKEN_STAR;
           Type(&subType);
 
           (*type)->children.push_back(subType);
-          if (!isStar)
-            Advance();
         }
         if (AtEnd()) {
           Panic("Reached end of file before closing type definition");
@@ -607,12 +597,9 @@ void Parser::Type(Node **type) {
         }
 
         if (Match(TOKEN_GREATER)) {
-          break;
+          return;
         }
       } while (Match(TOKEN_COMMA));
-
-      // All good if we get here
-      return;
     }
   } else {
     Panic("Expected type identifier");
@@ -668,14 +655,19 @@ void Parser::Primary(Node **exp) {
     return;
   }
 
-  if (Match(TOKEN_LEFT_BRACKET)) {
+  while (Match(TOKEN_LEFT_BRACKET)) {
     Node *expression = *exp;
+
     Node *index = new Node();
     Bool(&index);
+    
     Node *accessor = new Node(NODE_ACCESSOR);
+    
     accessor->arguments.push_back(index);
     accessor->children.push_back(expression);
+    
     *exp = accessor;
+    
     Expect(TOKEN_RIGHT_BRACKET, "Expected ']' at end of accessor");
   }
   // Check if we are inside an array

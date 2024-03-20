@@ -142,6 +142,7 @@ std::string Transpiler::TranspileAssignation(Node *assignation,
   std::string TtypeStr = "", Texpression;
 
   ObjectType *expType;
+
   Texpression = TranspileExpression(assignation->children[1], &expType, before);
 
   if (assignation->children[0]->type == ZagIR::NODE_IDENTIFIER) {
@@ -631,8 +632,13 @@ std::string Transpiler::TranspileGetter(ZagIR::Node *getter,
       if (currentGetter->type == NODE_CALL) {
         ObjectFunction *ofunc = dynamic_cast<ObjectFunction *>(scoped);
         if (ofunc != nullptr) {
+          std::vector<std::string> oldParams = ofunc->functionArgs;
+
           ofunc->SetInheritedType(scopedVariable->GetType());
-          return scopedVariable->Transpile() + "." + TranspileGCall(ofunc, currentGetter, returnType, before);
+          std::string res = scopedVariable->Transpile() + "." + TranspileGCall(ofunc, currentGetter, returnType, before);
+          
+          ofunc->functionArgs = oldParams;
+          return res;
         } else {
           // A part, afegir mètodes aquí també
           Logs::Error("Object is not a func (idk what happened)");
