@@ -98,6 +98,9 @@ std::string Transpiler::TranspileStatement(Node *statement) {
   case ZagIR::NODE_RET:
     exp = TranspileReturn(statement, &before);
     break;
+  case ZagIR::NODE_BRK:
+    exp = TranspileBrk(statement, &before);
+    break;
   case ZagIR::NODE_EXPRESSION:
   case ZagIR::NODE_ARRAY:
   case ZagIR::NODE_OP_BIN:
@@ -405,7 +408,6 @@ std::string Transpiler::TranspileLup(ZagIR::Node *lup, std::string *before) {
         } else {
           to = TranspileExpression(interval->children[0], &fType, before);
         }
-
         res += "for(int " + identifier + " = ";
         res +=
             from + "; " + identifier + " < " + to + "; " + identifier + "++)";
@@ -439,7 +441,12 @@ std::string Transpiler::TranspileLup(ZagIR::Node *lup, std::string *before) {
   block = TranspileBlock(lup->children[0]);
 
   env->PopScope();
-  res += "{" + block + "}";
+
+  // Implement label
+  res += "{" + block + "}\n";
+  if(lup->data != ""){
+    res += lup->data + ":\n";
+  }
 
   return res;
 }
@@ -539,6 +546,21 @@ std::string Transpiler::TranspileReturn(ZagIR::Node *ret, std::string *before) {
   }
 
   return "return " + exp + ";";
+}
+
+std::string Transpiler::TranspileBrk(Node *brk, std::string *before){
+  // TODO
+  std::string brkBody;
+  
+  if(brk->data == "") brkBody = "break;";
+  else brkBody = "goto " + brk->data + ";";
+
+  if(brk->children.size() > 0){
+    ObjectType* type; // Hauriem de veure que avalua a bool?
+    return "if(" + TranspileExpression(brk->children[0], &type, before) + ") " + brkBody;
+  }
+
+  return brkBody;
 }
 
 std::string Transpiler::TranspileCall(ZagIR::Node *call,

@@ -21,6 +21,7 @@ Scanner::Scanner(std::string code, std::string fileName) {
 
 bool Scanner::ScanTokens(std::vector<Token> *tokens, Error *error) {
   this->tokens = tokens;
+  this->beforeHadSeparator = false;
 
   while (!AtEnd() && !panic) {
     start = current;
@@ -28,7 +29,7 @@ bool Scanner::ScanTokens(std::vector<Token> *tokens, Error *error) {
   }
 
   *error = this->error;
-  tokens->push_back(Token(TOKEN_END_OF_FILE, "", "", current));
+  tokens->push_back(Token(TOKEN_END_OF_FILE, "", "", current, false));
 
   return !panic;
 }
@@ -168,6 +169,7 @@ void Scanner::ScanToken() {
   case '\t':
     break;
   case '\n':
+    beforeHadSeparator = true;
     break;
 
   case '"':
@@ -192,7 +194,8 @@ void Scanner::AddToken(TokenType type) { AddToken(type, ""); }
 
 void Scanner::AddToken(TokenType type, std::string content) {
   std::string text = source.substr(start, current - start);
-  tokens->push_back(Token(type, text, content, start + 1));
+  tokens->push_back(Token(type, text, content, start + 1, beforeHadSeparator));
+  if(beforeHadSeparator) beforeHadSeparator = false;
 }
 
 char Scanner::Advance() {

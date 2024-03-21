@@ -1,0 +1,25 @@
+get 'std.io
+
+std.println("Anem a trobar nombres primers!!")
+r: Int = std.read.int("Posa un número: ")
+
+fn primers [r: Int] {
+  lup 'mainlup i | 1, r {
+    t: Bul = nop
+    lup j: Int = 2 | j < i | j += 1 {
+      if i % j == 0: brk
+      if j == 30 {
+        std.println("No faré més de 30 trenco el lup de dalt")
+        brk 'mainlup
+      }
+      if j > i / 2 {
+        std.println(i)
+        brk
+      }
+    } 
+  }
+}
+
+primers(r)
+
+

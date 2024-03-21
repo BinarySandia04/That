@@ -30,6 +30,8 @@ private:
   int line;
   int column;
 
+  bool beforeHadSeparator;
+
   bool AtEnd();
   char Advance();
   void AddToken(TokenType);

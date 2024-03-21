@@ -33,6 +33,7 @@ private:
 
   bool Match(TokenType);
   bool MatchAny(std::initializer_list<TokenType>);
+  bool MatchWithoutSeparator(TokenType);
 
   void EnterPanic(int, int, std::string);
   void EnterPanic(Token, std::string);

@@ -91,8 +91,9 @@ public:
   int offset;
   
   std::string literal;
+  bool separator; // Si té després un '\n'
 
-  Token(TokenType type, std::string lexeme, std::string literal, int offset);
+  Token(TokenType type, std::string lexeme, std::string literal, int offset, bool separator);
   std::string ToString();
 
 private:

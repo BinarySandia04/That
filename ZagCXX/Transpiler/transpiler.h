@@ -47,6 +47,7 @@ private:
   std::string TranspileLup(Node *, std::string *);
   std::string TranspileGet(Node *);
   std::string TranspileReturn(Node *, std::string *);
+  std::string TranspileBrk(Node *, std::string *);
 
   std::string TranspileCall(Node *, ObjectType **, std::string *);
   std::string TranspileGCall(ObjectFunction *, Node *, ObjectType**, std::string *);

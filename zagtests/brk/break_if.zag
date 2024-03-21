@@ -1,0 +1,10 @@
+get 'std.io
+
+
+lup 'main {
+  lup i | 10 {
+    std.println(i)
+    brk 'main if i > 4
+  }
+}
+

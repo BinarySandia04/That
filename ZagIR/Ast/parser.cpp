@@ -58,6 +58,14 @@ bool Parser::Match(TokenType type) {
   return false;
 }
 
+bool Parser::MatchWithoutSeparator(TokenType type){
+  if(PeekType() == type && !Peek().separator){
+    Advance();
+    return true;
+  }
+  return false;
+}
+
 bool Parser::MatchAny(std::initializer_list<TokenType> types) {
   for (TokenType type : types) {
     if (Match(type))
@@ -489,7 +497,7 @@ void Parser::Brk(Node **brk) {
     Advance();
   }
 
-  if (Match(TOKEN_IF)) {
+  if (MatchWithoutSeparator(TOKEN_IF)) {
     Node *exp = new Node(NODE_EXPRESSION);
     Expression(&exp);
     (*brk)->children.push_back(exp);
@@ -749,7 +757,7 @@ void Parser::Unary(Node **exp) {
 
     Node *operand = new Node(NODE_EXPRESSION);
 
-    Primary(&operand);
+    Call(&operand);
     (*exp)->children.push_back(operand);
 
   } else {
@@ -934,6 +942,7 @@ void Parser::Comparison(Node **exp) {
     comparison->children.push_back(*exp);
 
     second = new Node(NODE_EXPRESSION);
+
     Term(&second);
 
     comparison->children.push_back(second);

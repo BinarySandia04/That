@@ -30,7 +30,9 @@ void Scope::Print() {
   }
 }
 
-Environment::Environment() { PushScope(); }
+Environment::Environment() {
+  PushScope();
+}
 
 Environment::~Environment() {
   // std::cout << termcolor::red << ScopeCount() << termcolor::reset <<
