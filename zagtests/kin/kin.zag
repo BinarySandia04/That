@@ -1,0 +1,15 @@
+get 'std.io
+
+kin Entity {
+  @ estatic: Int // @ vol dir estatic
+  $ maxHealth: Int // $ vol dir privat
+  $ health: Num
+  $ damage: Num
+  $ defense: Int
+  position: Num
+  $ alive: Bul
+
+  fn Debug {
+    std.println("Test")
+  }
+}

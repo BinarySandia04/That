@@ -1,6 +1,5 @@
 #include "transpiler.h"
 #include "environment.h"
-#include "object.h"
 
 #include <ZagIR/Ast/node.h>
 #include <ZagIR/Libs/packages.h>
@@ -100,6 +99,9 @@ std::string Transpiler::TranspileStatement(Node *statement) {
     break;
   case ZagIR::NODE_BRK:
     exp = TranspileBrk(statement, &before);
+    break;
+  case ZagIR::NODE_KIN:
+    exp = TranspileKin(statement, &before);
     break;
   case ZagIR::NODE_EXPRESSION:
   case ZagIR::NODE_ARRAY:
@@ -245,7 +247,8 @@ std::string Transpiler::TranspileExpression(Node *expression,
     return TranspileAccessor(expression, retType, before);
     break;
   default:
-    expression->Debug(0);
+    // expression->Debug(0);
+    std::cout << termcolor::red << "Err?" << termcolor::reset << std::endl;
     break;
   }
 
@@ -298,7 +301,8 @@ std::string Transpiler::TranspileBinary(Node *binary, ObjectType **retType,
       ObjectCOperation *operation = env->FetchOperation(lType, rType);
 
       if (operation != nullptr) {
-        operation->Use(env);
+        // operation->Use(env);
+        env->Use(operation);
         *retType = env->FetchType(operation->cOperationData->resType);
         return operation->GetName() + "(" + lExp + ", " + rExp + ")";
       } else {
@@ -489,6 +493,8 @@ std::string Transpiler::TranspileFunction(ZagIR::Node *function) {
   std::string argType, argIdentifier;
 
   func->identifier = function->data;
+
+  // TODO: Canviar a root?
   env->AddToScope(function->data, func);
 
   env->PushScope();
@@ -533,6 +539,21 @@ std::string Transpiler::TranspileFunction(ZagIR::Node *function) {
   functionDefinition +=
       returnType + " " + funcName + arguments + "{" + defBlock + "}";
 
+  return "";
+}
+
+std::string Transpiler::TranspileKin(Node *kin, std::string *before){
+  // kin->Debug(0);
+  std::string kinName = kin->data;
+
+  ObjectContainer* kinDef = new ObjectContainer();
+
+  for(int i = 0; i < kin->children.size(); i++){
+    kin->children[i]->Debug(0);
+  }
+
+  // TODO: Canviar a root?
+  env->AddToScope(kinName, new ObjectProtoType(kinDef));
   return "";
 }
 
@@ -595,7 +616,7 @@ std::string Transpiler::TranspileGCall(ObjectFunction *func, ZagIR::Node *call,
 
   ObjectCFunction *cFunc = dynamic_cast<ObjectCFunction *>(func);
   if (cFunc != nullptr) {
-    cFunc->Use(env);
+    env->Use(cFunc);
   }
 
   *returnType = env->FetchType(func->returnType);
@@ -729,7 +750,7 @@ std::string Transpiler::TranspileArray(ZagIR::Node *array,
     }
   }
 
-  *returnType = env->FetchProtoType("Arr")->Construct({firstType}, env);
+  *returnType = env->Construct(env->FetchProtoType("Arr"), {firstType});
 
   return result;
 }

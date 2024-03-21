@@ -7,16 +7,16 @@
 #include <ZagIR/Ast/node.h>
 
 #include "object.h"
+#include "container.h"
+#include "prototype.h"
+#include "type.h"
+#include "operation.h"
+#include "function.h"
 
 using namespace ZagIR;
 namespace fs = std::filesystem;
 
 namespace ZagCXX {
-
-class Object;
-class ObjectType;
-class ObjectCOperation;
-class ObjectProtoType;
 
 class Scope {
 public:
@@ -65,6 +65,14 @@ public:
 
   Object* FetchReserved(std::string);
   ObjectCOperation *FetchOperation(ObjectType*, ObjectType*);
+
+  void Use(ObjectProtoType *proto);
+  void Use(ObjectCOperation *operation);
+  void Use(ObjectType *type);
+  void Use(ObjectCFunction *cFunc);
+
+  ObjectType* Construct(ObjectProtoType*, std::vector<ObjectType *>);
+
 private:
   std::string recurseGetType(Node* );
   ObjectType* FetchExistingType(std::string);

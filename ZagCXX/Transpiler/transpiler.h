@@ -9,6 +9,14 @@
 #include <ZagIR/Ast/ast.h>
 #include <ZagIR/Libs/packages.h>
 
+#include "object.h"
+#include "container.h"
+#include "type.h"
+#include "prototype.h"
+#include "function.h"
+#include "variable.h"
+#include "operation.h"
+
 #include "environment.h"
 #include "../Formatter/formatter.h"
 
@@ -53,6 +61,7 @@ private:
   std::string TranspileGCall(ObjectFunction *, Node *, ObjectType**, std::string *);
   std::string TranspileGetter(Node *, ObjectType **, std::string *);
   std::string TranspileFunction(Node *);
+  std::string TranspileKin(Node *, std::string *);
   
   std::string TranspileArray(Node*, ObjectType**, std::string *);
   std::string TranspileAccessor(Node*, ObjectType**, std::string *);
@@ -61,6 +70,9 @@ private:
 
   std::string functionDeclaration;
   std::string functionDefinition;
+
+  std::string classDeclaration;
+  std::string classDefinition;
 
   std::vector<std::string> includes;
   std::vector<Package *> loadedPackages;

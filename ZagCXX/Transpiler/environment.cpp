@@ -196,7 +196,8 @@ Object *Environment::FetchReserved(std::string key) {
 ObjectProtoType *Environment::FetchProtoType(std::string key) {
   ObjectProtoType *proto = dynamic_cast<ObjectProtoType *>(FetchRoot(key));
   if (proto != nullptr) {
-    proto->Use(this);
+    Use(proto);
+    // proto->Use(this);
     return proto;
   } else {
     throw std::runtime_error("ProtoType " + key + " not found");
@@ -246,7 +247,7 @@ ObjectType *Environment::FetchType(std::string typeId) {
 
   if (i >= typeId.size()) {
     // ProtoType terminal
-    res = FetchProtoType(baseProtoType)->Construct({}, this);
+    res = Construct(FetchProtoType(baseProtoType), {});
     return res;
   }
 
@@ -273,7 +274,7 @@ ObjectType *Environment::FetchType(std::string typeId) {
     i++;
   } while (i < typeId.size() && stack > -1);
 
-  res = FetchProtoType(baseProtoType)->Construct(args, this);
+  res = Construct(FetchProtoType(baseProtoType), args);
   res->identifier = typeId;
   return res;
 }
@@ -285,12 +286,67 @@ ObjectCOperation *Environment::FetchOperation(ObjectType *ltype,
     if (operation != nullptr) {
       if (operation->cOperationData->lType == ltype->identifier &&
           operation->cOperationData->rType == rtype->identifier) {
-        Usable *u = dynamic_cast<Usable *>(operation);
-        if (u != nullptr)
-          u->Use(this);
+          // u->Use(this);
+          Use(operation);
         return operation;
       }
     }
   }
   return nullptr;
 }
+
+ObjectType *Environment::Construct(ObjectProtoType *proto, std::vector<ObjectType *> args) {
+  // If we construct it we suppose that it doesnt exists
+  // We check first that the number of args are the same
+  Use(proto);
+
+  ObjectType *constructed = new ObjectType();
+  constructed->children = args;
+
+  constructed->identifier = proto->cTypeInfo->name;
+  constructed->translation = proto->cTypeInfo->parent;
+  constructed->constructor = proto;
+  if (args.size() > 0) {
+    constructed->identifier += "<";
+    for (int i = 0; i < args.size(); i++) {
+      constructed->identifier += args[i]->identifier;
+      if (i < args.size() - 1)
+        constructed->identifier += ",";
+    }
+    constructed->identifier += ">";
+  }
+
+  AddToReserved(constructed->identifier, constructed);
+  return constructed;
+}
+
+void Environment::Use(ObjectProtoType *proto) {
+  // Logs::Debug("Used");
+  for (int i = 0; i < proto->cTypeInfo->headers.size(); i++) {
+    fs::path filePath = fs::path("src") / proto->cTypeInfo->package->path.filename() /
+                        proto->cTypeInfo->headers[i];
+    AddInclude(filePath);
+  }
+  for (int i = 0; i < proto->cTypeInfo->include.size(); i++) {
+    AddInclude(proto->cTypeInfo->include[i]);
+  }
+}
+
+void Environment::Use(ObjectCOperation *op) {
+  for (int i = 0; i < op->cOperationData->headers.size(); i++) {
+    fs::path filePath = fs::path("src") /
+                        op->cOperationData->package->path.filename() /
+                        op->cOperationData->headers[i];
+    AddInclude(filePath);
+  }
+}
+
+void Environment::Use(ObjectCFunction *cFunc) {
+  for (int i = 0; i < cFunc->cFunctionData->headers.size(); i++) {
+    fs::path filePath = fs::path("src") /
+                        cFunc->cFunctionData->package->path.filename() /
+                        cFunc->cFunctionData->headers[i];
+    AddInclude(filePath);
+  }
+}
+
