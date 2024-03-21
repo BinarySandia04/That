@@ -20,6 +20,7 @@ ObjectProtoType::~ObjectProtoType() { delete typeMethods; }
 
 void ObjectProtoType::Print(int n) {
   std::cout << "[ObjectProtoType]" << std::endl;
+  this->typeMethods->Print(n + 3);
 }
 
 

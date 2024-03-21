@@ -62,6 +62,7 @@ private:
   std::string TranspileGetter(Node *, ObjectType **, std::string *);
   std::string TranspileFunction(Node *);
   std::string TranspileKin(Node *, std::string *);
+  std::string TranspileMethod(Node *, std::string *, Object**);
   
   std::string TranspileArray(Node*, ObjectType**, std::string *);
   std::string TranspileAccessor(Node*, ObjectType**, std::string *);

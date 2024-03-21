@@ -1,4 +1,5 @@
 #include "transpiler.h"
+#include "container.h"
 #include "environment.h"
 
 #include <ZagIR/Ast/node.h>
@@ -549,12 +550,32 @@ std::string Transpiler::TranspileKin(Node *kin, std::string *before){
   ObjectContainer* kinDef = new ObjectContainer();
 
   for(int i = 0; i < kin->children.size(); i++){
-    kin->children[i]->Debug(0);
+    Object* addedObj;
+    std::string methodName = TranspileMethod(kin->children[i], before, &addedObj);
+
+    Privacy p = PUBLIC;
+    if(kin->children[i]->data.size() > 0)
+    switch(kin->children[i]->data[0]){
+      case '$':
+        p = PRIVATE;
+        break;
+      case '@':
+        p = STATIC;
+        break;
+      default:
+        std::cout << "Undefined accessor?" << std::endl;
+        return "";
+    }
+    kinDef->AddObject(addedObj, methodName, p);
   }
 
   // TODO: Canviar a root?
   env->AddToScope(kinName, new ObjectProtoType(kinDef));
   return "";
+}
+
+std::string Transpiler::TranspileMethod(Node *method, std::string *before, Object** methodObject){
+
 }
 
 std::string Transpiler::TranspileReturn(ZagIR::Node *ret, std::string *before) {
