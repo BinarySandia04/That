@@ -8,6 +8,9 @@ _root = "std"
 [_.print]
 _function = {bind = "zstd::Print", args = ["Any"], return = "Nil", headers = ["io.h"]}
 
+[_.printchr]
+_function = {bind = "zstd::PrintChar", args = ["Chr"], return = "Nil", headers = ["io.h"]}
+
 [_.println]
 _function = {bind = "zstd::PrintLn", args = ["Any"], return = "Nil", headers = ["io.h"]}
 

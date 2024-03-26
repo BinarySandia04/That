@@ -16,6 +16,8 @@ void PrintLn(T s){
   std::cout << s << std::endl;
 }
 
+void PrintChar(int n);
+
 int ReadInt(std::string s);
 double ReadNum(std::string s);
 std::string ReadStr(std::string s);

@@ -1,4 +1,64 @@
 get 'std.io
 
-a: Str = "Hola"
-std.println(a[0])
+b: Str = std.read.str("C> ")
+in: Str = std.read.str("I> ")
+m: Arr<Int> = [0]
+p: Int = 0
+ip: Int = 0
+
+n: Int = 0
+lup i | b.size() {
+  if b[i] == 62 {
+    // >
+    p += 1
+    if p >= m.size(): m.push(0)
+  }
+  eif b[i] == 60 {
+    // <
+    p -= 1
+    if p < 0 {
+      std.println("Err")
+      ret 0
+    }
+  }
+  eif b[i] == 43 {
+    // +
+    m[p] += 1
+    if m[p] == 256: m[p] = 0
+  }
+  eif b[i] == 45 {
+    // -
+    m[p] -= 1
+    if m[p] == -1: m[p] = 255
+  }
+  eif b[i] == 46 {
+    std.printchr(m[p])
+  }
+  eif b[i] == 44 {
+    // ,
+    m[p] = in[ip]
+    ip += 1
+  }
+  eif b[i] == 91 {
+    // [
+    if m[p] == 0 {
+      i += 1
+      lup n > 0 || b[i] != 93 {
+        if b[i] == 91: n += 1
+        if b[i] == 93: n -= 1
+        i += 1
+      }
+    }
+  }
+  eif b[i] == 93 {
+    // ]
+    if m[p] != 0 {
+      i -= 1
+      lup n > 0 || b[i] != 91 {
+        if b[i] == 91: n -= 1
+        if b[i] == 93: n += 1
+        i -= 1
+      } 
+    
+  }
+}

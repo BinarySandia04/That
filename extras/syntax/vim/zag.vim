@@ -8,7 +8,7 @@ if exists("b:current_syntax")
 endif
 
 syn keyword zagGet get
-syn keyword zagKeywords if els eif brk fn kin hoc lup 
+syn keyword zagKeywords if els eif brk fn kin hoc lup ret
 syn keyword zagBooleans yep nop nil 
 syn keyword zagTypes Int Str Any Nil Num Arr Map Bul Chr
 syn match zagString '\"[^\"]*\"'

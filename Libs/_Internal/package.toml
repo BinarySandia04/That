@@ -16,6 +16,8 @@ include = ["string"]
 templates = 0
 [_types.Str.accessor.Int]
 return = "Chr"
+[_types.Str.methods.size]
+_function = {bind = "size", args = [], return = "Int", headers = []}
 
 [_types.Chr]
 parent = "char"

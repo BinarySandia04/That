@@ -23,3 +23,7 @@ double zstd::ReadNum(std::string s){
   std::cin >> d;
   return d;
 }
+
+void zstd::PrintChar(int n){
+  std::cout << (char) n;
+}
