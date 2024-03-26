@@ -701,7 +701,8 @@ std::string Transpiler::PreTranspileMethod(Node *method, std::string className, 
 void Transpiler::PostTranspileMethod(Node* method, std::string kinName, std::string *after){
   std::cout << "NJDHSAKJHKJH:::::: " << *after << std::endl;
   if(method->type != NODE_FUNCTION) return;
-  TranspileFunction(method, "c_" + kinName, nullptr, after, true);
+  Object* o = TranspileFunction(method, "c_" + kinName, nullptr, after, true);
+  delete o;
   *after += "\n";
   std::cout << "NJDHSAKJHKJH:::::: " << *after << std::endl;
 }
@@ -773,6 +774,7 @@ std::string Transpiler::TranspileInstruction(Node *instruction,
       if(gettedVariable != nullptr){
         *scope = gettedVariable->GetType()->constructor->typeMethods;
         res += gettedVariable->Transpile();
+        *returnType = gettedVariable->GetType();
 
         // gettedContainer = (*returnType)->constructor->typeMethods;
       }
@@ -807,7 +809,6 @@ std::string Transpiler::TranspileInstruction(Node *instruction,
       return res;
     }
     recievedContainer->Print(0);
-
 
     Object* objFunction = recievedContainer->Fetch(functionName);
     if(objFunction == nullptr){
@@ -877,11 +878,17 @@ std::string Transpiler::TranspileInstruction(Node *instruction,
 
     std::cout << accessorType << std::endl;
     if(accessorType == nullptr){
-      std::cout << termcolor::red << "Accessor nullptr" << termcolor::reset << std::endl;
-      return res;
+      if(callRetType != nullptr){
+        std::string typeName = callRetType->constructor->cTypeInfo->accessor_map[indexType->identifier];
+        *returnType = env->FetchType(typeName);
+        *scope = (*returnType)->constructor->typeMethods;
+      }
+      // std::cout << termcolor::red << "Accessor nullptr" << termcolor::reset << std::endl;
+      // return res;
+    } else {
+      *returnType = accessorType;
+      *scope = accessorType->constructor->typeMethods;
     }
-    *returnType = accessorType;
-    *scope = accessorType->constructor->typeMethods;
   } else {
     // Com que tenim una expressió el instruction container serà el del tipus
     // Pot ser també un identifier nose

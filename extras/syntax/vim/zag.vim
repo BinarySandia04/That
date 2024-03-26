@@ -10,7 +10,7 @@ endif
 syn keyword zagGet get
 syn keyword zagKeywords if els eif brk fn kin hoc lup 
 syn keyword zagBooleans yep nop nil 
-syn keyword zagTypes Int Str Any Nil Num Arr Map Bul
+syn keyword zagTypes Int Str Any Nil Num Arr Map Bul Chr
 syn match zagString '\"[^\"]*\"'
 syn match zagInlineComment '\/\/[^\n]*'
 syn region zagBlockComment start="/\*" end="\*/" fold

@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <string>
 #include <vector>
+#include <map>
 
 namespace fs = std::filesystem;
 
@@ -33,6 +34,7 @@ public:
 
   std::string parent;
   std::string upgrades_to;
+  std::map<std::string, std::string> accessor_map;
   std::vector<std::string> include;
 
   int templates;

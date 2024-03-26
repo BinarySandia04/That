@@ -1,0 +1,4 @@
+get 'std.io
+
+a: Str = "Hola"
+std.println(a[0])

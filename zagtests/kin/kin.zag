@@ -15,14 +15,25 @@ kin Entity {
   }
 }
 
-a: Entity
-b: Entity
-c: Entity
-p: Arr<Entity> = [a,b,c]
+kin Miau {
+  entitats: Arr<Entity
+}
 
-lup i | p.size() {
-  p[i].hola = "Miau numero " + i
-  p[i].Debug()
+m: Miau
+e: Entity
+f: Entity
+e.hola = "A"
+f.hola = "B"
+
+test: Arr<Int>
+
+m.entitats.push(e)
+m.entitats.push(f)
+
+std.println(m.entitats.size())
+
+lup i | m.entitats.size() {
+  m.entitats[i].Debug()
 }
 
 

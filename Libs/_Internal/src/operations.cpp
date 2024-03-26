@@ -17,3 +17,7 @@ std::string _internal::NumPlusStr(double d, std::string s){
 std::string _internal::StrPlusNum(std::string s, double d){
   return s + std::to_string(d);
 }
+
+std::string _internal::StrAccInt(std::string s, int n){
+  return std::string(1, s[n]); 
+}

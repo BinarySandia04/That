@@ -14,6 +14,12 @@ templates = 0
 parent = "std::string"
 include = ["string"]
 templates = 0
+[_types.Str.accessor.Int]
+return = "Chr"
+
+[_types.Chr]
+parent = "char"
+upgrades_to = "Int"
 
 [_types.Bul]
 parent = "bool"
@@ -23,6 +29,7 @@ templates = 0
 [_types.Num]
 parent = "double"
 templates = 0
+inherited_operators = ["+", "-", "*", "/"]
 
 [_types.Nil]
 parent = "void"

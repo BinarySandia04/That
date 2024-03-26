@@ -189,6 +189,14 @@ void Package::AddTypeMap(std::string rootName, toml::table table,
       }
     }
 
+    if(toml::table *accessor = t["accessor"].as_table()){
+      for(auto [k,v] : *accessor){
+        toml::table p = *v.as_table();
+        std::optional<std::string> accRet = p["return"].value<std::string>();
+        type->accessor_map[std::string(k.str())] = *accRet; 
+      }
+    }
+
     std::vector<Binding *> functions;
     if (toml::table *methods = t["methods"].as_table()) {
       AddObjectsMap("", *methods, subpackage, &(type->children));
