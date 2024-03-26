@@ -212,12 +212,16 @@ std::string Transpiler::TranspileAssignation(Node *assignation,
            " " + assignation->data + " " + Texpression;
   }
 
-  bool firstAccessor = true;
   Node *currentNode = assignation->children[0];
   // assignation->Debug(0);
 
   std::string accessorTranspiled = "";
-  while (currentNode->type != NODE_IDENTIFIER) {
+  if (currentNode->type != NODE_IDENTIFIER) {
+    // Ok canviar això i adaptar-ho a la instrucció TranspileInstruction
+    ObjectType* lType;
+    ObjectContainer* fromContainer;
+    accessorTranspiled = TranspileInstruction(currentNode, &lType, &fromContainer, env->GetTopScope(), before);
+    /*
     if (currentNode->type == NODE_GETTER) {
 
       if (firstAccessor) {
@@ -234,8 +238,9 @@ std::string Transpiler::TranspileAssignation(Node *assignation,
     } else {
       std::cout << "NO! Type is " << currentNode->type;
     }
+    */
   }
-  return accessorTranspiled + currentNode->data + " " + assignation->data +
+  return accessorTranspiled + " " + assignation->data +
          " " + Texpression;
 }
 
@@ -660,15 +665,16 @@ std::string Transpiler::PreTranspileMethod(Node *method, std::string className, 
   Node *attribute = method->children[0];
 
   ObjectType *transpileType;
+  ObjectVariable *newVar;
 
   switch (attribute->type) {
   case ZagIR::NODE_ASSIGNATION:
     transpileType = env->FetchType(attribute->arguments[0]);
-    *methodObject =
-        new ObjectVariable(transpileType, attribute->children[0]->data);
+    newVar = new ObjectVariable(transpileType, attribute->children[0]->data);
+    *methodObject = newVar;
     methodName = attribute->children[0]->data;
 
-    *writeTo += transpileType->Transpile() + " " + methodName + ";\n";
+    *writeTo += transpileType->Transpile() + " " + newVar->Transpile() + ";\n";
     break;
   case ZagIR::NODE_FUNCTION:
     methodName = attribute->data;
@@ -678,10 +684,11 @@ std::string Transpiler::PreTranspileMethod(Node *method, std::string className, 
   case ZagIR::NODE_IDENTIFIER:
     // Igual que assignation pero amb any
     transpileType = env->FetchType("Any");
-    *methodObject = new ObjectVariable(transpileType, attribute->data);
+    newVar = new ObjectVariable(transpileType, attribute->data);
+    *methodObject = newVar;
     methodName = attribute->data;
 
-    *writeTo += transpileType->Transpile() + " " + methodName + ";\n";
+    *writeTo += transpileType->Transpile() + " " + newVar->Transpile() + ";\n";
     break;
   default:
     // std::cout << "Method has no name?" << std::endl;
@@ -747,7 +754,7 @@ std::string Transpiler::TranspileInstruction(Node *instruction,
 
     ObjectContainer* recievedContainer;
     res += TranspileInstruction(instruction->children[0], returnType, &recievedContainer, root, before);
-    res += "." + getterName; // Translate?
+    res += "."; // Translate?
                              //
     std::cout << "RES: " << res << std::endl;
 
@@ -757,11 +764,19 @@ std::string Transpiler::TranspileInstruction(Node *instruction,
 
       // Sabem que no es nullptr perque existeix
       ObjectContainer* gettedContainer = dynamic_cast<ObjectContainer*>(gettedObject);
-      if(gettedContainer == nullptr){
-        gettedContainer = (*returnType)->constructor->typeMethods;
+      if(gettedContainer != nullptr){
+        *scope = gettedContainer;
+        res += getterName;
       }
 
-      *scope = gettedContainer;
+      ObjectVariable* gettedVariable = dynamic_cast<ObjectVariable*>(gettedObject);
+      if(gettedVariable != nullptr){
+        *scope = gettedVariable->GetType()->constructor->typeMethods;
+        res += gettedVariable->Transpile();
+
+        // gettedContainer = (*returnType)->constructor->typeMethods;
+      }
+
     } else {
       std::cout << termcolor::red << "Invalid getter" << termcolor::reset << std::endl;
       return res;
@@ -872,6 +887,7 @@ std::string Transpiler::TranspileInstruction(Node *instruction,
     // Pot ser també un identifier nose
     ObjectType* expressionType;
     res = TranspileExpression(instruction, &expressionType, before);
+    std::cout << "RES::: " << res << std::endl;
 
     if(instruction->type == NODE_IDENTIFIER){
       // Es un identifier, no té childs, hem d'aconseguir l'objecte des de root
