@@ -6,24 +6,19 @@
 
 #include <ZagIR/Ast/node.h>
 
-#include "object.h"
-#include "container.h"
-#include "prototype.h"
-#include "type.h"
-#include "operation.h"
-#include "function.h"
+#include "Objects/object.h"
+#include "Objects/container.h"
+#include "Objects/prototype.h"
+#include "Objects/type.h"
+#include "Objects/operation.h"
+#include "Objects/function.h"
+
+#include "scope.h"
 
 using namespace ZagIR;
 namespace fs = std::filesystem;
 
 namespace ZagCXX {
-
-class Scope {
-public:
-  void Print();
-  void Delete();
-  std::unordered_map<std::string, Object*> data;
-};
 
 class Environment {
 public:
@@ -72,6 +67,7 @@ public:
   void Use(ObjectCFunction *cFunc);
 
   ObjectType* Construct(ObjectProtoType*, std::vector<ObjectType *>);
+  Scope* GetTopScope();
 
 private:
   std::string recurseGetType(Node* );
@@ -85,8 +81,8 @@ private:
 
   std::string includeGlob;
   std::vector<std::string> fileDeps;
-  std::vector<Scope> environment;
-  Scope reserved;
+  std::vector<Scope*> environment;
+  Scope* reserved;
 };
 
 }; // namespace ZagCXX

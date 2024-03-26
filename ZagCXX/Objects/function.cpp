@@ -1,7 +1,7 @@
 #include "function.h"
 
 #include "type.h"
-#include "environment.h"
+#include "Transpiler/environment.h"
 
 #include <ZagIR/Logs/logs.h>
 

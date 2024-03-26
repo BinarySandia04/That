@@ -8,8 +8,10 @@ file(GLOB_RECURSE Transpiler "Transpiler/*.h" "Transpiler/*.cpp")
 source_group("Transpiler" FILES ${Transpiler})
 file(GLOB_RECURSE Formatter "Formatter/*.h" "Formatter/*.cpp")
 source_group("Formatter" FILES ${Formatter})
+file(GLOB_RECURSE Objects "Objects/*.h" "Objects/*.cpp")
+source_group("Objects" FILES ${Objects})
 
-set(ALL_FILES ${src} ${Transpiler} ${Formatter})
+set(ALL_FILES ${src} ${Transpiler} ${Formatter} ${Objects})
 set(ROOT_NAMESPACE ZagCXX)
 
 # Odio CMAKE
@@ -42,9 +44,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
   ZagIR
 )
 target_include_directories(${PROJECT_NAME} PUBLIC
-    "${CMAKE_CURRENT_SOURCE_DIR}/src"
+    "${CMAKE_CURRENT_SOURCE_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}/../ZagIR/src"
 )
+
 
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../external") 
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../external/argh/include")

@@ -13,7 +13,7 @@ class ObjectType;
 // Objecte que crea classes
 class ObjectProtoType : public Object {
 public:
-  ObjectProtoType(ObjectContainer*);
+  ObjectProtoType(ObjectContainer*, std::string);
   ObjectProtoType(CType *);
   ~ObjectProtoType();
 
@@ -21,11 +21,11 @@ public:
   Object* Clone();
   // ObjectType *Construct(std::vector<ObjectType *>, Environment *);
 
-  ObjectContainer *typeMethods;
+  ObjectContainer* typeMethods;
 
   // Com que els tipus de classe són purament C, els abstraim
   // des d'aqui
-  CType *cTypeInfo;
+  CType* cTypeInfo;
 };
 
 

@@ -58,8 +58,8 @@ bool Parser::Match(TokenType type) {
   return false;
 }
 
-bool Parser::MatchWithoutSeparator(TokenType type){
-  if(PeekType() == type && !Peek().separator){
+bool Parser::MatchWithoutSeparator(TokenType type) {
+  if (PeekType() == type && !Peek().separator) {
     Advance();
     return true;
   }
@@ -662,23 +662,6 @@ void Parser::Primary(Node **exp) {
     Panic("Unexpected primary type with lexeme " + t.lexeme);
     return;
   }
-
-  while (Match(TOKEN_LEFT_BRACKET)) {
-    Node *expression = *exp;
-
-    Node *index = new Node();
-    Bool(&index);
-    
-    Node *accessor = new Node(NODE_ACCESSOR);
-    
-    accessor->arguments.push_back(index);
-    accessor->children.push_back(expression);
-    
-    *exp = accessor;
-    
-    Expect(TOKEN_RIGHT_BRACKET, "Expected ']' at end of accessor");
-  }
-  // Check if we are inside an array
 }
 
 void Parser::Array(Node **array) {
@@ -767,19 +750,19 @@ void Parser::Unary(Node **exp) {
 }
 
 void Parser::Call(Node **call) {
-  Node *ogCall = *call;
   // std::cout << "Calling primary at " << Peek().lexeme << std::endl;
   Primary(call);
 
   while (!AtEnd()) {
     if (Match(TOKEN_LEFT_PAREN)) {
-      ogCall->type = NODE_CALL;
+      Node *c = new Node(NODE_CALL);
+      // ogCall->type = NODE_CALL;
 
       // Get arguments until ')'
       while (PeekType() != TOKEN_RIGHT_PAREN) {
         Node *arg = new Node();
         Expression(&arg);
-        ogCall->arguments.push_back(arg);
+        c->arguments.push_back(arg);
 
         if (!Match(TOKEN_COMMA)) {
           if (PeekType() == TOKEN_RIGHT_PAREN) {
@@ -793,65 +776,34 @@ void Parser::Call(Node **call) {
         }
       }
       Advance();
+
+      c->children.push_back(*call);
+      *call = c;
+    } else if (Match(TOKEN_LEFT_BRACKET)) {
+      Node* accessor = new Node(NODE_ACCESSOR);
+
+      accessor->children.push_back(*call);
+
+      Node *index = new Node();
+      Bool(&index);
+
+      accessor->arguments.push_back(index);
+      *call = accessor;
+
+      Expect(TOKEN_RIGHT_BRACKET, "Expected ']' at end of accessor");
     } else if (Match(TOKEN_DOT)) {
-
-      if (ogCall->type != NODE_GETTER && ogCall->type != NODE_CALL) {
-        // Aixo nomes es pot donar amb el primer identifier
-        Node *finalOg = new Node(NODE_GETTER);
-        Node *newOg = new Node();
-        finalOg->arguments.push_back(*call);
-        finalOg->children.push_back(newOg);
-        *call = finalOg;
-        ogCall = newOg;
-      }
-
-      if (PeekType() == TOKEN_IDENTIFIER && IsAssignationType(PeekNType(1))) {
-        Node *identifier = new Node(NODE_IDENTIFIER);
-        (*identifier).data = Peek().literal;
-        ogCall->children.push_back(identifier);
-        Advance();
-
-        break;
-      }
-
-      Node *newGet = new Node(NODE_GETTER);
-
-      if (PeekType() != TOKEN_IDENTIFIER) {
-        Panic("Expected identifier after '.'");
-        return;
-      }
-
+      Node *getter = new Node(NODE_GETTER);
       Node *identifier = new Node(NODE_IDENTIFIER);
-      (*identifier).data = Peek().literal;
-      newGet->arguments.push_back(identifier);
-      ogCall->children.push_back(newGet);
 
-      ogCall = newGet;
+      identifier->data = Peek().literal;
       Advance();
+      
+      getter->arguments.push_back(identifier);
+      getter->children.push_back(*call);
+      *call = getter;
     } else {
       break;
     }
-  }
-
-  // Cleanup
-  Node *visitor = *call, *child;
-  while (visitor->children.size() > 0) {
-    child = visitor->children[0];
-    if (child->type == NODE_UNDEF) {
-      visitor->children = child->children;
-      child->children.clear();
-      delete child;
-      child = visitor->children[0];
-    }
-    if (child->type == NODE_CALL) {
-      if (child->data == "") {
-        child->data = child->arguments[0]->data;
-        // Remove from memory
-        delete child->arguments[0];
-        child->arguments.erase(child->arguments.begin());
-      }
-    }
-    visitor = child;
   }
 }
 
@@ -1008,4 +960,3 @@ void Parser::Expression(Node **exp) {
   (*exp)->type = NODE_EXPRESSION;
   Bool(exp);
 }
-

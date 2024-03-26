@@ -101,7 +101,9 @@ kin Entity {
   $ damage: Num
   $ defense: Int
   position: Num
-  $ alive: Bol
+  $ alive: Bul
+
+  get fn Debug
 
   fn Debug {
     std.println("Test")

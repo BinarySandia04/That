@@ -14,4 +14,3 @@ lup i | r {
   std.print(l[i] + " ")
 }
 std.println("")
-

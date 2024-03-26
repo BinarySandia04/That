@@ -1,5 +1,7 @@
 #include "environment.h"
 
+#include <iostream>
+
 #include "termcolor/termcolor.hpp"
 
 #include <ZagIR/Logs/logs.h>
@@ -9,28 +11,8 @@
 using namespace ZagCXX;
 using namespace ZagIR;
 
-void Scope::Delete() {
-  for (auto &p : data) {
-    // std::cout << termcolor::yellow << p.first << termcolor::reset << ": ";
-    if (p.second != nullptr) {
-      // std::cout << "Deleted ";
-      // p.second->Print(0);
-      delete p.second;
-    }
-  }
-}
-
-void Scope::Print() {
-  for (auto &p : data) {
-    std::cout << termcolor::yellow << p.first << termcolor::reset << ": ";
-    if (p.second != nullptr)
-      p.second->Print(0);
-    else
-      std::cout << "nullptr" << std::endl;
-  }
-}
-
 Environment::Environment() {
+  reserved = new Scope();
   PushScope();
 }
 
@@ -38,33 +20,34 @@ Environment::~Environment() {
   // std::cout << termcolor::red << ScopeCount() << termcolor::reset <<
   // std::endl;
   PopScope();
-  reserved.Delete();
+  delete reserved;
 }
 
 void Environment::DumpEnvironment() {
   std::cout << "-------------------- RESERVED: -------------------"
             << std::endl;
-  reserved.Print();
+  reserved->Print();
   std::cout << std::endl;
   for (int i = 0; i < environment.size(); i++) {
     std::cout << "---------------------" + std::to_string(i) +
                      "--------------------"
               << std::endl;
     std::cout << std::endl;
-    environment[i].Print();
+    environment[i]->Print();
   }
   std::cout << "--------------------------------------------" << std::endl;
 }
 void Environment::PushScope() {
   // std::cout << termcolor::green << "Pushed scope" << termcolor::reset <<
   // std::endl;
-  environment.push_back(Scope());
+  if (environment.size() > 0) {
+    environment.push_back(new Scope(environment[environment.size() - 1]));
+  } else
+    environment.push_back(new Scope());
 }
 
 void Environment::PopScope() {
-  // std::cout << termcolor::red<< "Popped scope" << termcolor::reset <<
-  // std::endl;
-  environment.back().Delete();
+  delete environment.back();
   environment.pop_back();
 }
 
@@ -83,16 +66,19 @@ void Environment::AddPackageToScope(ZagIR::Package *package) {
       AddToReserved("C_" + package->name + "_" + coperation->name,
                     GetObjectFromBinding(b));
     } else {
-      if (b->global)
+      if (b->global){
         AddToRoot(b->name, GetObjectFromBinding(b));
+      }
       else
         packContainer->AddBinding(b);
     }
   }
 
+
   if (package->root != "") {
     if (Exists(package->root)) {
       // Hem de fer merge dels dos ObjectContainer s
+      // 
       ObjectContainer *oldContainer =
           dynamic_cast<ObjectContainer *>(FetchRoot(package->root));
       if (oldContainer == nullptr)
@@ -115,16 +101,15 @@ void Environment::AddPackageToScope(ZagIR::Package *package) {
 
 void Environment::AddToRoot(std::string name, Object *obj) {
   // if (!ExistsInRootScope(name))
-  environment[0].data.insert(std::pair<std::string, Object *>(name, obj));
+  environment[0]->AddObject(name, obj);
 }
 
 void Environment::AddToScope(std::string name, Object *obj) {
-  environment[environment.size() - 1].data.insert(
-      std::pair<std::string, Object *>(name, obj));
+  environment[environment.size() - 1]->AddObject(name, obj);
 }
 
 void Environment::AddToReserved(std::string name, Object *obj) {
-  reserved.data.insert(std::pair<std::string, Object *>(name, obj));
+  reserved->AddObject(name, obj);
 }
 
 void Environment::AddInclude(std::string name) {
@@ -154,7 +139,7 @@ std::string Environment::GetCXXArgs() { return cxxargs; }
 
 bool Environment::Exists(std::string key) {
   for (int i = environment.size() - 1; i >= 0; i--) {
-    if (environment[i].data.find(key) != environment[i].data.end()) {
+    if (environment[i]->Exists(key)) {
       return true;
     }
   }
@@ -162,33 +147,33 @@ bool Environment::Exists(std::string key) {
 }
 
 bool Environment::ExistsInScope(std::string key) {
-  return environment.back().data.find(key) != environment.back().data.end();
+  return environment.back()->Exists(key);
 }
 
 bool Environment::ExistsInReserved(std::string key) {
-  return reserved.data.find(key) != reserved.data.end();
+  return reserved->Exists(key);
 }
 
 bool Environment::IsConcretedFrom(ObjectType *type, std::string from) {}
 
 Object *Environment::Fetch(std::string key) {
   for (int i = environment.size() - 1; i >= 0; i--) {
-    if (environment[i].data.find(key) != environment[i].data.end()) {
-      return environment[i].data[key];
+    if (environment[i]->Exists(key)) {
+      return environment[i]->GetObject(key);
     }
   }
   return nullptr;
 }
 
 Object *Environment::FetchRoot(std::string key) {
-  if (environment[0].data.find(key) != environment[0].data.end())
-    return environment[0].data[key];
+  if (environment[0]->Exists(key))
+    return environment[0]->GetObject(key);
   return nullptr;
 }
 
 Object *Environment::FetchReserved(std::string key) {
   if (ExistsInReserved(key))
-    return reserved.data[key];
+    return reserved->GetObject(key);
   else
     return nullptr;
 }
@@ -281,13 +266,13 @@ ObjectType *Environment::FetchType(std::string typeId) {
 
 ObjectCOperation *Environment::FetchOperation(ObjectType *ltype,
                                               ObjectType *rtype) {
-  for (auto &p : reserved.data) {
-    ObjectCOperation *operation = dynamic_cast<ObjectCOperation *>(p.second);
+  for (auto &p : *reserved) {
+    ObjectCOperation *operation = dynamic_cast<ObjectCOperation *>(p.second->object);
     if (operation != nullptr) {
       if (operation->cOperationData->lType == ltype->identifier &&
           operation->cOperationData->rType == rtype->identifier) {
-          // u->Use(this);
-          Use(operation);
+        // u->Use(this);
+        Use(operation);
         return operation;
       }
     }
@@ -295,16 +280,22 @@ ObjectCOperation *Environment::FetchOperation(ObjectType *ltype,
   return nullptr;
 }
 
-ObjectType *Environment::Construct(ObjectProtoType *proto, std::vector<ObjectType *> args) {
+ObjectType *Environment::Construct(ObjectProtoType *proto,
+                                   std::vector<ObjectType *> args) {
   // If we construct it we suppose that it doesnt exists
   // We check first that the number of args are the same
-  Use(proto);
 
   ObjectType *constructed = new ObjectType();
   constructed->children = args;
 
-  constructed->identifier = proto->cTypeInfo->name;
-  constructed->translation = proto->cTypeInfo->parent;
+  // TODO: No hi ha cTypeInfo
+  constructed->identifier = proto->identifier;
+
+  if (proto->cTypeInfo != nullptr)
+    constructed->translation = proto->cTypeInfo->parent;
+  else
+    constructed->translation = "c_" + proto->identifier;
+
   constructed->constructor = proto;
   if (args.size() > 0) {
     constructed->identifier += "<";
@@ -320,10 +311,18 @@ ObjectType *Environment::Construct(ObjectProtoType *proto, std::vector<ObjectTyp
   return constructed;
 }
 
+Scope *Environment::GetTopScope() {
+  return environment[environment.size() - 1];
+}
+
 void Environment::Use(ObjectProtoType *proto) {
   // Logs::Debug("Used");
+  if (proto->cTypeInfo == nullptr) {
+    return;
+  }
   for (int i = 0; i < proto->cTypeInfo->headers.size(); i++) {
-    fs::path filePath = fs::path("src") / proto->cTypeInfo->package->path.filename() /
+    fs::path filePath = fs::path("src") /
+                        proto->cTypeInfo->package->path.filename() /
                         proto->cTypeInfo->headers[i];
     AddInclude(filePath);
   }
@@ -349,4 +348,3 @@ void Environment::Use(ObjectCFunction *cFunc) {
     AddInclude(filePath);
   }
 }
-

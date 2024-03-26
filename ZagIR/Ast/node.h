@@ -39,7 +39,7 @@ enum NodeType {
   NODE_NUMBER_VAL, // Data is the number value
   NODE_STRING_VAL, // Data is the string value
   NODE_IDENTIFIER, // Data is the identifier name
-  NODE_ACCESSOR,
+  NODE_ACCESSOR, // Node that accesses []
 };
 
 class Node {

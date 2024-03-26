@@ -1,5 +1,5 @@
 #include "transpiler.h"
-#include "container.h"
+#include "Objects/container.h"
 #include "environment.h"
 
 #include <ZagIR/Ast/node.h>
@@ -43,12 +43,11 @@ std::string Transpiler::GenerateSource(Node *ast, std::string *cxxargs,
 
   std::string mainFunc = TranspileBlock(ast);
 
+  std::string preFormat = env->GetIncludes() + functionDeclaration + "\n" +
+                          classDeclaration + "\n" + classDefinition + "\n" +
+                          main + mainFunc + "}" + functionDefinition + "\n";
 
-  std::string preFormat = env->GetIncludes() + functionDeclaration + main +
-                          mainFunc + "}" + functionDefinition;
-
-
-    env->DumpEnvironment();
+  // env->DumpEnvironment();
   *cxxargs = env->GetCXXArgs();
   env->GetLibNames(libNames);
 
@@ -79,6 +78,8 @@ std::string Transpiler::TranspileStatement(Node *statement) {
   std::string before = "";
   std::string exp;
 
+  ObjectNativeFunction *func;
+
   switch (statement->type) {
   case ZagIR::NODE_ASSIGNATION:
     exp = TranspileAssignation(statement, &before) + ";";
@@ -93,7 +94,10 @@ std::string Transpiler::TranspileStatement(Node *statement) {
     exp = TranspileGet(statement);
     break;
   case ZagIR::NODE_FUNCTION:
-    exp = TranspileFunction(statement);
+    func =
+        TranspileFunction(statement, &functionDeclaration, &functionDefinition);
+    env->AddToScope(statement->data, func);
+    exp = "";
     break;
   case ZagIR::NODE_RET:
     exp = TranspileReturn(statement, &before);
@@ -115,6 +119,8 @@ std::string Transpiler::TranspileStatement(Node *statement) {
   case ZagIR::NODE_STRING_VAL:
   case ZagIR::NODE_CALL:
   case ZagIR::NODE_GETTER:
+  case ZagIR::NODE_ACCESSOR:
+
     exp = TranspileExpression(statement, &evalType, &before) + ";";
     break;
   default:
@@ -135,9 +141,15 @@ std::string Transpiler::TranspileIdentifier(Node *identifier,
     if (var != nullptr) {
       *retType = var->GetType();
       return var->Transpile();
-    } else {
-      ThrowError(identifier, "Parsed identifier that is not variable");
+    } 
+
+    if(obj != nullptr){
+      return idName;
     }
+    
+    std::cout << idName << std::endl;
+    ThrowError(identifier, "Parsed identifier that is not variable");
+    
 
   } else {
     ThrowError(identifier, "Identifier " + idName + " does not exist");
@@ -153,7 +165,10 @@ std::string Transpiler::TranspileAssignation(Node *assignation,
 
   ObjectType *expType;
 
-  Texpression = TranspileExpression(assignation->children[1], &expType, before);
+  if (assignation->children.size() > 1) {
+    Texpression =
+        TranspileExpression(assignation->children[1], &expType, before);
+  }
 
   if (assignation->children[0]->type == ZagIR::NODE_IDENTIFIER) {
     ogIdentifier = assignation->children[0]->data;
@@ -168,8 +183,14 @@ std::string Transpiler::TranspileAssignation(Node *assignation,
 
         ogTypeStr = type->data;
         // Logs::Debug("Fetched type " + ogTypeStr);
-        ObjectType *declType = dynamic_cast<ObjectType *>(env->FetchType(type));
 
+        // std::cout << ogTypeStr << std::endl;
+        // type->Debug(0);
+        // env->DumpEnvironment();
+        env->FetchType(type);
+
+        ObjectType *declType =
+            dynamic_cast<ObjectType *>(env->FetchType(type)); // TODO: Aixo peta
         if (declType == nullptr) {
           std::cout << "NULLPTR! not found " << ogTypeStr << std::endl;
         }
@@ -189,15 +210,33 @@ std::string Transpiler::TranspileAssignation(Node *assignation,
            dynamic_cast<ObjectVariable *>(env->Fetch(ogIdentifier))
                ->Transpile() +
            " " + assignation->data + " " + Texpression;
-  } else if (assignation->children[0]->type == ZagIR::NODE_ACCESSOR) {
-    // We are assigning an accessor
-    // Podem tenir part de getters de moment ho ometem
-    Node *accessor = assignation->children[0];
-    ObjectType *accessorType;
-    std::string accessorStr =
-        TranspileAccessor(accessor, &accessorType, before);
-    return accessorStr + " = " + Texpression;
   }
+
+  bool firstAccessor = true;
+  Node *currentNode = assignation->children[0];
+  // assignation->Debug(0);
+
+  std::string accessorTranspiled = "";
+  while (currentNode->type != NODE_IDENTIFIER) {
+    if (currentNode->type == NODE_GETTER) {
+
+      if (firstAccessor) {
+        accessorTranspiled += dynamic_cast<ObjectVariable *>(
+                                  env->Fetch(currentNode->arguments[0]->data))
+                                  ->Transpile();
+        firstAccessor = false;
+      } else
+        accessorTranspiled += currentNode->arguments[0]->data;
+      accessorTranspiled += ".";
+
+      currentNode = currentNode->children[0];
+      // currentNode->Debug(0);
+    } else {
+      std::cout << "NO! Type is " << currentNode->type;
+    }
+  }
+  return accessorTranspiled + currentNode->data + " " + assignation->data +
+         " " + Texpression;
 }
 
 std::string Transpiler::TranspileExpression(Node *expression,
@@ -236,16 +275,15 @@ std::string Transpiler::TranspileExpression(Node *expression,
     return TranspileIdentifier(expression, retType);
     break;
   case NODE_CALL:
-    return TranspileCall(expression, retType, before);
-    break;
   case NODE_GETTER:
-    return TranspileGetter(expression, retType, before);
+  case NODE_ACCESSOR:
+    ObjectContainer* c;
+    std::cout << "-------------------------------------------------------" << std::endl;
+    return TranspileInstruction(expression, retType, &c, env->GetTopScope(), before);
+    // return TranspileGetter(expression, retType, before);
     break;
   case NODE_ARRAY:
     return TranspileArray(expression, retType, before);
-    break;
-  case NODE_ACCESSOR:
-    return TranspileAccessor(expression, retType, before);
     break;
   default:
     // expression->Debug(0);
@@ -449,7 +487,7 @@ std::string Transpiler::TranspileLup(ZagIR::Node *lup, std::string *before) {
 
   // Implement label
   res += "{" + block + "}\n";
-  if(lup->data != ""){
+  if (lup->data != "") {
     res += lup->data + ":\n";
   }
 
@@ -457,6 +495,7 @@ std::string Transpiler::TranspileLup(ZagIR::Node *lup, std::string *before) {
 }
 
 std::string Transpiler::TranspileGet(ZagIR::Node *getNode) {
+
   std::string value = getNode->data;
   std::string realImport;
   bool lib;
@@ -479,7 +518,10 @@ std::string Transpiler::TranspileGet(ZagIR::Node *getNode) {
   return "";
 }
 
-std::string Transpiler::TranspileFunction(ZagIR::Node *function) {
+ObjectNativeFunction *
+Transpiler::TranspileFunction(ZagIR::Node *function,
+                              std::string *functionDeclaration,
+                              std::string *functionDefinition) {
 
   ObjectNativeFunction *func = new ObjectNativeFunction();
   func->returnType = "Nil"; // TODO: Canviar
@@ -495,10 +537,13 @@ std::string Transpiler::TranspileFunction(ZagIR::Node *function) {
 
   func->identifier = function->data;
 
-  // TODO: Canviar a root?
-  env->AddToScope(function->data, func);
+  // TODO: Fer retornar per lo de les classes
+  // env->AddToScope(function->data, func);
 
   env->PushScope();
+  if (function->arguments.size() == 0) {
+    arguments = "()";
+  }
   for (int i = 0; i < function->arguments.size(); i++) {
     if (function->arguments[i]->type == ZagIR::NODE_TYPE) {
 
@@ -536,26 +581,33 @@ std::string Transpiler::TranspileFunction(ZagIR::Node *function) {
   std::string defBlock = TranspileBlock(function->children[0]);
   env->PopScope();
 
-  functionDeclaration += returnType + " " + funcName + arguments + ";";
-  functionDefinition +=
-      returnType + " " + funcName + arguments + "{" + defBlock + "}";
+  if (functionDeclaration != nullptr)
+    *functionDeclaration += returnType + " " + funcName + arguments + ";";
+  if (functionDefinition != nullptr)
+    *functionDefinition +=
+        returnType + " " + funcName + arguments + "{" + defBlock + "}";
 
-  return "";
+  return func;
 }
 
-std::string Transpiler::TranspileKin(Node *kin, std::string *before){
+std::string Transpiler::TranspileKin(Node *kin, std::string *before) {
   // kin->Debug(0);
   std::string kinName = kin->data;
 
-  ObjectContainer* kinDef = new ObjectContainer();
+  classDeclaration += "class c_" + kinName + ";\n";
 
-  for(int i = 0; i < kin->children.size(); i++){
-    Object* addedObj;
-    std::string methodName = TranspileMethod(kin->children[i], before, &addedObj);
+  ObjectContainer *kinDef = new ObjectContainer();
+
+  std::string privatePart = "", publicPart = "";
+
+  classDefinition += "class c_" + kinName + " {\n";
+
+  for (int i = 0; i < kin->children.size(); i++) {
+    Object *addedObj;
 
     Privacy p = PUBLIC;
-    if(kin->children[i]->data.size() > 0)
-    switch(kin->children[i]->data[0]){
+    if (kin->children[i]->data.size() > 0)
+      switch (kin->children[i]->data[0]) {
       case '$':
         p = PRIVATE;
         break;
@@ -565,17 +617,66 @@ std::string Transpiler::TranspileKin(Node *kin, std::string *before){
       default:
         std::cout << "Undefined accessor?" << std::endl;
         return "";
-    }
-    kinDef->AddObject(addedObj, methodName, p);
+      }
+    std::string methodName;
+    std::string *writeTo;
+    if (p == PUBLIC)
+      writeTo = &publicPart;
+    else
+      writeTo = &privatePart;
+
+    methodName = TranspileMethod(kin->children[i], writeTo, &addedObj, before);
+    if (methodName == "")
+      return "";
+
+    kinDef->AddObject(methodName, addedObj, p);
   }
 
+  classDefinition +=
+      "public:\n" + publicPart + "\nprivate:\n" + privatePart + "\n};\n";
+
   // TODO: Canviar a root?
-  env->AddToScope(kinName, new ObjectProtoType(kinDef));
+  env->AddToRoot(kinName, new ObjectProtoType(kinDef, kinName));
   return "";
 }
 
-std::string Transpiler::TranspileMethod(Node *method, std::string *before, Object** methodObject){
+std::string Transpiler::TranspileMethod(Node *method, std::string *writeTo,
+                                        Object **methodObject,
+                                        std::string *before) {
+  std::string methodName;
 
+  Node *attribute = method->children[0];
+
+  ObjectType *transpileType;
+
+  switch (attribute->type) {
+  case ZagIR::NODE_ASSIGNATION:
+    transpileType = env->FetchType(attribute->arguments[0]);
+    *methodObject =
+        new ObjectVariable(transpileType, attribute->children[0]->data);
+    methodName = attribute->children[0]->data;
+
+    *writeTo += transpileType->Transpile() + " " + methodName + ";\n";
+    break;
+  case ZagIR::NODE_FUNCTION:
+    methodName = attribute->data;
+    *methodObject = TranspileFunction(attribute, nullptr, writeTo);
+    *writeTo += ";\n";
+    break;
+  case ZagIR::NODE_IDENTIFIER:
+    // Igual que assignation pero amb any
+    transpileType = env->FetchType("Any");
+    *methodObject = new ObjectVariable(transpileType, attribute->data);
+    methodName = attribute->data;
+
+    *writeTo += transpileType->Transpile() + " " + methodName + ";\n";
+    break;
+  default:
+    // std::cout << "Method has no name?" << std::endl;
+    *methodObject = new ObjectContainer();
+    return "_";
+  }
+  return methodName;
 }
 
 std::string Transpiler::TranspileReturn(ZagIR::Node *ret, std::string *before) {
@@ -590,16 +691,19 @@ std::string Transpiler::TranspileReturn(ZagIR::Node *ret, std::string *before) {
   return "return " + exp + ";";
 }
 
-std::string Transpiler::TranspileBrk(Node *brk, std::string *before){
+std::string Transpiler::TranspileBrk(Node *brk, std::string *before) {
   // TODO
   std::string brkBody;
-  
-  if(brk->data == "") brkBody = "break;";
-  else brkBody = "goto " + brk->data + ";";
 
-  if(brk->children.size() > 0){
-    ObjectType* type; // Hauriem de veure que avalua a bool?
-    return "if(" + TranspileExpression(brk->children[0], &type, before) + ") " + brkBody;
+  if (brk->data == "")
+    brkBody = "break;";
+  else
+    brkBody = "goto " + brk->data + ";";
+
+  if (brk->children.size() > 0) {
+    ObjectType *type; // Hauriem de veure que avalua a bool?
+    return "if(" + TranspileExpression(brk->children[0], &type, before) + ") " +
+           brkBody;
   }
 
   return brkBody;
@@ -644,92 +748,315 @@ std::string Transpiler::TranspileGCall(ObjectFunction *func, ZagIR::Node *call,
   return func->GetName() + "(" + args + ")";
 }
 
+std::string Transpiler::TranspileInstruction(Node *instruction,
+                                             ObjectType **returnType,
+                                             ObjectContainer** scope,
+                                             Scope* root,
+                                             std::string *before) {
+  std::string res = "";
+  std::cout << "Debugging:" << std::endl;
+  instruction->Debug(0);
+  root->data->Print(0);
+  std::cout << "------" << std::endl;
+  ObjectType *callRetType = nullptr; // ???
+
+
+  if (instruction->type == NODE_GETTER) {
+    std::string getterName = instruction->arguments[0]->data;
+
+    ObjectContainer* recievedContainer;
+    res += TranspileInstruction(instruction->children[0], returnType, &recievedContainer, root, before);
+    res += "." + getterName; // Translate?
+                             //
+    std::cout << "RES: " << res << std::endl;
+
+    if(recievedContainer->Exists(getterName)){
+      Object* gettedObject = recievedContainer->GetObject(getterName); 
+      // Pot ser un container o no. Si no ho és, agafem el tipus que tenim
+
+      // Sabem que no es nullptr perque existeix
+      ObjectContainer* gettedContainer = dynamic_cast<ObjectContainer*>(gettedObject);
+      if(gettedContainer == nullptr){
+        gettedContainer = (*returnType)->constructor->typeMethods;
+      }
+
+      *scope = gettedContainer;
+    } else {
+      std::cout << termcolor::red << "Invalid getter" << termcolor::reset << std::endl;
+      return res;
+    }
+  } else if (instruction->type == NODE_CALL) {
+    // Funció dins de qualsevol cosa
+    // té un children que es getter i te el nom de la func i el children del children és el seguent
+
+    /*
+      // En cas de tenir variable actualitzem els tempaltes a la funció
+      std::vector<std::string> oldParams;
+      if(scopedVariable != nullptr){
+        oldParams = ofunc->functionArgs;
+        ofunc->SetInheritedType(scopedVariable->GetType());
+      }
+
+      res += TranspileGCall(ofunc, currentGetter, returnType, before);
+
+      // Desfem els canvis
+      if(scopedVariable != nullptr) ofunc->functionArgs = oldParams;
+    */
+    ObjectContainer *recievedContainer;
+
+    root->data->Print(0);
+    std::cout << "Miau " << std::endl;
+    instruction->Debug(0);
+
+    std::string functionName;
+    if(instruction->children[0]->children.size() > 0){
+      functionName = instruction->children[0]->arguments[0]->data;
+      res += TranspileInstruction(instruction->children[0]->children[0], &callRetType, &recievedContainer, root, before);
+    } else {
+      functionName = instruction->children[0]->data; 
+      recievedContainer = root->data;
+    }
+
+
+    std::cout << "HJDI=SJADSIOUHA"<< std::endl;
+    if(recievedContainer == nullptr){
+      std::cout << termcolor::red << "1" << termcolor::reset << std::endl;
+      return res;
+    }
+    recievedContainer->Print(0);
+
+
+    Object* objFunction = recievedContainer->Fetch(functionName);
+    if(objFunction == nullptr){
+      std::cout << termcolor::red << "2" << termcolor::reset << std::endl;
+      return res; 
+    }
+
+    ObjectFunction* function = dynamic_cast<ObjectFunction*>(recievedContainer->Fetch(functionName));
+    if(function == nullptr){
+      std::cout << termcolor::red << "3" << termcolor::reset << std::endl;
+      return res; 
+    }
+
+    std::vector<std::string> oldParams;
+    if(callRetType != nullptr){
+      // Tipus que tenim de sota doncs el sobreescrivim amb el template
+      oldParams = function->functionArgs;
+      function->SetInheritedType(callRetType);
+    }
+    
+    // S'hauria de sobreescriure res amb la funció de verdad
+    ObjectCFunction* cfunction = dynamic_cast<ObjectCFunction*>(function);
+    if(cfunction != nullptr){
+      if(callRetType == nullptr) res = cfunction->cFunctionData->bind;
+      else res += "." + cfunction->cFunctionData->bind;
+      env->Use(cfunction);
+    }
+
+    ObjectNativeFunction* nativeFunction = dynamic_cast<ObjectNativeFunction*>(function);
+    if(nativeFunction != nullptr){
+      res += nativeFunction->GetName();
+    }
+
+    ObjectType *funcType = env->FetchType(function->returnType), *argType;
+    std::vector<ObjectType *> argTypes;
+    // Check args
+    res += "(";
+    for (int i = 0; i < instruction->arguments.size(); i++) {
+     res += TranspileExpression(instruction->arguments[i], &argType, before);
+     argTypes.push_back(argType);
+      if(i < instruction->arguments.size() - 1) res += ",";
+    }
+    res += ")";
+
+    if(!function->CheckArgs(argTypes, env)){
+      std::cout << termcolor::red << "Invalid types" << termcolor::reset << std::endl;
+      return res; 
+    }
+
+    // Desfem els canvis de template
+    if(callRetType != nullptr) function->functionArgs = oldParams;
+    
+    *scope = funcType->constructor->typeMethods;
+    *returnType = funcType;
+
+  } else if (instruction->type == NODE_ACCESSOR) {
+    ObjectType *indexType = nullptr, *accessorType = nullptr;
+    ObjectContainer *beforeContainer;
+
+    res += TranspileInstruction(instruction->children[0], &callRetType, &beforeContainer, root, before);
+    if (callRetType->constructor == env->FetchProtoType("Arr")) {
+      accessorType = callRetType->children[0];
+    }
+  
+    res += "[" + TranspileExpression(instruction->arguments[0], &indexType, before) + "]";
+
+    std::cout << accessorType << std::endl;
+    if(accessorType == nullptr){
+      std::cout << termcolor::red << "Accessor nullptr" << termcolor::reset << std::endl;
+      return res;
+    }
+    *returnType = accessorType;
+    *scope = accessorType->constructor->typeMethods;
+  } else {
+    // Com que tenim una expressió el instruction container serà el del tipus
+    // Pot ser també un identifier nose
+    ObjectType* expressionType;
+    res = TranspileExpression(instruction, &expressionType, before);
+
+    if(instruction->type == NODE_IDENTIFIER){
+      // Es un identifier, no té childs, hem d'aconseguir l'objecte des de root
+      // i retornar-lo
+      std::cout << "Ñe hauria de ser array" << std::endl;
+      Object* identifierObject = root->GetObject(instruction->data);
+      if(identifierObject == nullptr){
+        std::cout << termcolor::red << "Identifier '" + instruction->data + "' doesn't exists" << termcolor::reset << std::endl;
+        root->data->Print(0);
+        return res;
+      }
+      // Aqui ara hem de veure com assignar el tipus a containers, funcions, etc..
+      // Tots els tipus fills de Object
+      *returnType = nullptr;
+     
+      ObjectContainer* identifierContainer = dynamic_cast<ObjectContainer*>(identifierObject);
+      if(identifierContainer != nullptr){
+        *scope = identifierContainer;
+        (*scope)->Print(0);
+        std::cout << "Eso es ara eso" << std::endl;
+        return res;
+      }
+      ObjectVariable* identifierVariable = dynamic_cast<ObjectVariable*>(identifierObject);
+      if(identifierVariable != nullptr){
+        ObjectType* varType = identifierVariable->GetType();
+        *scope = varType->constructor->typeMethods;
+        *returnType = varType; 
+      }
+    } else {
+      // Ha de ser una expressió, de la qual podem determinar el tipus
+      *scope = expressionType->constructor->typeMethods;
+      *returnType = expressionType;
+    }
+  }
+  return res;
+}
+
+/*
 std::string Transpiler::TranspileGetter(ZagIR::Node *getter,
                                         ObjectType **returnType,
                                         std::string *before) {
-  if (env->Exists(getter->arguments[0]->data)) {
-    Object *scoped = env->Fetch(getter->arguments[0]->data);
-    // scoped->Print();
-    ZagIR::Node *currentGetter = getter;
 
-    ObjectContainer *scopedContainer = dynamic_cast<ObjectContainer *>(scoped);
-    ObjectVariable *scopedVariable = dynamic_cast<ObjectVariable *>(scoped);
+  // Potser tenim a un amic accessor!1!
 
-    if (scopedContainer != nullptr) {
-      scoped = NavigateContainer(&currentGetter, scopedContainer);
-
-      // En principi estariem al final de la cadena de getters.
-      // Podriem tenir una call o un identificador
-      if (currentGetter->type == NODE_CALL) {
-        // ZagIR::PackCall pack = scoped->GetCFunctionData();
-        // Add fileDeps and return
-        ObjectFunction *ofunc = dynamic_cast<ObjectFunction *>(scoped);
-        if (ofunc != nullptr) {
-          return TranspileGCall(ofunc, currentGetter, returnType, before);
-        } else {
-          Logs::Error("Object is not a func (idk what happened)");
-          return "";
-        }
-      }
-      // Hem de carregar fileDeps
-    } else if (scopedVariable != nullptr) {
-      scopedContainer = scopedVariable->GetType()->constructor->typeMethods;
-      scoped = NavigateContainer(&currentGetter, scopedContainer);
-
-      if (currentGetter->type == NODE_CALL) {
-        ObjectFunction *ofunc = dynamic_cast<ObjectFunction *>(scoped);
-        if (ofunc != nullptr) {
-          std::vector<std::string> oldParams = ofunc->functionArgs;
-
-          ofunc->SetInheritedType(scopedVariable->GetType());
-          std::string res = scopedVariable->Transpile() + "." + TranspileGCall(ofunc, currentGetter, returnType, before);
-          
-          ofunc->functionArgs = oldParams;
-          return res;
-        } else {
-          // A part, afegir mètodes aquí també
-          Logs::Error("Object is not a func (idk what happened)");
-          return "";
-        }
-      }
-    }
+  if (!env->Exists(getter->arguments[0]->data)) {
+    Logs::Error("Object does not exists");
+    return "";
   }
-  Logs::Error("Getter not cached");
-  return "";
-}
 
-Object *Transpiler::NavigateContainer(Node **getter,
-                                      ObjectContainer *scopedContainer) {
+  Object *scoped = env->Fetch(getter->arguments[0]->data);
+  ZagIR::Node *currentGetter = getter;
 
-  Object *scoped;
-  while ((scopedContainer != nullptr) && (*getter)->children.size() > 0) {
+  ObjectContainer *scopedContainer = dynamic_cast<ObjectContainer *>(scoped);
+  ObjectVariable *scopedVariable = dynamic_cast<ObjectVariable *>(scoped);
 
-    *getter = (*getter)->children[0];
-    // (*getter)->Debug(0);
-    if (!((*getter)->type == ZagIR::NODE_GETTER ||
-          (*getter)->type == ZagIR::NODE_CALL)) {
-      // Ens hem quedat sense getters
-      std::cout << "Not reached till the end" << std::endl;
+  // Si ens adreçem a un container serà tal cual, si és una variable,
+  // ens adrecem al container del seu prototip
+  std::string res = "";
+  if (scopedVariable != nullptr) {
+    scopedContainer = scopedVariable->GetType()->constructor->typeMethods;
+    res += scopedVariable->Transpile() + ".";
+  }
+
+  while (getter->children.size() > 0) {
+
+    getter = getter->children[0];
+
+    if (getter->type == ZagIR::NODE_CALL) {
+      scoped = scopedContainer->GetObject(getter->data);
+      res += getter->data;
+    } else {
+      scoped = scopedContainer->GetObject(getter->arguments[0]->data);
+      res += getter->arguments[0]->data;
     }
-
-    if ((*getter)->type == ZagIR::NODE_CALL)
-      scoped = scopedContainer->GetObject((*getter)->data);
-    else
-      scoped = scopedContainer->GetObject((*getter)->arguments[0]->data);
+    res += ".";
 
     scopedContainer = dynamic_cast<ObjectContainer *>(scoped);
   }
 
-  if ((*getter)->type == NODE_GETTER) {
-    // Més getters que el que hi ha al objecte
-    // Podria donar support a constants???
-    std::cout << "Invalid" << std::endl;
-
-    env->DumpEnvironment();
+  if (scoped == nullptr) {
     throw std::logic_error("Error invalid getter");
   }
 
-  return scoped;
+  // std::cout << "scoped: " << std::endl;
+  // scoped->Print(0);
+
+  if (currentGetter->type == NODE_CALL) {
+    ObjectFunction *ofunc = dynamic_cast<ObjectFunction *>(scoped);
+    if (ofunc != nullptr) {
+
+      // En cas de tenir variable actualitzem els tempaltes a la funció
+      std::vector<std::string> oldParams;
+      if(scopedVariable != nullptr){
+        oldParams = ofunc->functionArgs;
+        ofunc->SetInheritedType(scopedVariable->GetType());
+      }
+
+      res += TranspileGCall(ofunc, currentGetter, returnType, before);
+
+      // Desfem els canvis
+      if(scopedVariable != nullptr) ofunc->functionArgs = oldParams;
+      return res;
+    } else {
+      // A part, afegir mètodes aquí també
+      Logs::Error("Object is not a func (idk what happened)");
+      return "";
+    }
+  } else {
+    // Només pot ser un getter que ens queda de l'últim identificador
+    currentGetter = currentGetter->arguments[0];
+    res += currentGetter->data;
+    return res;
+  }
+}
+*/
+
+// TODO: Carregar-se això igual
+std::string Transpiler::NavigateContainer(Node **getter, Object **finalObject,
+                                          ObjectContainer *scopedContainer) {
+
+  Object *scoped;
+  std::string path = "";
+  while ((scopedContainer != nullptr) && (*getter)->children.size() > 0) {
+
+    *getter = (*getter)->children[0];
+
+    if ((*getter)->type == ZagIR::NODE_CALL) {
+      scoped = scopedContainer->GetObject((*getter)->data);
+      path += (*getter)->data;
+    } else {
+      scoped = scopedContainer->GetObject((*getter)->arguments[0]->data);
+      path += (*getter)->arguments[0]->data;
+    }
+    path += ".";
+
+    scopedContainer = dynamic_cast<ObjectContainer *>(scoped);
+  }
+
+  if (scoped == nullptr) {
+    if ((*getter)->type == NODE_GETTER) {
+      // Més getters que el que hi ha al objecte
+      // Podria donar support a constants???
+      std::cout << "Invalid" << std::endl;
+
+      // env->DumpEnvironment();
+      throw std::logic_error("Error invalid getter");
+    }
+  }
+
+  // std::cout << "scoped: " << std::endl;
+  // scoped->Print(0);
+  *finalObject = scoped;
+
+  return path;
 }
 
 std::string Transpiler::TranspileArray(ZagIR::Node *array,
@@ -749,8 +1076,6 @@ std::string Transpiler::TranspileArray(ZagIR::Node *array,
       result += ",";
   }
   result += "}";
-
-  // std::cout << result << std::endl;
 
   bool equals = true;
   // Polimorfismo?
@@ -776,6 +1101,7 @@ std::string Transpiler::TranspileArray(ZagIR::Node *array,
   return result;
 }
 
+// TODO: Em vull carregar això
 std::string Transpiler::TranspileAccessor(Node *accessor,
                                           ObjectType **returnType,
                                           std::string *before) {
@@ -786,10 +1112,7 @@ std::string Transpiler::TranspileAccessor(Node *accessor,
   std::string index =
       TranspileExpression(accessor->arguments[0], &indexType, before);
 
-  // std::cout << "LeftType: " << containerType->Transpile() << " IndexType: "
-  // << indexType->Transpile() << std::endl;
   if (containerType->constructor == env->FetchProtoType("Arr")) {
-    // std::cout << "Is from array" << std::endl;
     *returnType = containerType->children[0];
   }
   return content + "[" + index + "]";
@@ -797,6 +1120,7 @@ std::string Transpiler::TranspileAccessor(Node *accessor,
 
 ZagIR::Package *Transpiler::LoadPackage(std::string packageName) {
   Package *package = ZagIR::FetchPackage(packageName);
+
   loadedPackages.push_back(package);
   env->AddPackageToScope(package);
   return package;

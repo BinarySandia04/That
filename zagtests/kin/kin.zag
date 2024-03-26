@@ -4,12 +4,20 @@ kin Entity {
   @ estatic: Int // @ vol dir estatic
   $ maxHealth: Int // $ vol dir privat
   $ health: Num
+  hola: Str
   $ damage: Num
   $ defense: Int
   position: Num
   $ alive: Bul
 
   fn Debug {
-    std.println("Test")
+    std.println("hola")
   }
 }
+
+a: Entity
+b: Entity
+c: Entity
+p: Arr<Entity> = [a,b,c]
+
+p[0].hola(3).dos

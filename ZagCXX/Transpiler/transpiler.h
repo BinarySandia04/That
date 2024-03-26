@@ -9,16 +9,16 @@
 #include <ZagIR/Ast/ast.h>
 #include <ZagIR/Libs/packages.h>
 
-#include "object.h"
-#include "container.h"
-#include "type.h"
-#include "prototype.h"
-#include "function.h"
-#include "variable.h"
-#include "operation.h"
+#include "Objects/object.h"
+#include "Objects/container.h"
+#include "Objects/type.h"
+#include "Objects/prototype.h"
+#include "Objects/function.h"
+#include "Objects/variable.h"
+#include "Objects/operation.h"
 
 #include "environment.h"
-#include "../Formatter/formatter.h"
+#include "Formatter/formatter.h"
 
 using namespace ZagIR;
 
@@ -59,15 +59,18 @@ private:
 
   std::string TranspileCall(Node *, ObjectType **, std::string *);
   std::string TranspileGCall(ObjectFunction *, Node *, ObjectType**, std::string *);
-  std::string TranspileGetter(Node *, ObjectType **, std::string *);
-  std::string TranspileFunction(Node *);
+  // std::string TranspileGetter(Node *, ObjectType **, std::string *);
+
+  std::string TranspileInstruction(Node*, ObjectType**, ObjectContainer**, Scope*, std::string*);
+
+  ObjectNativeFunction* TranspileFunction(Node *, std::string*, std::string*);
   std::string TranspileKin(Node *, std::string *);
-  std::string TranspileMethod(Node *, std::string *, Object**);
+  std::string TranspileMethod(Node *, std::string *, Object**, std::string *);
   
   std::string TranspileArray(Node*, ObjectType**, std::string *);
   std::string TranspileAccessor(Node*, ObjectType**, std::string *);
 
-  Object* NavigateContainer(Node**, ObjectContainer*);
+  std::string NavigateContainer(Node**, Object**, ObjectContainer*);
 
   std::string functionDeclaration;
   std::string functionDefinition;

@@ -26,18 +26,27 @@ public:
 class ObjectContainer : public Object {
 public:
   ObjectContainer();
+  ObjectContainer(ObjectContainer*);
   ObjectContainer(std::vector<Binding*>*);
   ~ObjectContainer();
 
   void Print(int);
   Object* Clone();
 
-  void AddObject(Object *, std::string);
-  void AddObject(Object *, std::string, Privacy);
+  void AddObject(std::string, Object*);
+  void AddObject(std::string, Object*, Privacy);
 
   void AddBinding(Binding *);
-  Object *GetObject(std::string);
+  Object* GetObject(std::string);
+  Object* Fetch(std::string);
   void Merge(ObjectContainer *);
+
+  bool Exists(std::string);
+
+  auto begin() const { return containerData.begin(); }
+  auto end() const { return containerData.end(); }
+
+  ObjectContainer* before;
 
 private:
   std::unordered_map<std::string, ObjectContainerData *> containerData;
