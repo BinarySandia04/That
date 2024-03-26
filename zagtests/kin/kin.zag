@@ -11,7 +11,7 @@ kin Entity {
   $ alive: Bul
 
   fn Debug {
-    std.println("hola")
+    std.println("hola " + hola)
   }
 }
 
@@ -20,4 +20,5 @@ b: Entity
 c: Entity
 p: Arr<Entity> = [a,b,c]
 
-p[0].hola(3).dos
+// p[0].hola = "Miau"
+p[0].Debug()

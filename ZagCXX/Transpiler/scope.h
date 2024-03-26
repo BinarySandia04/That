@@ -20,6 +20,7 @@ public:
   void AddObject(std::string, Object*);
   void AddObject(std::string, Object*, Privacy);
   bool Exists(std::string);
+  void Detach();
 
   auto begin() const { return data->begin(); }
   auto end() const { return data->end(); }

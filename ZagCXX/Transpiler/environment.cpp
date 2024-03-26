@@ -78,7 +78,6 @@ void Environment::AddPackageToScope(ZagIR::Package *package) {
   if (package->root != "") {
     if (Exists(package->root)) {
       // Hem de fer merge dels dos ObjectContainer s
-      // 
       ObjectContainer *oldContainer =
           dynamic_cast<ObjectContainer *>(FetchRoot(package->root));
       if (oldContainer == nullptr)

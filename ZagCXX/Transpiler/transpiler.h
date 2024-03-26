@@ -42,7 +42,7 @@ private:
 
   std::string GenerateIncludes();
 
-  std::string TranspileBlock(Node *);
+  std::string TranspileBlock(Node *); 
   std::string TranspileStatement(Node *);
   std::string TranspileAssignation(Node *, std::string *);
 
@@ -57,20 +57,15 @@ private:
   std::string TranspileReturn(Node *, std::string *);
   std::string TranspileBrk(Node *, std::string *);
 
-  std::string TranspileCall(Node *, ObjectType **, std::string *);
-  std::string TranspileGCall(ObjectFunction *, Node *, ObjectType**, std::string *);
-  // std::string TranspileGetter(Node *, ObjectType **, std::string *);
-
   std::string TranspileInstruction(Node*, ObjectType**, ObjectContainer**, Scope*, std::string*);
 
-  ObjectNativeFunction* TranspileFunction(Node *, std::string*, std::string*);
+  ObjectNativeFunction* TranspileFunction(Node *, std::string nameSpace, std::string*, std::string*, bool transpileContent);
   std::string TranspileKin(Node *, std::string *);
-  std::string TranspileMethod(Node *, std::string *, Object**, std::string *);
+
+  std::string PreTranspileMethod(Node*, std::string, std::string*, Object**, std::string *);
+  void PostTranspileMethod(Node*, std::string, std::string*);
   
   std::string TranspileArray(Node*, ObjectType**, std::string *);
-  std::string TranspileAccessor(Node*, ObjectType**, std::string *);
-
-  std::string NavigateContainer(Node**, Object**, ObjectContainer*);
 
   std::string functionDeclaration;
   std::string functionDefinition;

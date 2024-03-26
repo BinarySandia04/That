@@ -12,7 +12,7 @@ Scope::Scope(Scope *before) {
 }
 
 Scope::~Scope() {
-  delete data;
+  if(data != nullptr) delete data;
 }
 
 void Scope::Print() {
@@ -33,4 +33,8 @@ void Scope::AddObject(std::string key, Object* obj, Privacy privacy){
 
 bool Scope::Exists(std::string key){
   return data->Exists(key);
+}
+
+void Scope::Detach(){
+  data = nullptr;
 }
