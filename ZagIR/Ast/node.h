@@ -38,6 +38,7 @@ enum NodeType {
   NODE_INT_VAL,    // Data is the int value
   NODE_NUMBER_VAL, // Data is the number value
   NODE_STRING_VAL, // Data is the string value
+  NODE_CHAR_VAL, // Data has a character (maybe)?
   NODE_IDENTIFIER, // Data is the identifier name
   NODE_ACCESSOR, // Node that accesses []
 };

@@ -236,6 +236,19 @@ void Scanner::GetString() {
 }
 
 void Scanner::GetConstant() {
+  if(PeekN(1) == '\''){
+    AddToken(TOKEN_CHAR, std::string(1, Peek()));
+    Advance(); Advance();
+    std::cout << "HGOla " << Peek() + "";
+    return;
+  }
+
+  if(Peek() == '\\' && PeekN(2) == '\''){
+    AddToken(TOKEN_CHAR, "\\" + std::string(1, PeekN(1)));
+    Advance(); Advance(); Advance();
+    return;
+  }
+
   while (!IsEmpty(Peek()) && !AtEnd() &&
          (IsAlpha(Peek()) || ValidConst(Peek()))) {
     Advance();
@@ -270,6 +283,11 @@ char Scanner::PeekNext() {
   if (current + 1 >= source.size())
     return '\0';
   return source[current + 1];
+}
+
+char Scanner::PeekN(int p){
+  if (current + p >= source.size()) return '\0';
+  return source[current + p];
 }
 
 bool Scanner::IsAlpha(char c) {

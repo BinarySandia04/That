@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <iomanip>
 
 namespace zstd {
 
@@ -17,6 +18,7 @@ void PrintLn(T s){
 }
 
 void PrintChar(int n);
+void PrintNum(double d, int p);
 
 int ReadInt(std::string s);
 double ReadNum(std::string s);

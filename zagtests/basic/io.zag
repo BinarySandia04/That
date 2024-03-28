@@ -1,0 +1,7 @@
+get 'std.io
+
+c: Chr = 'H'
+s: Str = "Hola"
+std.println("Hola \nque\ttal" + c)
+
+if s[0] == 'o' : std.println("Si")

@@ -1,0 +1,16 @@
+get 'std.io
+
+x: Int = std.read.int("N: ")
+lup i | 1, x + 1 {
+  r: Num = 0
+  lup k | 1, i + 1 {
+    e: Num = 1
+    lup p | 1, k {
+      e *= (11.0 / 20.0)
+    }
+    r += (9.0 / 20.0) * e
+  }
+  std.print("P(" + (i + 1) + "): ")
+  std.printnum(r * r, 20)
+  std.println("")
+}

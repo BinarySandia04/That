@@ -40,6 +40,7 @@ private:
   bool Match(char);
   char Peek();
   char PeekNext();
+  char PeekN(int p);
   void GetString();
   void GetConstant();
   bool ValidConst(char);

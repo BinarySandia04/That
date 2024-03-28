@@ -57,6 +57,7 @@ enum TokenType {
   // Literals
   TOKEN_IDENTIFIER, // hola
   TOKEN_STRING, // "gola"
+  TOKEN_CHAR, // 'a' // Només pot tenir longitud 1!
   TOKEN_NUMBER, // 89.3 
   TOKEN_CONST, // 'Hola
 

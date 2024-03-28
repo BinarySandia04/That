@@ -642,6 +642,11 @@ void Parser::Primary(Node **exp) {
     (*exp)->data = t.literal;
     Advance();
     break;
+  case TOKEN_CHAR:
+    (*exp)->type = NODE_CHAR_VAL;
+    (*exp)->data = t.literal;
+    Advance();
+    break;
   case TOKEN_IDENTIFIER:
     (*exp)->type = NODE_IDENTIFIER;
     (*exp)->data = t.literal;

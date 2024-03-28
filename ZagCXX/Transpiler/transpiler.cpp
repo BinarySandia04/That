@@ -117,10 +117,10 @@ std::string Transpiler::TranspileStatement(Node *statement) {
   case ZagIR::NODE_NOP_VAL:
   case ZagIR::NODE_NUMBER_VAL:
   case ZagIR::NODE_STRING_VAL:
+  case ZagIR::NODE_CHAR_VAL:
   case ZagIR::NODE_CALL:
   case ZagIR::NODE_GETTER:
   case ZagIR::NODE_ACCESSOR:
-
     exp = TranspileExpression(statement, &evalType, &before) + ";";
     break;
   default:
@@ -270,6 +270,10 @@ std::string Transpiler::TranspileExpression(Node *expression,
     *retType = env->FetchType("Bul");
     return "false";
     break;
+  case NODE_CHAR_VAL:
+    *retType = env->FetchType("Chr");
+    return "'" + expression->data + "'";
+    break;
   case NODE_OP_BIN:
     return TranspileBinary(expression, retType, before);
     break;
@@ -283,7 +287,6 @@ std::string Transpiler::TranspileExpression(Node *expression,
   case NODE_GETTER:
   case NODE_ACCESSOR:
     ObjectContainer* c;
-    std::cout << "-------------------------------------------------------" << std::endl;
     return TranspileInstruction(expression, retType, &c, env->GetTopScope(), before);
     // return TranspileGetter(expression, retType, before);
     break;
@@ -743,10 +746,6 @@ std::string Transpiler::TranspileInstruction(Node *instruction,
                                              Scope* root,
                                              std::string *before) {
   std::string res = "";
-  std::cout << "Debugging:" << std::endl;
-  instruction->Debug(0);
-  root->data->Print(0);
-  std::cout << "------" << std::endl;
   ObjectType *callRetType = nullptr; // ???
 
 
@@ -789,10 +788,6 @@ std::string Transpiler::TranspileInstruction(Node *instruction,
 
     ObjectContainer *recievedContainer;
 
-    root->data->Print(0);
-    std::cout << "Miau " << std::endl;
-    instruction->Debug(0);
-
     std::string functionName;
     if(instruction->children[0]->children.size() > 0){
       functionName = instruction->children[0]->arguments[0]->data;
@@ -808,7 +803,6 @@ std::string Transpiler::TranspileInstruction(Node *instruction,
       std::cout << termcolor::red << "1" << termcolor::reset << std::endl;
       return res;
     }
-    recievedContainer->Print(0);
 
     Object* objFunction = recievedContainer->Fetch(functionName);
     if(objFunction == nullptr){
@@ -903,7 +897,6 @@ std::string Transpiler::TranspileInstruction(Node *instruction,
       Object* identifierObject = root->GetObject(instruction->data);
       if(identifierObject == nullptr){
         std::cout << termcolor::red << "Identifier '" + instruction->data + "' doesn't exists" << termcolor::reset << std::endl;
-        root->data->Print(0);
         return res;
       }
       // Aqui ara hem de veure com assignar el tipus a containers, funcions, etc..
@@ -913,8 +906,6 @@ std::string Transpiler::TranspileInstruction(Node *instruction,
       ObjectContainer* identifierContainer = dynamic_cast<ObjectContainer*>(identifierObject);
       if(identifierContainer != nullptr){
         *scope = identifierContainer;
-        (*scope)->Print(0);
-        std::cout << "Eso es ara eso" << std::endl;
         return res;
       }
       ObjectVariable* identifierVariable = dynamic_cast<ObjectVariable*>(identifierObject);

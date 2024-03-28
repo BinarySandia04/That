@@ -27,3 +27,7 @@ double zstd::ReadNum(std::string s){
 void zstd::PrintChar(int n){
   std::cout << (char) n;
 }
+
+void zstd::PrintNum(double d, int p){
+  std::cout << std::setprecision(p) << d;
+}

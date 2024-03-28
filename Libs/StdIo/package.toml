@@ -11,6 +11,9 @@ _function = {bind = "zstd::Print", args = ["Any"], return = "Nil", headers = ["i
 [_.printchr]
 _function = {bind = "zstd::PrintChar", args = ["Chr"], return = "Nil", headers = ["io.h"]}
 
+[_.printnum]
+_function = {bind = "zstd::PrintNum", args = ["Num", "Int"], return = "Nil", headers = ["io.h"]}
+
 [_.println]
 _function = {bind = "zstd::PrintLn", args = ["Any"], return = "Nil", headers = ["io.h"]}
 
