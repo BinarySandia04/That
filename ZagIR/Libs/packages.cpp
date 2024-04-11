@@ -55,9 +55,15 @@ Package *ZagIR::FetchPackage(std::string name) {
   throw std::runtime_error("Package " + name + " does not exist");
 }
 
-Package::Package(std::filesystem::path path, toml::parse_result result) {
-  _res = result;
-  this->path = path;
+Package::Package(fs::path path){
+  PackageInfo info;
+  info.path = path;
+  this->packInfo = info;
+}
+
+Package::Package(fs::path path, toml::parse_result result) {
+  PackageInfo packInfo;
+  packInfo.path = path;
   // std::cout << path.string() << std::endl;
 
   std::optional<std::string> name, display_name, version, space, root,
@@ -69,19 +75,20 @@ Package::Package(std::filesystem::path path, toml::parse_result result) {
   root = result["_info"]["_root"].value<std::string>();
 
   if (name.has_value())
-    this->name = *name;
+    packInfo.name = *name;
   if (display_name.has_value())
-    this->display_name = *display_name;
+    packInfo.display_name = *display_name;
   if (version.has_value())
-    this->version = *version;
+    packInfo.version = *version;
   if (root.has_value())
-    this->root = *root;
+    packInfo.root = *root;
   if (import_name.has_value())
-    this->import_name = *import_name;
+    packInfo.import_name = *import_name;
 
 
   // Ah pq no existeixen TODO: ????
-    ParsePackageDefinition(*result.as_table(), "");
+  ParsePackageDefinition(*result.as_table(), "");
+  this->packInfo = packInfo;
 }
 
 void Package::ParsePackageDefinition(toml::table t, std::string subpac) {
@@ -109,9 +116,8 @@ void Package::AddObjectsMap(std::string rootName, toml::table table,
     std::string key = std::string(k.str());
 
     if (EndsWith(key, "_function")) {
-      CFunction *function = new CFunction(rootName);
+      CFunction *function = new CFunction(this, rootName);
 
-      function->package = this;
       function->subpackage = subpackage;
 
       toml::table t = *v.as_table();
@@ -153,8 +159,7 @@ void Package::AddTypeMap(std::string rootName, toml::table table,
   for (auto [k, v] : table) {
     std::string key = std::string(k.str());
 
-    CType *type = new CType(key);
-    type->package = this;
+    CType *type = new CType(this, key);
     type->subpackage = subpackage;
     type->name = key;
     type->global = true;
@@ -175,8 +180,6 @@ void Package::AddTypeMap(std::string rootName, toml::table table,
 
     if (templates.has_value())
       type->templates = *templates;
-    else
-      type->templates = 0;
 
     if (toml::array *arr = t["include"].as_array()) {
       for (int i = 0; i < arr->size(); i++) {
@@ -211,8 +214,7 @@ void Package::AddConversionsMap(std::string rootName, toml::table table,
   for (auto [k, v] : table) {
     std::string key = std::string(k.str());
 
-    Conversion *conversion = new Conversion();
-    conversion->package = this;
+    Conversion *conversion = new Conversion(this);
     conversion->subpackage = subpackage;
     conversion->name = key;
 
@@ -239,8 +241,7 @@ void Package::AddOperationsMap(std::string rootName, toml::table table,
   for (auto [k, v] : table) {
     std::string key = std::string(k.str());
 
-    COperation *operation = new COperation();
-    operation->package = this;
+    COperation *operation = new COperation(this);
     operation->subpackage = subpackage;
     operation->name = key;
 

@@ -55,7 +55,7 @@ int Environment::ScopeCount() { return environment.size(); }
 
 void Environment::AddPackageToScope(ZagIR::Package *package) {
   ObjectContainer *packContainer = new ObjectContainer();
-  packContainer->identifier = package->root;
+  packContainer->identifier = package->packInfo.root;
 
   for (int i = 0; i < package->binds.size(); i++) {
     Binding *b = package->binds[i];
@@ -63,7 +63,7 @@ void Environment::AddPackageToScope(ZagIR::Package *package) {
     // Check if the binding goes to root or reserved
     COperation *coperation = dynamic_cast<COperation *>(b);
     if (coperation != nullptr) {
-      AddToReserved("C_" + package->name + "_" + coperation->name,
+      AddToReserved("C_" + package->packInfo.name + "_" + coperation->name,
                     GetObjectFromBinding(b));
     } else {
       if (b->global){
@@ -75,27 +75,27 @@ void Environment::AddPackageToScope(ZagIR::Package *package) {
   }
 
 
-  if (package->root != "") {
-    if (Exists(package->root)) {
+  if (package->packInfo.root != "") {
+    if (Exists(package->packInfo.root)) {
       // Hem de fer merge dels dos ObjectContainer s
       ObjectContainer *oldContainer =
-          dynamic_cast<ObjectContainer *>(FetchRoot(package->root));
+          dynamic_cast<ObjectContainer *>(FetchRoot(package->packInfo.root));
       if (oldContainer == nullptr)
         throw std::logic_error("Existing root is not a package");
 
       oldContainer->Merge(packContainer);
       delete packContainer;
     } else {
-      AddToRoot(package->root, packContainer);
+      AddToRoot(package->packInfo.root, packContainer);
     }
   } else
     delete packContainer;
 
   // Now we load package to compiler
-  cxxargs += "-L" + package->path.string() +
-             " -Wl,-rpath=" + package->path.string() + " -l" + package->name +
+  cxxargs += "-L" + package->packInfo.path.string() +
+             " -Wl,-rpath=" + package->packInfo.path.string() + " -l" + package->packInfo.name +
              " ";
-  packageNames.push_back(fs::path(package->path.string()).filename());
+  packageNames.push_back(fs::path(package->packInfo.path.string()).filename());
 }
 
 void Environment::AddToRoot(std::string name, Object *obj) {
@@ -321,7 +321,7 @@ void Environment::Use(ObjectProtoType *proto) {
   }
   for (int i = 0; i < proto->cTypeInfo->headers.size(); i++) {
     fs::path filePath = fs::path("src") /
-                        proto->cTypeInfo->package->path.filename() /
+                        proto->cTypeInfo->package->packInfo.path.filename() /
                         proto->cTypeInfo->headers[i];
     AddInclude(filePath);
   }
@@ -333,7 +333,7 @@ void Environment::Use(ObjectProtoType *proto) {
 void Environment::Use(ObjectCOperation *op) {
   for (int i = 0; i < op->cOperationData->headers.size(); i++) {
     fs::path filePath = fs::path("src") /
-                        op->cOperationData->package->path.filename() /
+                        op->cOperationData->package->packInfo.path.filename() /
                         op->cOperationData->headers[i];
     AddInclude(filePath);
   }
@@ -342,7 +342,7 @@ void Environment::Use(ObjectCOperation *op) {
 void Environment::Use(ObjectCFunction *cFunc) {
   for (int i = 0; i < cFunc->cFunctionData->headers.size(); i++) {
     fs::path filePath = fs::path("src") /
-                        cFunc->cFunctionData->package->path.filename() /
+                        cFunc->cFunctionData->package->packInfo.path.filename() /
                         cFunc->cFunctionData->headers[i];
     AddInclude(filePath);
   }

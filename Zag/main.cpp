@@ -159,14 +159,14 @@ void PrintBindStatus(std::string letter, Binding *bind) {
 }
 
 void ShowBinds(Package *pack) {
-  fs::path path = pack->path;
+  fs::path path = pack->packInfo.path;
   std::cout << path.string() << std::endl;
   std::vector<std::string> mangles, demangles;
   std::string nmm, nmdm;
   nmm = ZagIR::Utils::Exec("nm -gDjUv " +
-                           (path / ("lib" + pack->name + ".so")).string());
+                           (path / ("lib" + pack->packInfo.name + ".so")).string());
   nmdm = ZagIR::Utils::Exec("nm -gDjUvC " +
-                            (path / ("lib" + pack->name + ".so")).string());
+                            (path / ("lib" + pack->packInfo.name + ".so")).string());
 
   auto nmmss = std::stringstream(nmm);
   auto nmdmss = std::stringstream(nmdm);
@@ -182,9 +182,9 @@ void ShowBinds(Package *pack) {
 }
 
 void PrintPackage(ZagIR::Package *package) {
-  std::cout << termcolor::bold << package->name << termcolor::reset
+  std::cout << termcolor::bold << package->packInfo.name << termcolor::reset
             << termcolor::color<255, 128, 0> << " [" << termcolor::reset
-            << package->version << termcolor::color<255, 128, 0> << "]"
+            << package->packInfo.version << termcolor::color<255, 128, 0> << "]"
             << termcolor::reset << ": ";
 
   std::cout << termcolor::bold << package->binds.size() << termcolor::reset

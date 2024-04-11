@@ -36,6 +36,7 @@ private:
   Environment* env;
 
   Package *LoadPackage(std::string);
+  Package *LoadHeadlessPackage(std::string);
   Package *GetLoadedPackage(std::string);
 
   void ThrowError(Node *, std::string);

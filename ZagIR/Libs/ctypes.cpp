@@ -2,14 +2,24 @@
 
 using namespace ZagIR;
 
-Binding::~Binding(){
-  for(int i = 0; i < children.size(); i++){
+Binding::~Binding() {
+  for (int i = 0; i < children.size(); i++) {
     delete children[i];
   }
 }
 
-CFunction::CFunction() {}
+Binding::Binding(Package *p){
+  this->package = p;
+}
 
-CFunction::CFunction(std::string funcName) { this->name = funcName; }
+CFunction::CFunction(Package *p, std::string funcName) : Binding(p) {
+  this->name = funcName;
+}
 
-CType::CType(std::string typeName) { this->name = typeName; }
+CType::CType(Package* p, std::string typeName) : Binding(p) {
+  this->name = typeName;
+}
+
+Conversion::Conversion(Package *p) : Binding(p) {}
+
+COperation::COperation(Package *p) : Binding(p) {}

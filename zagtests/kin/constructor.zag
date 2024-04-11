@@ -1,0 +1,64 @@
+get 'std.io
+
+kin Entity {
+  maxHealth: Int // $ vol dir privat
+  health: Num
+  name: Str
+  damage: Num
+  defense: Num
+  position: [Num, Num]
+  alive: Bul
+
+  // 1
+  # { // Constructor buit
+    std.println("Created empty entity")
+  }
+
+  // 2
+  // Demana name, damage i defense i els posa automàticament
+  // recordo que ';' significa bloc buit de codi (equival a escriure {})
+  # name, damage, defense ;
+
+  // 3
+  // Demana una variable maxHealth i una position com a paràmetres després de name.
+  // Les que hi ha entre [...] passen dins de la funció del constructor
+  # name [maxHealth: Int, position: [Num, Num]] {
+    hoc.maxHealth = maxHealth
+    hoc.position = position
+    std.println("Posició -> x: " + position[0] + " y: " + position[1])
+  }
+
+  fn Debug {
+    std.println("Entity: " + name)
+    std.println("| Health: " + health + "/" + maxHealth)
+    std.println("| Damage: " + damage)
+    std.println("| Defense: " + defense)
+    std.println("| Pos: " + position)
+    std.println("| Alive: " + alive)
+  }
+
+  fn Damage [dmg: Num] {
+    final_dmg = dmg * (1 - std.exp(defense))
+    std.println("Hit " + name + " for " + final_dmg + " damage")
+    health -= final_dmg
+    if health < 0 {
+      Die()
+    }
+  }
+
+  fn Die {
+    alive = nop
+    health = 0
+    std.println(name + " has died!")
+  }
+}
+
+// 1
+e: Entity()
+// 2
+f: Entity("Josep", 20.0, 10.0)
+// 3
+g: Entity("Juan", 100, [-3.2, 4.2])
+
+h: Entity(maxHealth: 200, damage: 30, alive: yep)
+

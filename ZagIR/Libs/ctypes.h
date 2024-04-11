@@ -14,6 +14,7 @@ class Package;
 class Binding {
 public:
   virtual ~Binding();
+  Binding(Package*);
 
   Package *package;
 
@@ -30,20 +31,19 @@ public:
 
 class CType : public Binding {
 public:
-  CType(std::string);
+  CType(Package*, std::string);
 
   std::string parent;
   std::string upgrades_to;
   std::map<std::string, std::string> accessor_map;
   std::vector<std::string> include;
 
-  int templates;
+  int templates = 0;
 };
 
 class CFunction : public Binding {
 public:
-  CFunction();
-  CFunction(std::string);
+  CFunction(Package*, std::string);
 
   std::string retType;
   std::vector<std::string> funcArgs;
@@ -51,6 +51,7 @@ public:
 
 class Conversion : public Binding {
 public:
+  Conversion(Package*);
   std::string fromType;
   std::string toType;
   bool implicit;
@@ -58,6 +59,7 @@ public:
 
 class COperation : public Binding {
 public:
+  COperation(Package*);
   std::string lType;
   std::string rType;
   std::string resType;

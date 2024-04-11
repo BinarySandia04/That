@@ -4,6 +4,7 @@
 
 #include <ZagIR/Ast/node.h>
 #include <ZagIR/Libs/packages.h>
+#include <ZagIR/Libs/internal_package.h>
 #include <ZagIR/Logs/logs.h>
 #include <algorithm>
 #include <format>
@@ -18,7 +19,7 @@ using namespace ZagIR;
 Transpiler::Transpiler() {
   // We push the root scope
   env = new Environment();
-  LoadPackage("_internal");
+  LoadHeadlessPackage("_Internal");
 
   currentFormat = 0;
 
@@ -973,9 +974,17 @@ ZagIR::Package *Transpiler::LoadPackage(std::string packageName) {
   return package;
 }
 
+ZagIR::Package *Transpiler::LoadHeadlessPackage(std::string path){
+  Package *package = ZagIR::FetchInternalPackage(path);
+
+  loadedPackages.push_back(package);
+  env->AddPackageToScope(package);
+  return package;
+}
+
 ZagIR::Package *Transpiler::GetLoadedPackage(std::string packageName) {
   for (int i = 0; i < loadedPackages.size(); i++) {
-    if (loadedPackages[i]->name == packageName)
+    if (loadedPackages[i]->packInfo.name == packageName)
       return loadedPackages[i];
   }
   return nullptr;

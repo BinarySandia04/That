@@ -1,0 +1,9 @@
+get 'std.io
+
+2 + 2 == 4
+a = "Hola".size()
+p = [1,2,3,3,4,4]
+
+l = ["Hola", "Que", "Tal"]
+
+std.println(l[1][1])

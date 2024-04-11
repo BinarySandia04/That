@@ -12,25 +12,24 @@ namespace fs = std::filesystem;
 
 namespace ZagIR {
 
-class Package {
-public:
-  Package(std::filesystem::path, toml::parse_result);
-  ~Package();
-
-  // Class with all info
+struct PackageInfo {
   std::string name;
   std::string import_name;
   std::string display_name;
   std::string version;
   std::string root;
-  // std::vector<std::string> file_deps;
-  std::vector<std::string> include_directories;
-  std::vector<std::string> link_directories;
-  std::vector<std::string> link_libraries;
 
   fs::path path;
+};
 
-  std::vector<std::string> fileDeps;
+class Package {
+public:
+  Package(std::filesystem::path, toml::parse_result);
+  Package(std::filesystem::path);
+  ~Package();
+
+  PackageInfo packInfo;
+  // Class with all info
 
   std::vector<Binding *> binds;
 
@@ -38,11 +37,10 @@ public:
   // Dins del mateix lloc que el .so
   // void ComputeBinds();
 
+  // Deprecated
   void ParsePackageDefinition(toml::table, std::string);
 
 private:
-  toml::parse_result _res;
-
   void AddObjectsMap(std::string, toml::table, std::string, std::vector<Binding*>*);
   void AddTypeMap(std::string, toml::table, std::string);
   void AddConversionsMap(std::string, toml::table, std::string);
