@@ -3,31 +3,31 @@
 #include <iostream>
 #include <string>
 
-int zstd::ReadInt(std::string s){
+int tstd::ReadInt(std::string s){
   int n;
   Print(s);
   std::cin >> n;
   return n;
 }
 
-std::string zstd::ReadStr(std::string s){
+std::string tstd::ReadStr(std::string s){
   std::string r;
   Print(s);
   std::getline(std::cin, r);
   return r;
 }
 
-double zstd::ReadNum(std::string s){
+double tstd::ReadNum(std::string s){
   double d;
   Print(s);
   std::cin >> d;
   return d;
 }
 
-void zstd::PrintChar(int n){
+void tstd::PrintChar(int n){
   std::cout << (char) n;
 }
 
-void zstd::PrintNum(double d, int p){
+void tstd::PrintNum(double d, int p){
   std::cout << std::setprecision(p) << d;
 }

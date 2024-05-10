@@ -7,5 +7,5 @@ cmake ../
 cmake --build . -j 
 cd ..
 
-mkdir -p ~/.zag/sources/StdMath
-cp -r * ~/.zag/sources/StdMath/.
+mkdir -p ~/.that/sources/StdMath
+cp -r * ~/.that/sources/StdMath/.

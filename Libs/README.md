@@ -1,4 +1,4 @@
-# Zag libraries
+# That libraries
 
 Every library contains a `package.toml` file describing all bindings to it
 

@@ -1,2 +1,2 @@
 #!/bin/bash
-cp extras/syntax/vim/zag.vim ~/.config/nvim/syntax/zag.vim
+cp extras/syntax/vim/that.vim ~/.config/nvim/syntax/that.vim

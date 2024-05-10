@@ -4,7 +4,7 @@
 #include <vector>
 #include <iostream>
 
-namespace zstd {
+namespace tstd {
 
 double MathCos(double x);
 double MathSin(double x);

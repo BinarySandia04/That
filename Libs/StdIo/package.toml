@@ -1,27 +1,27 @@
 [_info]
 _name = "StdIo"
 _import_name = "std.io"
-_display_name = "Zag standard input and output"
+_display_name = "That standard input and output"
 _version = "0.1v"
 _root = "std"
 
 [_.print]
-_function = {bind = "zstd::Print", args = ["Any"], return = "Nil", headers = ["io.h"]}
+_function = {bind = "tstd::Print", args = ["Any"], return = "Nil", headers = ["io.h"]}
 
 [_.printchr]
-_function = {bind = "zstd::PrintChar", args = ["Chr"], return = "Nil", headers = ["io.h"]}
+_function = {bind = "tstd::PrintChar", args = ["Chr"], return = "Nil", headers = ["io.h"]}
 
 [_.printnum]
-_function = {bind = "zstd::PrintNum", args = ["Num", "Int"], return = "Nil", headers = ["io.h"]}
+_function = {bind = "tstd::PrintNum", args = ["Num", "Int"], return = "Nil", headers = ["io.h"]}
 
 [_.println]
-_function = {bind = "zstd::PrintLn", args = ["Any"], return = "Nil", headers = ["io.h"]}
+_function = {bind = "tstd::PrintLn", args = ["Any"], return = "Nil", headers = ["io.h"]}
 
 [_.read.int]
-_function = {bind = "zstd::ReadInt", args = ["Str"], return = "Int", headers = ["io.h"]}
+_function = {bind = "tstd::ReadInt", args = ["Str"], return = "Int", headers = ["io.h"]}
 
 [_.read.str]
-_function = {bind = "zstd::ReadStr", args = ["Str"], return = "Str", headers = ["io.h"]}
+_function = {bind = "tstd::ReadStr", args = ["Str"], return = "Str", headers = ["io.h"]}
 
 [_.read.num]
-_function = {bind = "zstd::ReadNum", args = ["Str"], return = "Num", headers = ["io.h"]}
+_function = {bind = "tstd::ReadNum", args = ["Str"], return = "Num", headers = ["io.h"]}

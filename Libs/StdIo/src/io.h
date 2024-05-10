@@ -5,7 +5,7 @@
 #include <iostream>
 #include <iomanip>
 
-namespace zstd {
+namespace tstd {
 
 template <typename T>
 void Print(T s){

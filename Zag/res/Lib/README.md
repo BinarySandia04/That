@@ -1,3 +1,0 @@
-# My Zag library
-
-Readme!!!

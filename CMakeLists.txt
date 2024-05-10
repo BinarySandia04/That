@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(Zag VERSION 0.1)
+project(That VERSION 0.1)
 
 SET(CMAKE_COLOR_MAKEFILE ON)
 
@@ -21,6 +21,6 @@ find_package(Git)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-add_subdirectory(ZagIR)
-add_subdirectory(ZagCXX)
-add_subdirectory(Zag)
+add_subdirectory(ThatIR)
+add_subdirectory(ThatCXX)
+add_subdirectory(That)

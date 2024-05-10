@@ -1,16 +1,16 @@
 [_info]
 _name = "StdMath"
 _import_name = "std.math"
-_display_name = "Zag standard math library"
+_display_name = "That standard math library"
 _version = "0.1v"
 _root = "std"
 
 [_.math.cos]
-_function = {bind = "zstd::MathCos", args = ["Num"], return = "Num", headers = ["trig.h"]}
+_function = {bind = "tstd::MathCos", args = ["Num"], return = "Num", headers = ["trig.h"]}
 
 [_.math.sin]
-_function = {bind = "zstd::MathSin", args = ["Num"], return = "Num", headers = ["trig.h"]}
+_function = {bind = "tstd::MathSin", args = ["Num"], return = "Num", headers = ["trig.h"]}
 
 [_.math.tan]
-_function = {bind = "zstd::MathTan", args = ["Num"], return = "Num", headers = ["trig.h"]}
+_function = {bind = "tstd::MathTan", args = ["Num"], return = "Num", headers = ["trig.h"]}
 

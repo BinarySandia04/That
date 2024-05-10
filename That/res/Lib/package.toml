@@ -1,0 +1,22 @@
+[_info]
+_name = "std"
+_author = "John Doe"
+_version = "0.1v"
+_namespace = "thatstd"
+_root = "std"
+# _requires = "_Internal"
+
+[io.print]
+_function = {mangle = "print"}
+
+[io.write]
+_function = {mangle = "write"}
+
+[io.read.int]
+_function = {mangle = "read_int"}
+
+[io.read.str]
+_function = {mangle = "read_str"}
+
+[io.read.num]
+_function = {mangle = "read_num"}

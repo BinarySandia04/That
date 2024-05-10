@@ -7,5 +7,5 @@ cmake ../
 cmake --build . -j 
 cd ..
 
-mkdir -p ~/.zag/sources/StdIo
-cp -r * ~/.zag/sources/StdIo/.
+mkdir -p ~/.that/sources/StdIo
+cp -r * ~/.that/sources/StdIo/.

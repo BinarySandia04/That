@@ -7,5 +7,5 @@ cmake ../
 cmake --build . -j 
 cd ..
 
-mkdir -p ~/.zag/sources/_Internal
-cp -r * ~/.zag/sources/_Internal/.
+mkdir -p ~/.that/sources/_Internal
+cp -r * ~/.that/sources/_Internal/.

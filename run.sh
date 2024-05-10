@@ -1,4 +1,4 @@
 #!/bin/bash
 
 ./build.sh
-../build/src/zag/Zag
+../build/src/that/That

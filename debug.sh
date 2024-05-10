@@ -11,4 +11,4 @@ cmake -DCMAKE_BUILD_TYPE=Debug ../
 cmake --build . -j 8
 cd ..
 
-mv .build/src/zag/zag .build/Zag
+mv .build/src/that/that .build/That

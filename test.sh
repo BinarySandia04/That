@@ -25,7 +25,7 @@ do
     mv 3.out 2.out
 
     echo -n "$f --> "
-    zag 1.out > 3.out
+    that 1.out > 3.out
     if [[ $(diff -q 2.out 3.out) ]]; then
         echo -e "${Red}Failed${Reset}"
         diff 2.out 3.out
