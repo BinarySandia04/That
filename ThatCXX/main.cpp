@@ -8,6 +8,7 @@
 #include <string>
 
 #include "argh/argh.h"
+#include "cppadapter.h"
 #include "resource.h"
 #include "termcolor/termcolor.hpp"
 #include "toml++/toml.hpp"
@@ -81,8 +82,10 @@ void TranspileFile(std::string fileName) {
 void Transpile(std::string code, std::string fileName) {
   ThatLib::Node *ast = new ThatLib::Node();
   ThatLib::GenerateAst(code, fileName, ast, programFlags & Flags::DEBUG);
+  
+  ThatCXX::CppAdapter adapter;
 
-  ThatCXX::Transpiler transpiler;
+  ThatLib::Transpiler transpiler(&adapter);
 
 #ifdef __linux
   fs::path homePath = fs::path(getenv("HOME")) / fs::path(".that");
@@ -118,6 +121,10 @@ void Transpile(std::string code, std::string fileName) {
   std::string transCode, cxxargs;
   std::vector<std::string> libNames;
   transCode = transpiler.GenerateSource(ast, &cxxargs, &libNames);
+
+  std::cout << "ADAPTER OUTPUT: " << std::endl << adapter.GetResult() << std::endl;
+  std::cout << "TRANSPILER OUTPUT:" << std::endl << transCode << std::endl;
+
   delete ast;
 
   // We populate our source with the libs

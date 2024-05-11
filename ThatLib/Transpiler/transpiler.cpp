@@ -1,11 +1,12 @@
 #include "transpiler.h"
 #include "Objects/container.h"
-#include "environment.h"
+#include "Objects/environment.h"
 
-#include <ThatLib/Ast/node.h>
-#include <ThatLib/Libs/packages.h>
-#include <ThatLib/Libs/internal_package.h>
-#include <ThatLib/Logs/logs.h>
+#include "Ast/node.h"
+#include "Libs/packages.h"
+#include "Libs/internal_package.h"
+#include "Logs/logs.h"
+
 #include <algorithm>
 #include <format>
 #include <fstream>
@@ -13,10 +14,9 @@
 #include <sstream>
 #include <stdexcept>
 
-using namespace ThatCXX;
 using namespace ThatLib;
 
-Transpiler::Transpiler() {
+Transpiler::Transpiler(Adapter* adapter) {
   // We push the root scope
   env = new Environment();
   LoadHeadlessPackage("_Internal");
@@ -25,6 +25,7 @@ Transpiler::Transpiler() {
 
   functionDefinition = "";
   functionDeclaration = "";
+  this->adapter = adapter;
 }
 
 Transpiler::~Transpiler() {
@@ -40,13 +41,13 @@ void Transpiler::ThrowError(Node *node, std::string what) {
 
 std::string Transpiler::GenerateSource(Node *ast, std::string *cxxargs,
                                        std::vector<std::string> *libNames) {
-  std::string main = "int main(){";
+  std::string main = "int main()";
 
   std::string mainFunc = TranspileBlock(ast);
 
   std::string preFormat = env->GetIncludes() + functionDeclaration + "\n" +
                           classDeclaration + "\n" + classDefinition + "\n" +
-                          main + mainFunc + "}" + functionDefinition + "\n";
+                          main + mainFunc + functionDefinition + "\n";
 
   // env->DumpEnvironment();
   *cxxargs = env->GetCXXArgs();
@@ -66,10 +67,13 @@ std::string Transpiler::GenerateIncludes() {
 }
 
 std::string Transpiler::TranspileBlock(Node *space) {
-  std::string content = "";
+  std::string content = "{";
+  adapter->OpenBlock();
   for (int i = 0; i < space->children.size(); i++) {
     content += TranspileStatement(space->children[i]);
   }
+  content += "}";
+  adapter->CloseBlock();
   return content;
 }
 
@@ -253,26 +257,32 @@ std::string Transpiler::TranspileExpression(Node *expression,
     // els literals interns del llenguatge amb el paquet _internal
   case NODE_INT_VAL:
     *retType = env->FetchType("Int");
+    adapter->Int(expression->data);
     return expression->data;
     break;
   case NODE_NUMBER_VAL:
     *retType = env->FetchType("Num");
+    adapter->Num(expression->data);
     return expression->data;
     break;
   case NODE_STRING_VAL:
     *retType = env->FetchType("Str");
+    adapter->Str(expression->data);
     return "std::string(\"" + expression->data + "\")";
     break;
   case NODE_YEP_VAL:
     *retType = env->FetchType("Bul");
+    adapter->Yep();
     return "true";
     break;
   case NODE_NOP_VAL:
     *retType = env->FetchType("Bul");
+    adapter->Nop();
     return "false";
     break;
   case NODE_CHAR_VAL:
     *retType = env->FetchType("Chr");
+    adapter->Chr(expression->data);
     return "'" + expression->data + "'";
     break;
   case NODE_OP_BIN:
@@ -281,9 +291,12 @@ std::string Transpiler::TranspileExpression(Node *expression,
   case NODE_OP_UN:
     return TranspileUnary(expression, retType, before);
     break;
-  case NODE_IDENTIFIER:
+  case NODE_IDENTIFIER {
+    std::string finalIdentifier = TranspileIdentifier(expression, retType);
+    adapter->Id(finalIdentifier);
     return TranspileIdentifier(expression, retType);
     break;
+  }
   case NODE_CALL:
   case NODE_GETTER:
   case NODE_ACCESSOR:
@@ -366,6 +379,7 @@ std::string Transpiler::TranspileBinary(Node *binary, ObjectType **retType,
   }
 
   // Es poden treure espais un cop fet bé
+  adapter->Binary(binary->data);
 
   return "(" + lExp + " " + binary->data + " " + rExp + ")";
 }
@@ -390,22 +404,18 @@ std::string Transpiler::TranspileIf(ThatLib::Node *ifNode, std::string *before) 
     ObjectType *expType;
     res += TranspileExpression(ifNode->arguments[i], &expType, before);
 
-    res += "){";
+    res += ")";
 
     env->PushScope();
     res += TranspileBlock(ifNode->children[i]);
     env->PopScope();
-
-    res += "}";
   }
   if (ifNode->children.size() > ifNode->arguments.size()) {
-    res += "else {";
+    res += "else ";
 
     env->PushScope();
     res += TranspileBlock(ifNode->children[i]);
     env->PopScope();
-
-    res += "}";
   }
   return res;
 }
@@ -495,7 +505,7 @@ std::string Transpiler::TranspileLup(ThatLib::Node *lup, std::string *before) {
   env->PopScope();
 
   // Implement label
-  res += "{" + block + "}\n";
+  res += block + "\n";
   if (lup->data != "") {
     res += lup->data + ":\n";
   }
@@ -598,7 +608,7 @@ Transpiler::TranspileFunction(ThatLib::Node *function,
     *functionDeclaration += returnType + " " + funcName + arguments + ";";
   if (functionDefinition != nullptr && transpileContent){
     *functionDefinition +=
-        returnType + " " + funcName + arguments + "{" + defBlock + "}";
+        returnType + " " + funcName + arguments + defBlock;
   }
 
   return func;
@@ -703,12 +713,10 @@ std::string Transpiler::PreTranspileMethod(Node *method, std::string className, 
 }
 
 void Transpiler::PostTranspileMethod(Node* method, std::string kinName, std::string *after){
-  std::cout << "NJDHSAKJHKJH:::::: " << *after << std::endl;
   if(method->type != NODE_FUNCTION) return;
   Object* o = TranspileFunction(method, "c_" + kinName, nullptr, after, true);
   delete o;
   *after += "\n";
-  std::cout << "NJDHSAKJHKJH:::::: " << *after << std::endl;
 }
 
 std::string Transpiler::TranspileReturn(ThatLib::Node *ret, std::string *before) {

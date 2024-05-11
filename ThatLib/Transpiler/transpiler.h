@@ -6,9 +6,8 @@
 #include <tuple>
 #include <unordered_map>
 
-#include <ThatLib/Ast/ast.h>
-#include <ThatLib/Libs/packages.h>
-
+#include "Ast/ast.h"
+#include "Libs/packages.h"
 #include "Objects/object.h"
 #include "Objects/container.h"
 #include "Objects/type.h"
@@ -16,24 +15,23 @@
 #include "Objects/function.h"
 #include "Objects/variable.h"
 #include "Objects/operation.h"
-
-#include "environment.h"
+#include "Objects/environment.h"
 #include "Formatter/formatter.h"
+#include "adapter.h"
 
-using namespace ThatLib;
-
-namespace ThatCXX {
+namespace ThatLib {
 
 class Transpiler {
 public:
   // Podriem moure el 100% de tot això a private
-  Transpiler();
+  Transpiler(Adapter* adapter);
   ~Transpiler();
 
   std::string GenerateSource(Node *, std::string*, std::vector<std::string>*);
 private:
 
   Environment* env;
+  Adapter* adapter;
 
   Package *LoadPackage(std::string);
   Package *LoadHeadlessPackage(std::string);

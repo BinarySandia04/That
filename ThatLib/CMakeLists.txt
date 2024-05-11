@@ -13,8 +13,14 @@ file(GLOB_RECURSE Logs "Logs/*.h" "Logs/*.cpp")
 source_group("Logs" FILES ${Logs})
 file(GLOB_RECURSE Utils "Utils/*.h" "Utils/*.cpp")
 source_group("Utils" FILES ${Utils})
+file(GLOB_RECURSE Objects "Objects/*.h" "Objects/*.cpp")
+source_group("Objects" FILES ${Objects})
+file(GLOB_RECURSE Transpiler "Transpiler/*.h" "Transpiler/*.cpp")
+source_group("Transpiler" FILES ${Transpiler})
+file(GLOB_RECURSE Formatter "Formatter/*.h" "Formatter/*.cpp")
+source_group("Formatter" FILES ${Formatter})
 
-set(ALL_FILES ${src} ${Ast} ${Libs} ${Logs} ${Utils})
+set(ALL_FILES ${src} ${Ast} ${Libs} ${Logs} ${Utils} ${Objects} ${Transpiler} ${Formatter})
 set(ROOT_NAMESPACE ThatLib)
 
 add_library(${PROJECT_NAME} STATIC ${ALL_FILES})
@@ -36,7 +42,7 @@ endif ()
 cmake_print_variables(PROJECT_SOURCE_DIR)
 
 # Public headers accessible when using the lib
-file(GLOB PUBLIC_HEADERS "*.h" "Ast/*.h" "Libs/*.h" "Logs/*.h" "Utils/*.h")
+file(GLOB PUBLIC_HEADERS "*.h" "Ast/*.h" "Libs/*.h" "Logs/*.h" "Utils/*.h" "Objects/*.h" "Transpiler/*.h" "Formatter/*.h")
 
 target_sources(${PROJECT_NAME} 
     PRIVATE ${ALL_FILES}
