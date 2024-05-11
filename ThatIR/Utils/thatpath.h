@@ -6,7 +6,7 @@
 
 
 #ifndef THAT_PATH
-#define THAT_PATH std::filesystem::path(getenv("HOME")) / ".zag/"
+#define THAT_PATH std::filesystem::path(getenv("HOME")) / ".that/"
 #endif
 
 #ifndef THAT_VERSION
