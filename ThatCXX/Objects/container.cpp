@@ -2,11 +2,11 @@
 
 #include <iostream>
 
-#include <ThatIR/Logs/logs.h>
+#include <ThatLib/Logs/logs.h>
 
 #include "termcolor/termcolor.hpp"
 
-using namespace ThatIR;
+using namespace ThatLib;
 using namespace ThatCXX;
 
 ObjectContainerData::ObjectContainerData(Privacy p, Object* obj){
@@ -108,7 +108,7 @@ void ObjectContainer::AddObject(std::string path, Object *obj, Privacy p) {
   }
 }
 
-void ObjectContainer::AddBinding(ThatIR::Binding *b) {
+void ObjectContainer::AddBinding(ThatLib::Binding *b) {
   AddObject(b->name, GetObjectFromBinding(b));
 }
 

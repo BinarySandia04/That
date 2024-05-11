@@ -3,11 +3,11 @@
 #include "type.h"
 #include "Transpiler/environment.h"
 
-#include <ThatIR/Logs/logs.h>
+#include <ThatLib/Logs/logs.h>
 
 #include <iostream>
 
-using namespace ThatIR;
+using namespace ThatLib;
 using namespace ThatCXX;
 
 void ObjectFunction::Print(int space) {
@@ -59,7 +59,7 @@ bool ObjectFunction::CheckArgs(std::vector<ObjectType *> &args,
   return true;
 }
 
-ObjectCFunction::ObjectCFunction(ThatIR::CFunction *cfunction) {
+ObjectCFunction::ObjectCFunction(ThatLib::CFunction *cfunction) {
   this->cFunctionData = cfunction;
   for (int i = 0; i < cfunction->funcArgs.size(); i++)
     this->functionArgs.push_back(cfunction->funcArgs[i]);

@@ -5,7 +5,7 @@
 #include "Objects/object.h"
 #include "Objects/container.h"
 
-using namespace ThatIR;
+using namespace ThatLib;
 
 namespace ThatCXX {
 

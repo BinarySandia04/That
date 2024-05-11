@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-using namespace ThatIR;
+using namespace ThatLib;
 using namespace ThatCXX;
 
 ObjectProtoType::ObjectProtoType(CType *cTypeInfo) {

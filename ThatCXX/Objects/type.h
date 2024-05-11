@@ -3,7 +3,7 @@
 #include "object.h"
 #include "prototype.h"
 
-using namespace ThatIR;
+using namespace ThatLib;
 
 namespace ThatCXX {
 class ObjectProtoType;

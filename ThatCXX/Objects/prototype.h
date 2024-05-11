@@ -4,7 +4,7 @@
 #include "type.h"
 #include "container.h"
 
-using namespace ThatIR;
+using namespace ThatLib;
 
 namespace ThatCXX {
 

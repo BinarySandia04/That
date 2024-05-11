@@ -3,10 +3,10 @@
 #include <string>
 #include <unordered_map>
 
-#include <ThatIR/Libs/packages.h>
+#include <ThatLib/Libs/packages.h>
 
 
-using namespace ThatIR;
+using namespace ThatLib;
 
 namespace ThatCXX {
 

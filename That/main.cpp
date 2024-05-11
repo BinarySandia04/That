@@ -10,12 +10,12 @@
 #include "argh/argh.h"
 #include "termcolor/termcolor.hpp"
 
-#include <ThatIR/Libs/packages.h>
-#include <ThatIR/Logs/logs.h>
-#include <ThatIR/Utils/system.h>
-#include <ThatIR/Utils/thatpath.h>
+#include <ThatLib/Libs/packages.h>
+#include <ThatLib/Logs/logs.h>
+#include <ThatLib/Utils/system.h>
+#include <ThatLib/Utils/thatpath.h>
 
-using namespace ThatIR;
+using namespace ThatLib;
 namespace fs = std::filesystem;
 
 int main(int argc, char *argv[]) {
@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
   } else if (cmdl[1] == "package" || cmdl[1] == "p") {
     if (cmdl[2] != "") {
       try {
-        Package *pack = ThatIR::FetchPackage(cmdl[2]);
+        Package *pack = ThatLib::FetchPackage(cmdl[2]);
         if (cmdl[3] == "binds" || cmdl[3] == "b") {
           ShowBinds(pack);
         } else {
@@ -41,8 +41,8 @@ int main(int argc, char *argv[]) {
       }
     } else {
 
-      std::vector<ThatIR::Package *> packages;
-      ThatIR::FetchPackages(&packages);
+      std::vector<ThatLib::Package *> packages;
+      ThatLib::FetchPackages(&packages);
       for (int i = 0; i < packages.size(); i++) {
         PrintPackage(packages[i]);
       }
@@ -55,8 +55,8 @@ int main(int argc, char *argv[]) {
     Logs::Gradient("That programming language", Logs::Color(92, 145, 230),
                    Logs::Color(187, 28, 255));
 
-    std::vector<ThatIR::Package *> packages;
-    ThatIR::FetchPackages(&packages);
+    std::vector<ThatLib::Package *> packages;
+    ThatLib::FetchPackages(&packages);
 
     Logs::Success("Found " + std::to_string(packages.size()) + " packages");
 
@@ -89,7 +89,7 @@ void WriteFiles(std::vector<Resource> res) {
   }
 }
 
-void PrintPackageInfo(ThatIR::Package *package) {
+void PrintPackageInfo(ThatLib::Package *package) {
   PrintPackage(package);
 
   std::string currentSubpackage = "__________________";
@@ -163,9 +163,9 @@ void ShowBinds(Package *pack) {
   std::cout << path.string() << std::endl;
   std::vector<std::string> mangles, demangles;
   std::string nmm, nmdm;
-  nmm = ThatIR::Utils::Exec("nm -gDjUv " +
+  nmm = ThatLib::Utils::Exec("nm -gDjUv " +
                            (path / ("lib" + pack->packInfo.name + ".so")).string());
-  nmdm = ThatIR::Utils::Exec("nm -gDjUvC " +
+  nmdm = ThatLib::Utils::Exec("nm -gDjUvC " +
                             (path / ("lib" + pack->packInfo.name + ".so")).string());
 
   auto nmmss = std::stringstream(nmm);
@@ -181,7 +181,7 @@ void ShowBinds(Package *pack) {
   }
 }
 
-void PrintPackage(ThatIR::Package *package) {
+void PrintPackage(ThatLib::Package *package) {
   std::cout << termcolor::bold << package->packInfo.name << termcolor::reset
             << termcolor::color<255, 128, 0> << " [" << termcolor::reset
             << package->packInfo.version << termcolor::color<255, 128, 0> << "]"

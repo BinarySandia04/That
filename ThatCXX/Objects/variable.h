@@ -3,7 +3,7 @@
 #include "object.h"
 #include "type.h"
 
-using namespace ThatIR;
+using namespace ThatLib;
 
 namespace ThatCXX {
 

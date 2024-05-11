@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-using namespace ThatIR;
+using namespace ThatLib;
 using namespace ThatCXX;
 
 ObjectCOperation::ObjectCOperation(COperation *operation) {
@@ -19,7 +19,7 @@ Object* ObjectCOperation::Clone(){
 
 std::string ObjectCOperation::GetName() { return this->cOperationData->bind; }
 
-ObjectConversion::ObjectConversion(ThatIR::Conversion *conversion) {
+ObjectConversion::ObjectConversion(ThatLib::Conversion *conversion) {
   this->conversion = conversion;
 }
 

@@ -1,6 +1,6 @@
 #include "main.h"
 
-#include <ThatIR/Logs/logs.h>
+#include <ThatLib/Logs/logs.h>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -12,8 +12,8 @@
 #include "termcolor/termcolor.hpp"
 #include "toml++/toml.hpp"
 
-#include <ThatIR/Ast/ast.h>
-#include <ThatIR/Utils/thatpath.h>
+#include <ThatLib/Ast/ast.h>
+#include <ThatLib/Utils/thatpath.h>
 
 #include "Formatter/formatter.h"
 #include "Transpiler/transpiler.h"
@@ -63,7 +63,7 @@ void TranspileFile(std::string fileName) {
 
       try {
         Transpile(code, fileName);
-      } catch (ThatIR::Error error) {
+      } catch (ThatLib::Error error) {
         error.Print(code);
       }
 
@@ -79,8 +79,8 @@ void TranspileFile(std::string fileName) {
 }
 
 void Transpile(std::string code, std::string fileName) {
-  ThatIR::Node *ast = new ThatIR::Node();
-  ThatIR::GenerateAst(code, fileName, ast, programFlags & Flags::DEBUG);
+  ThatLib::Node *ast = new ThatLib::Node();
+  ThatLib::GenerateAst(code, fileName, ast, programFlags & Flags::DEBUG);
 
   ThatCXX::Transpiler transpiler;
 

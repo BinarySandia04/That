@@ -2,10 +2,10 @@
 #include "Objects/container.h"
 #include "environment.h"
 
-#include <ThatIR/Ast/node.h>
-#include <ThatIR/Libs/packages.h>
-#include <ThatIR/Libs/internal_package.h>
-#include <ThatIR/Logs/logs.h>
+#include <ThatLib/Ast/node.h>
+#include <ThatLib/Libs/packages.h>
+#include <ThatLib/Libs/internal_package.h>
+#include <ThatLib/Logs/logs.h>
 #include <algorithm>
 #include <format>
 #include <fstream>
@@ -14,7 +14,7 @@
 #include <stdexcept>
 
 using namespace ThatCXX;
-using namespace ThatIR;
+using namespace ThatLib;
 
 Transpiler::Transpiler() {
   // We push the root scope
@@ -82,46 +82,46 @@ std::string Transpiler::TranspileStatement(Node *statement) {
   ObjectNativeFunction *func;
 
   switch (statement->type) {
-  case ThatIR::NODE_ASSIGNATION:
+  case ThatLib::NODE_ASSIGNATION:
     exp = TranspileAssignation(statement, &before) + ";";
     break;
-  case ThatIR::NODE_IF:
+  case ThatLib::NODE_IF:
     exp = TranspileIf(statement, &before);
     break;
-  case ThatIR::NODE_LUP:
+  case ThatLib::NODE_LUP:
     exp = TranspileLup(statement, &before);
     break;
-  case ThatIR::NODE_GET:
+  case ThatLib::NODE_GET:
     exp = TranspileGet(statement);
     break;
-  case ThatIR::NODE_FUNCTION:
+  case ThatLib::NODE_FUNCTION:
     func =
         TranspileFunction(statement, "", &functionDeclaration, &functionDefinition, true);
     env->AddToScope(statement->data, func);
     exp = "";
     break;
-  case ThatIR::NODE_RET:
+  case ThatLib::NODE_RET:
     exp = TranspileReturn(statement, &before);
     break;
-  case ThatIR::NODE_BRK:
+  case ThatLib::NODE_BRK:
     exp = TranspileBrk(statement, &before);
     break;
-  case ThatIR::NODE_KIN:
+  case ThatLib::NODE_KIN:
     exp = TranspileKin(statement, &before);
     break;
-  case ThatIR::NODE_EXPRESSION:
-  case ThatIR::NODE_ARRAY:
-  case ThatIR::NODE_OP_BIN:
-  case ThatIR::NODE_OP_UN:
-  case ThatIR::NODE_IDENTIFIER:
-  case ThatIR::NODE_YEP_VAL:
-  case ThatIR::NODE_NOP_VAL:
-  case ThatIR::NODE_NUMBER_VAL:
-  case ThatIR::NODE_STRING_VAL:
-  case ThatIR::NODE_CHAR_VAL:
-  case ThatIR::NODE_CALL:
-  case ThatIR::NODE_GETTER:
-  case ThatIR::NODE_ACCESSOR:
+  case ThatLib::NODE_EXPRESSION:
+  case ThatLib::NODE_ARRAY:
+  case ThatLib::NODE_OP_BIN:
+  case ThatLib::NODE_OP_UN:
+  case ThatLib::NODE_IDENTIFIER:
+  case ThatLib::NODE_YEP_VAL:
+  case ThatLib::NODE_NOP_VAL:
+  case ThatLib::NODE_NUMBER_VAL:
+  case ThatLib::NODE_STRING_VAL:
+  case ThatLib::NODE_CHAR_VAL:
+  case ThatLib::NODE_CALL:
+  case ThatLib::NODE_GETTER:
+  case ThatLib::NODE_ACCESSOR:
     exp = TranspileExpression(statement, &evalType, &before) + ";";
     break;
   default:
@@ -171,7 +171,7 @@ std::string Transpiler::TranspileAssignation(Node *assignation,
         TranspileExpression(assignation->children[1], &expType, before);
   }
 
-  if (assignation->children[0]->type == ThatIR::NODE_IDENTIFIER) {
+  if (assignation->children[0]->type == ThatLib::NODE_IDENTIFIER) {
     ogIdentifier = assignation->children[0]->data;
 
     if (!env->Exists(ogIdentifier)) {
@@ -370,12 +370,12 @@ std::string Transpiler::TranspileBinary(Node *binary, ObjectType **retType,
   return "(" + lExp + " " + binary->data + " " + rExp + ")";
 }
 
-std::string Transpiler::TranspileUnary(ThatIR::Node *unary, ObjectType **retType,
+std::string Transpiler::TranspileUnary(ThatLib::Node *unary, ObjectType **retType,
                                        std::string *before) {
   return unary->data + TranspileExpression(unary->children[0], retType, before);
 }
 
-std::string Transpiler::TranspileIf(ThatIR::Node *ifNode, std::string *before) {
+std::string Transpiler::TranspileIf(ThatLib::Node *ifNode, std::string *before) {
   // Arg has expressions childs are blocks. If args + 1 = childs then has else
   std::string res = "";
   int i;
@@ -410,7 +410,7 @@ std::string Transpiler::TranspileIf(ThatIR::Node *ifNode, std::string *before) {
   return res;
 }
 
-std::string Transpiler::TranspileLup(ThatIR::Node *lup, std::string *before) {
+std::string Transpiler::TranspileLup(ThatLib::Node *lup, std::string *before) {
   // data has identifier. Child is block. Three forms:
   // Args: LUP_ITERATORS
   // Args: ASSIGNATION, EXPRESSION, ASSIGNATION
@@ -421,7 +421,7 @@ std::string Transpiler::TranspileLup(ThatIR::Node *lup, std::string *before) {
   env->PushScope();
 
   if (lup->arguments.size() > 0) {
-    if (lup->arguments[0]->type == ThatIR::NODE_LUP_ITERATORS) {
+    if (lup->arguments[0]->type == ThatLib::NODE_LUP_ITERATORS) {
       Node *iterator = lup->arguments[0];
       // Arguments are identifiers, childs are intervals
       // We have or one child or same identifiers as childs
@@ -503,7 +503,7 @@ std::string Transpiler::TranspileLup(ThatIR::Node *lup, std::string *before) {
   return res;
 }
 
-std::string Transpiler::TranspileGet(ThatIR::Node *getNode) {
+std::string Transpiler::TranspileGet(ThatLib::Node *getNode) {
 
   std::string value = getNode->data;
   std::string realImport;
@@ -528,7 +528,7 @@ std::string Transpiler::TranspileGet(ThatIR::Node *getNode) {
 }
 
 ObjectNativeFunction *
-Transpiler::TranspileFunction(ThatIR::Node *function,
+Transpiler::TranspileFunction(ThatLib::Node *function,
                               std::string nameSpace,
                               std::string *functionDeclaration,
                               std::string *functionDefinition, // Actual content
@@ -557,12 +557,12 @@ Transpiler::TranspileFunction(ThatIR::Node *function,
     arguments = "()";
   }
   for (int i = 0; i < function->arguments.size(); i++) {
-    if (function->arguments[i]->type == ThatIR::NODE_TYPE) {
+    if (function->arguments[i]->type == ThatLib::NODE_TYPE) {
 
       ObjectType *retType = env->FetchType(function->arguments[i]->data);
       func->returnType = retType->identifier;
 
-    } else if (function->arguments[i]->type == ThatIR::NODE_ARGS) {
+    } else if (function->arguments[i]->type == ThatLib::NODE_ARGS) {
       Node *args = function->arguments[i];
       arguments = "(";
       for (int j = 0; j < args->children.size(); j++) {
@@ -672,7 +672,7 @@ std::string Transpiler::PreTranspileMethod(Node *method, std::string className, 
   ObjectVariable *newVar;
 
   switch (attribute->type) {
-  case ThatIR::NODE_ASSIGNATION:
+  case ThatLib::NODE_ASSIGNATION:
     transpileType = env->FetchType(attribute->arguments[0]);
     newVar = new ObjectVariable(transpileType, attribute->children[0]->data);
     *methodObject = newVar;
@@ -680,12 +680,12 @@ std::string Transpiler::PreTranspileMethod(Node *method, std::string className, 
 
     *writeTo += transpileType->Transpile() + " " + newVar->Transpile() + ";\n";
     break;
-  case ThatIR::NODE_FUNCTION:
+  case ThatLib::NODE_FUNCTION:
     methodName = attribute->data;
     *methodObject = TranspileFunction(attribute, "", writeTo, nullptr, false);
     *writeTo += "\n";
     break;
-  case ThatIR::NODE_IDENTIFIER:
+  case ThatLib::NODE_IDENTIFIER:
     // Igual que assignation pero amb any
     transpileType = env->FetchType("Any");
     newVar = new ObjectVariable(transpileType, attribute->data);
@@ -711,7 +711,7 @@ void Transpiler::PostTranspileMethod(Node* method, std::string kinName, std::str
   std::cout << "NJDHSAKJHKJH:::::: " << *after << std::endl;
 }
 
-std::string Transpiler::TranspileReturn(ThatIR::Node *ret, std::string *before) {
+std::string Transpiler::TranspileReturn(ThatLib::Node *ret, std::string *before) {
   // Aqui podriem comprovar si el tipus del return és vàlid
   ObjectType *returnType = env->FetchType("Nil");
   std::string exp = "";
@@ -924,7 +924,7 @@ std::string Transpiler::TranspileInstruction(Node *instruction,
   return res;
 }
 
-std::string Transpiler::TranspileArray(ThatIR::Node *array,
+std::string Transpiler::TranspileArray(ThatLib::Node *array,
                                        ObjectType **returnType,
                                        std::string *before) {
   std::string result = "";
@@ -966,23 +966,23 @@ std::string Transpiler::TranspileArray(ThatIR::Node *array,
   return result;
 }
 
-ThatIR::Package *Transpiler::LoadPackage(std::string packageName) {
-  Package *package = ThatIR::FetchPackage(packageName);
+ThatLib::Package *Transpiler::LoadPackage(std::string packageName) {
+  Package *package = ThatLib::FetchPackage(packageName);
 
   loadedPackages.push_back(package);
   env->AddPackageToScope(package);
   return package;
 }
 
-ThatIR::Package *Transpiler::LoadHeadlessPackage(std::string path){
-  Package *package = ThatIR::FetchInternalPackage(path);
+ThatLib::Package *Transpiler::LoadHeadlessPackage(std::string path){
+  Package *package = ThatLib::FetchInternalPackage(path);
 
   loadedPackages.push_back(package);
   env->AddPackageToScope(package);
   return package;
 }
 
-ThatIR::Package *Transpiler::GetLoadedPackage(std::string packageName) {
+ThatLib::Package *Transpiler::GetLoadedPackage(std::string packageName) {
   for (int i = 0; i < loadedPackages.size(); i++) {
     if (loadedPackages[i]->packInfo.name == packageName)
       return loadedPackages[i];

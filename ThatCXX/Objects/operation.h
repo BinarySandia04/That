@@ -2,7 +2,7 @@
 
 #include "object.h"
 
-using namespace ThatIR;
+using namespace ThatLib;
 
 namespace ThatCXX {
 

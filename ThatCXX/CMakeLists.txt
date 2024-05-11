@@ -41,11 +41,11 @@ add_resources(resources ${resourceFiles})
 add_executable(${PROJECT_NAME} ${ALL_FILES} ${resources})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
-  ThatIR
+  ThatLib
 )
 target_include_directories(${PROJECT_NAME} PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../ThatIR/src"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../ThatLib/src"
 )
 
 

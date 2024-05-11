@@ -4,7 +4,7 @@
 #include <vector>
 #include <map>
 
-#include <ThatIR/Ast/node.h>
+#include <ThatLib/Ast/node.h>
 
 #include "Objects/object.h"
 #include "Objects/container.h"
@@ -15,7 +15,7 @@
 
 #include "scope.h"
 
-using namespace ThatIR;
+using namespace ThatLib;
 namespace fs = std::filesystem;
 
 namespace ThatCXX {
@@ -31,7 +31,7 @@ public:
   void PopScope();
   int ScopeCount();
 
-  void AddPackageToScope(ThatIR::Package *package);
+  void AddPackageToScope(ThatLib::Package *package);
 
   void AddToRoot(std::string, Object*);
   void AddToScope(std::string, Object*);
@@ -39,7 +39,7 @@ public:
 
   void AddInclude(std::string);
   void AddInclude(fs::path);
-  void AddFileDep(ThatIR::Package *package, std::string);
+  void AddFileDep(ThatLib::Package *package, std::string);
 
   std::string GetIncludes();
   std::string GetCXXArgs();

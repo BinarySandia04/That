@@ -4,12 +4,12 @@
 
 #include "termcolor/termcolor.hpp"
 
-#include <ThatIR/Logs/logs.h>
+#include <ThatLib/Logs/logs.h>
 #include <algorithm>
 #include <stdexcept>
 
 using namespace ThatCXX;
-using namespace ThatIR;
+using namespace ThatLib;
 
 Environment::Environment() {
   reserved = new Scope();
@@ -53,7 +53,7 @@ void Environment::PopScope() {
 
 int Environment::ScopeCount() { return environment.size(); }
 
-void Environment::AddPackageToScope(ThatIR::Package *package) {
+void Environment::AddPackageToScope(ThatLib::Package *package) {
   ObjectContainer *packContainer = new ObjectContainer();
   packContainer->identifier = package->packInfo.root;
 

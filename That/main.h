@@ -2,14 +2,14 @@
 
 #include <vector>
 
-#include <ThatIR/Libs/packages.h>
+#include <ThatLib/Libs/packages.h>
 
 #include "src/resource.h"
 
 void InitProject();
 void InitPackage();
 void WriteFiles(std::vector<Resource>);
-void PrintPackageInfo(ThatIR::Package *);
-void PrintPackage(ThatIR::Package *);
-void PrintBindStatus(std::string letter, ThatIR::Binding* bind);
-void ShowBinds(ThatIR::Package *);
+void PrintPackageInfo(ThatLib::Package *);
+void PrintPackage(ThatLib::Package *);
+void PrintBindStatus(std::string letter, ThatLib::Binding* bind);
+void ShowBinds(ThatLib::Package *);

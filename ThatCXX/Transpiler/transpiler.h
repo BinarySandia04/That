@@ -6,8 +6,8 @@
 #include <tuple>
 #include <unordered_map>
 
-#include <ThatIR/Ast/ast.h>
-#include <ThatIR/Libs/packages.h>
+#include <ThatLib/Ast/ast.h>
+#include <ThatLib/Libs/packages.h>
 
 #include "Objects/object.h"
 #include "Objects/container.h"
@@ -20,7 +20,7 @@
 #include "environment.h"
 #include "Formatter/formatter.h"
 
-using namespace ThatIR;
+using namespace ThatLib;
 
 namespace ThatCXX {
 

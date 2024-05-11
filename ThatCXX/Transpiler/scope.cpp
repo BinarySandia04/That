@@ -1,7 +1,7 @@
 #include "scope.h"
 
 using namespace ThatCXX;
-using namespace ThatIR;
+using namespace ThatLib;
 
 Scope::Scope() {
   data = new ObjectContainer();

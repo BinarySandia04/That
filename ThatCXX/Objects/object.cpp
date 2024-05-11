@@ -9,11 +9,11 @@
 #include <stdexcept>
 #include <string>
 
-#include <ThatIR/Logs/logs.h>
+#include <ThatLib/Logs/logs.h>
 
 #include "termcolor/termcolor.hpp"
 
-using namespace ThatIR;
+using namespace ThatLib;
 using namespace ThatCXX;
 
 Object *ThatCXX::GetObjectFromBinding(Binding *b) {
