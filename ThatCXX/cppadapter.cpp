@@ -13,6 +13,7 @@ std::string CppAdapter::GetResult(){
   return res;
 }
 
+/*
 void CppAdapter::OpenBlock(){
   res += "{";
 }
@@ -55,3 +56,4 @@ void CppAdapter::Binary(std::string op) {
   // crides a expressions a priori. Podriem declarar en aquesta
   // classe un stack potser?
 }
+*/

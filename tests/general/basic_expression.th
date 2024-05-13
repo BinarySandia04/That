@@ -1,3 +1,5 @@
 get 'std.io
 
-std.println(2+2)
+std.println(2+2*2)
+a: Int = 5
+b: Bul = yep && nop

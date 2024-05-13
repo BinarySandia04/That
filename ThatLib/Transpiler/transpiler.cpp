@@ -152,7 +152,7 @@ std::string Transpiler::TranspileIdentifier(Node *identifier,
       return idName;
     }
 
-    std::cout << idName << std::endl;
+    // std::cout << idName << std::endl;
     ThrowError(identifier, "Parsed identifier that is not variable");
 
   } else {
@@ -304,7 +304,7 @@ std::string Transpiler::TranspileBinary(Node *binary, ObjectType **retType,
                                         std::string *before) {
   // Ens hem d'assegurar que els tipus coincideixin
   ObjectType *lType, *rType, *returnType;
-  adapter->OpenBinary(binary->data);
+  adapter->Binary(binary->data);
   std::string lExp = TranspileExpression(binary->children[0], &lType, before);
   std::string rExp = TranspileExpression(binary->children[1], &rType, before);
 
@@ -363,7 +363,6 @@ std::string Transpiler::TranspileBinary(Node *binary, ObjectType **retType,
     }
   }
 
-  adapter->CloseBinary();
   return "(" + lExp + " " + binary->data + " " + rExp + ")";
 }
 
@@ -697,7 +696,7 @@ std::string Transpiler::PreTranspileMethod(Node *method, std::string className,
   switch (attribute->type) {
   case ThatLib::NODE_ASSIGNATION:
     transpileType = env->FetchType(attribute->arguments[0]);
-    adapter->AttrubteAssignation(attribute->children[0]->data);
+    adapter->AttributeAssignation(attribute->children[0]->data);
     newVar = new ObjectVariable(transpileType, attribute->children[0]->data);
     *methodObject = newVar;
     methodName = attribute->children[0]->data;
@@ -721,7 +720,7 @@ std::string Transpiler::PreTranspileMethod(Node *method, std::string className,
     *writeTo += transpileType->Transpile() + " " + newVar->Transpile() + ";\n";
     break;
   default:
-    std::cout << "No hauria???" << std::endl;
+    // std::cout << "No hauria???" << std::endl;
     // std::cout << "Method has no name?" << std::endl;
     *methodObject = new ObjectContainer();
     return "_";
@@ -787,8 +786,7 @@ std::string Transpiler::TranspileInstruction(Node *instruction,
     res += TranspileInstruction(instruction->children[0], returnType,
                                 &recievedContainer, root, before);
     res += "."; // Translate?
-                //
-    std::cout << "RES: " << res << std::endl;
+    adapter->Get(getterName);
 
     if (recievedContainer->Exists(getterName)) {
       Object *gettedObject = recievedContainer->GetObject(getterName);
@@ -834,8 +832,8 @@ std::string Transpiler::TranspileInstruction(Node *instruction,
       functionName = instruction->children[0]->data;
       recievedContainer = root->data;
     }
-
-    std::cout << "HJDI=SJADSIOUHA" << std::endl;
+    
+    // std::cout << "HJDI=SJADSIOUHA" << std::endl;
     if (recievedContainer == nullptr) {
       std::cout << termcolor::red << "1" << termcolor::reset << std::endl;
       return res;
@@ -864,6 +862,7 @@ std::string Transpiler::TranspileInstruction(Node *instruction,
     // S'hauria de sobreescriure res amb la funció de verdad
     ObjectCFunction *cfunction = dynamic_cast<ObjectCFunction *>(function);
     if (cfunction != nullptr) {
+      adapter->NativeCall(cfunction->cFunctionData->bind);
       if (callRetType == nullptr)
         res = cfunction->cFunctionData->bind;
       else
@@ -874,6 +873,7 @@ std::string Transpiler::TranspileInstruction(Node *instruction,
     ObjectNativeFunction *nativeFunction =
         dynamic_cast<ObjectNativeFunction *>(function);
     if (nativeFunction != nullptr) {
+      adapter->Call(nativeFunction->GetName());
       res += ".";
       res += nativeFunction->GetName();
     }
@@ -882,7 +882,9 @@ std::string Transpiler::TranspileInstruction(Node *instruction,
     std::vector<ObjectType *> argTypes;
     // Check args
     res += "(";
+    adapter->CallArgs(instruction->arguments.size());
     for (int i = 0; i < instruction->arguments.size(); i++) {
+      adapter->ReadArg();
       res += TranspileExpression(instruction->arguments[i], &argType, before);
       argTypes.push_back(argType);
       if (i < instruction->arguments.size() - 1)
@@ -904,6 +906,7 @@ std::string Transpiler::TranspileInstruction(Node *instruction,
     *returnType = funcType;
 
   } else if (instruction->type == NODE_ACCESSOR) {
+    adapter->Access();
     ObjectType *indexType = nullptr, *accessorType = nullptr;
     ObjectContainer *beforeContainer;
 
@@ -917,7 +920,7 @@ std::string Transpiler::TranspileInstruction(Node *instruction,
            TranspileExpression(instruction->arguments[0], &indexType, before) +
            "]";
 
-    std::cout << accessorType << std::endl;
+    // std::cout << accessorType << std::endl;
     if (accessorType == nullptr) {
       if (callRetType != nullptr) {
         std::string typeName = callRetType->constructor->cTypeInfo
@@ -936,12 +939,12 @@ std::string Transpiler::TranspileInstruction(Node *instruction,
     // Pot ser també un identifier nose
     ObjectType *expressionType;
     res = TranspileExpression(instruction, &expressionType, before);
-    std::cout << "RES::: " << res << std::endl;
+    // std::cout << "RES::: " << res << std::endl;
 
     if (instruction->type == NODE_IDENTIFIER) {
       // Es un identifier, no té childs, hem d'aconseguir l'objecte des de root
       // i retornar-lo
-      std::cout << "Ñe hauria de ser array" << std::endl;
+      // std::cout << "Ñe hauria de ser array" << std::endl;
       Object *identifierObject = root->GetObject(instruction->data);
       if (identifierObject == nullptr) {
         std::cout << termcolor::red
@@ -966,6 +969,8 @@ std::string Transpiler::TranspileInstruction(Node *instruction,
         *scope = varType->constructor->typeMethods;
         *returnType = varType;
       }
+
+      adapter->Get(instruction->data);
     } else {
       // Ha de ser una expressió, de la qual podem determinar el tipus
       *scope = expressionType->constructor->typeMethods;
