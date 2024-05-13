@@ -3,8 +3,8 @@
 #include "Objects/environment.h"
 
 #include "Ast/node.h"
-#include "Libs/packages.h"
 #include "Libs/internal_package.h"
+#include "Libs/packages.h"
 #include "Logs/logs.h"
 
 #include <algorithm>
@@ -16,7 +16,7 @@
 
 using namespace ThatLib;
 
-Transpiler::Transpiler(Adapter* adapter) {
+Transpiler::Transpiler(Adapter *adapter) {
   // We push the root scope
   env = new Environment();
   LoadHeadlessPackage("_Internal");
@@ -99,8 +99,8 @@ std::string Transpiler::TranspileStatement(Node *statement) {
     exp = TranspileGet(statement);
     break;
   case ThatLib::NODE_FUNCTION:
-    func =
-        TranspileFunction(statement, "", &functionDeclaration, &functionDefinition, true);
+    func = TranspileFunction(statement, "", &functionDeclaration,
+                             &functionDefinition, true);
     env->AddToScope(statement->data, func);
     exp = "";
     break;
@@ -146,15 +146,14 @@ std::string Transpiler::TranspileIdentifier(Node *identifier,
     if (var != nullptr) {
       *retType = var->GetType();
       return var->Transpile();
-    } 
+    }
 
-    if(obj != nullptr){
+    if (obj != nullptr) {
       return idName;
     }
-    
+
     std::cout << idName << std::endl;
     ThrowError(identifier, "Parsed identifier that is not variable");
-    
 
   } else {
     ThrowError(identifier, "Identifier " + idName + " does not exist");
@@ -162,6 +161,9 @@ std::string Transpiler::TranspileIdentifier(Node *identifier,
   return "";
 }
 
+
+
+// TODO: Això es podria separar en funcions més petites
 std::string Transpiler::TranspileAssignation(Node *assignation,
                                              std::string *before) {
 
@@ -170,6 +172,7 @@ std::string Transpiler::TranspileAssignation(Node *assignation,
 
   ObjectType *expType;
 
+  adapter->OpenAssignation();
   if (assignation->children.size() > 1) {
     Texpression =
         TranspileExpression(assignation->children[1], &expType, before);
@@ -177,21 +180,18 @@ std::string Transpiler::TranspileAssignation(Node *assignation,
 
   if (assignation->children[0]->type == ThatLib::NODE_IDENTIFIER) {
     ogIdentifier = assignation->children[0]->data;
+    adapter->AssignationVariable(assignation->children[0]->data);
 
     if (!env->Exists(ogIdentifier)) {
+      adapter->AssignationNewVariable();
       ObjectVariable *newVariable = new ObjectVariable(expType, ogIdentifier);
       newVariable->SetType(expType);
 
       if (assignation->arguments.size() > 0) {
-        // Es typed
+        adapter->AssignationValue();
         Node *type = assignation->arguments[0];
 
         ogTypeStr = type->data;
-        // Logs::Debug("Fetched type " + ogTypeStr);
-
-        // std::cout << ogTypeStr << std::endl;
-        // type->Debug(0);
-        // env->DumpEnvironment();
         env->FetchType(type);
 
         ObjectType *declType =
@@ -211,6 +211,8 @@ std::string Transpiler::TranspileAssignation(Node *assignation,
       }
     }
 
+    adapter->CloseAssignation();
+
     return TtypeStr + " " +
            dynamic_cast<ObjectVariable *>(env->Fetch(ogIdentifier))
                ->Transpile() +
@@ -218,35 +220,16 @@ std::string Transpiler::TranspileAssignation(Node *assignation,
   }
 
   Node *currentNode = assignation->children[0];
-  // assignation->Debug(0);
 
   std::string accessorTranspiled = "";
   if (currentNode->type != NODE_IDENTIFIER) {
-    // Ok canviar això i adaptar-ho a la instrucció TranspileInstruction
-    ObjectType* lType;
-    ObjectContainer* fromContainer;
-    accessorTranspiled = TranspileInstruction(currentNode, &lType, &fromContainer, env->GetTopScope(), before);
-    /*
-    if (currentNode->type == NODE_GETTER) {
-
-      if (firstAccessor) {
-        accessorTranspiled += dynamic_cast<ObjectVariable *>(
-                                  env->Fetch(currentNode->arguments[0]->data))
-                                  ->Transpile();
-        firstAccessor = false;
-      } else
-        accessorTranspiled += currentNode->arguments[0]->data;
-      accessorTranspiled += ".";
-
-      currentNode = currentNode->children[0];
-      // currentNode->Debug(0);
-    } else {
-      std::cout << "NO! Type is " << currentNode->type;
-    }
-    */
+    ObjectType *lType;
+    ObjectContainer *fromContainer;
+    accessorTranspiled = TranspileInstruction(
+        currentNode, &lType, &fromContainer, env->GetTopScope(), before);
   }
-  return accessorTranspiled + " " + assignation->data +
-         " " + Texpression;
+  adapter->CloseAssignation();
+  return accessorTranspiled + " " + assignation->data + " " + Texpression;
 }
 
 std::string Transpiler::TranspileExpression(Node *expression,
@@ -291,7 +274,7 @@ std::string Transpiler::TranspileExpression(Node *expression,
   case NODE_OP_UN:
     return TranspileUnary(expression, retType, before);
     break;
-  case NODE_IDENTIFIER {
+  case NODE_IDENTIFIER: {
     std::string finalIdentifier = TranspileIdentifier(expression, retType);
     adapter->Id(finalIdentifier);
     return TranspileIdentifier(expression, retType);
@@ -300,8 +283,9 @@ std::string Transpiler::TranspileExpression(Node *expression,
   case NODE_CALL:
   case NODE_GETTER:
   case NODE_ACCESSOR:
-    ObjectContainer* c;
-    return TranspileInstruction(expression, retType, &c, env->GetTopScope(), before);
+    ObjectContainer *c;
+    return TranspileInstruction(expression, retType, &c, env->GetTopScope(),
+                                before);
     // return TranspileGetter(expression, retType, before);
     break;
   case NODE_ARRAY:
@@ -320,6 +304,7 @@ std::string Transpiler::TranspileBinary(Node *binary, ObjectType **retType,
                                         std::string *before) {
   // Ens hem d'assegurar que els tipus coincideixin
   ObjectType *lType, *rType, *returnType;
+  adapter->OpenBinary(binary->data);
   std::string lExp = TranspileExpression(binary->children[0], &lType, before);
   std::string rExp = TranspileExpression(binary->children[1], &rType, before);
 
@@ -378,26 +363,33 @@ std::string Transpiler::TranspileBinary(Node *binary, ObjectType **retType,
     }
   }
 
-  // Es poden treure espais un cop fet bé
-  adapter->Binary(binary->data);
-
+  adapter->CloseBinary();
   return "(" + lExp + " " + binary->data + " " + rExp + ")";
 }
 
-std::string Transpiler::TranspileUnary(ThatLib::Node *unary, ObjectType **retType,
+std::string Transpiler::TranspileUnary(ThatLib::Node *unary,
+                                       ObjectType **retType,
                                        std::string *before) {
-  return unary->data + TranspileExpression(unary->children[0], retType, before);
+  adapter->OpenUnary(unary->data);
+  std::string res =
+      unary->data + TranspileExpression(unary->children[0], retType, before);
+  adapter->CloseUnary();
+  return res;
 }
 
-std::string Transpiler::TranspileIf(ThatLib::Node *ifNode, std::string *before) {
+std::string Transpiler::TranspileIf(ThatLib::Node *ifNode,
+                                    std::string *before) {
   // Arg has expressions childs are blocks. If args + 1 = childs then has else
   std::string res = "";
   int i;
   for (i = 0; i < ifNode->arguments.size(); i++) {
-    if (i == 0)
+    if (i == 0) {
       res += "if";
-    else
+      adapter->If();
+    } else {
+      adapter->ElseIf();
       res += "else if";
+    }
     res += "(";
 
     // Hauria d'utilitzar això? XD
@@ -412,6 +404,7 @@ std::string Transpiler::TranspileIf(ThatLib::Node *ifNode, std::string *before) 
   }
   if (ifNode->children.size() > ifNode->arguments.size()) {
     res += "else ";
+    adapter->Else();
 
     env->PushScope();
     res += TranspileBlock(ifNode->children[i]);
@@ -446,17 +439,13 @@ std::string Transpiler::TranspileLup(ThatLib::Node *lup, std::string *before) {
       // We get all arguments and we create consecutive fors nested
       for (int i = 0; i < iterator->arguments.size(); i++) {
         Node *interval;
+        std::string from = "0";
+        std::string to = "0";
+
         if (multiIterators)
           interval = iterator->children[i];
         else
           interval = iterator->children[0];
-        std::string from = "0";
-        std::string to = "0";
-
-        // De moment posem només ints
-        ObjectVariable *newVar = new ObjectVariable(
-            env->FetchType("Int"), iterator->arguments[i]->data);
-        env->AddToScope(iterator->arguments[i]->data, newVar);
 
         // TODO: Treure això
         ObjectType *t, *fType, *tType;
@@ -465,19 +454,27 @@ std::string Transpiler::TranspileLup(ThatLib::Node *lup, std::string *before) {
 
         if (interval->children.size() > 1) {
           // TODO: Podem fer check netament de si són Int!!!
+          adapter->IntervalRangeFor();
           from = TranspileExpression(interval->children[0], &fType, before);
           to = TranspileExpression(interval->children[1], &tType, before);
         } else {
+          adapter->IntervalCountFor();
           to = TranspileExpression(interval->children[0], &fType, before);
         }
         res += "for(int " + identifier + " = ";
         res +=
             from + "; " + identifier + " < " + to + "; " + identifier + "++)";
+
+        // De moment posem només ints
+        ObjectVariable *newVar = new ObjectVariable(
+            env->FetchType("Int"), iterator->arguments[i]->data);
+        env->AddToScope(iterator->arguments[i]->data, newVar);
       }
       // std::cout << iterator->arguments.size() << std::endl;
     } else {
-      // Simple while structure
+      // C++ form for or while
       if (lup->arguments.size() > 1) {
+        adapter->For();
         res += "for(" + TranspileAssignation(lup->arguments[0], before) + "; ";
 
         // Un altre cop això hauria d'avaluar a Bul
@@ -486,6 +483,7 @@ std::string Transpiler::TranspileLup(ThatLib::Node *lup, std::string *before) {
         res += TranspileAssignation(lup->arguments[2], before) + ")";
       } else {
         ObjectType *expType;
+        adapter->CountFor();
         std::string exp =
             TranspileExpression(lup->arguments[0], &expType, before);
 
@@ -499,6 +497,7 @@ std::string Transpiler::TranspileLup(ThatLib::Node *lup, std::string *before) {
   } else {
     // Infinite lup
     res += "for(;;)";
+    adapter->Forever();
   }
   block = TranspileBlock(lup->children[0]);
 
@@ -522,6 +521,7 @@ std::string Transpiler::TranspileGet(ThatLib::Node *getNode) {
   if (value[0] == '\'') {
     lib = true;
     realImport = value.substr(1, value.size() - 1);
+    adapter->LoadPackage(realImport);
 
     Package *loadedPackage = GetLoadedPackage(realImport);
     if (loadedPackage == nullptr) {
@@ -531,6 +531,7 @@ std::string Transpiler::TranspileGet(ThatLib::Node *getNode) {
   } else {
     lib = false;
     realImport = value.substr(1, value.size() - 2);
+    adapter->LoadCode(realImport);
     // Normal import
   }
 
@@ -538,8 +539,7 @@ std::string Transpiler::TranspileGet(ThatLib::Node *getNode) {
 }
 
 ObjectNativeFunction *
-Transpiler::TranspileFunction(ThatLib::Node *function,
-                              std::string nameSpace,
+Transpiler::TranspileFunction(ThatLib::Node *function, std::string nameSpace,
                               std::string *functionDeclaration,
                               std::string *functionDefinition, // Actual content
                               bool transpileContent) {
@@ -548,7 +548,8 @@ Transpiler::TranspileFunction(ThatLib::Node *function,
   func->returnType = "Nil"; // TODO: Canviar
   // Sanitization?
   std::string funcName = "_f_" + function->data;
-  if(nameSpace != "") funcName.insert(0, nameSpace + "::");
+  if (nameSpace != "")
+    funcName.insert(0, nameSpace + "::");
   // For the function declaration we have 2 arguments: A Type of return value
   // and a list of args for the function. ej:
   // returnType -> int
@@ -561,6 +562,7 @@ Transpiler::TranspileFunction(ThatLib::Node *function,
 
   // TODO: Fer retornar per lo de les classes
   // env->AddToScope(function->data, func);
+  adapter->Function(function->data, function->arguments.size());
 
   env->PushScope();
   if (function->arguments.size() == 0) {
@@ -568,6 +570,7 @@ Transpiler::TranspileFunction(ThatLib::Node *function,
   }
   for (int i = 0; i < function->arguments.size(); i++) {
     if (function->arguments[i]->type == ThatLib::NODE_TYPE) {
+      // TODO: Això és sempre el primer fill o com?
 
       ObjectType *retType = env->FetchType(function->arguments[i]->data);
       func->returnType = retType->identifier;
@@ -586,6 +589,7 @@ Transpiler::TranspileFunction(ThatLib::Node *function,
         env->AddToScope(argIdentifier, argVar);
 
         func->functionArgs.push_back(argType->identifier); // TODO: Canviar
+        adapter->Argument(argType->identifier);
 
         argPiled = argType->Transpile() + " " + argVar->Transpile();
         arguments += argPiled;
@@ -601,14 +605,14 @@ Transpiler::TranspileFunction(ThatLib::Node *function,
   returnType = env->FetchType(func->returnType)->Transpile();
 
   std::string defBlock;
-  if(transpileContent) defBlock = TranspileBlock(function->children[0]);
+  if (transpileContent)
+    defBlock = TranspileBlock(function->children[0]);
   env->PopScope();
 
   if (functionDeclaration != nullptr)
     *functionDeclaration += returnType + " " + funcName + arguments + ";";
-  if (functionDefinition != nullptr && transpileContent){
-    *functionDefinition +=
-        returnType + " " + funcName + arguments + defBlock;
+  if (functionDefinition != nullptr && transpileContent) {
+    *functionDefinition += returnType + " " + funcName + arguments + defBlock;
   }
 
   return func;
@@ -617,6 +621,7 @@ Transpiler::TranspileFunction(ThatLib::Node *function,
 std::string Transpiler::TranspileKin(Node *kin, std::string *before) {
   // kin->Debug(0);
   std::string kinName = kin->data;
+  adapter->StartKin(kinName);
 
   classDeclaration += "class c_" + kinName + ";\n";
 
@@ -635,11 +640,14 @@ std::string Transpiler::TranspileKin(Node *kin, std::string *before) {
       switch (kin->children[i]->data[0]) {
       case '$':
         p = PRIVATE;
+        adapter->SetAttributePrivacy(PRIVATE);
         break;
       case '@':
+        adapter->SetAttributePrivacy(STATIC);
         p = STATIC;
         break;
       default:
+        adapter->SetAttributePrivacy(PUBLIC);
         std::cout << "Undefined accessor?" << std::endl;
         return "";
       }
@@ -650,30 +658,35 @@ std::string Transpiler::TranspileKin(Node *kin, std::string *before) {
     else
       writeTo = &privatePart;
 
-    methodName = PreTranspileMethod(kin->children[i], kinName, writeTo, &addedObj, before);
+    methodName = PreTranspileMethod(kin->children[i], kinName, writeTo,
+                                    &addedObj, before);
     if (methodName == "")
       return "";
 
     env->GetTopScope()->AddObject(methodName, addedObj, p);
   }
 
-  for(int i = 0; i < kin->children.size(); i++){
-    PostTranspileMethod(kin->children[i]->children[0], kinName, &methodsDefinition);
+  for (int i = 0; i < kin->children.size(); i++) {
+    PostTranspileMethod(kin->children[i]->children[0], kinName,
+                        &methodsDefinition);
   }
 
-  classDefinition +=
-      "public:\n" + publicPart + "\nprivate:\n" + privatePart + "\n};\n" + methodsDefinition;
+  classDefinition += "public:\n" + publicPart + "\nprivate:\n" + privatePart +
+                     "\n};\n" + methodsDefinition;
 
   // TODO: Canviar a root?
-  env->AddToRoot(kinName, new ObjectProtoType(env->GetTopScope()->data, kinName));
+  adapter->EndKin();
+  env->AddToRoot(kinName,
+                 new ObjectProtoType(env->GetTopScope()->data, kinName));
   env->GetTopScope()->Detach();
   env->PopScope();
   return "";
 }
 
-std::string Transpiler::PreTranspileMethod(Node *method, std::string className, std::string *writeTo,
-                                        Object **methodObject,
-                                        std::string *before) {
+std::string Transpiler::PreTranspileMethod(Node *method, std::string className,
+                                           std::string *writeTo,
+                                           Object **methodObject,
+                                           std::string *before) {
   std::string methodName;
 
   Node *attribute = method->children[0];
@@ -684,6 +697,7 @@ std::string Transpiler::PreTranspileMethod(Node *method, std::string className, 
   switch (attribute->type) {
   case ThatLib::NODE_ASSIGNATION:
     transpileType = env->FetchType(attribute->arguments[0]);
+    adapter->AttrubteAssignation(attribute->children[0]->data);
     newVar = new ObjectVariable(transpileType, attribute->children[0]->data);
     *methodObject = newVar;
     methodName = attribute->children[0]->data;
@@ -692,11 +706,13 @@ std::string Transpiler::PreTranspileMethod(Node *method, std::string className, 
     break;
   case ThatLib::NODE_FUNCTION:
     methodName = attribute->data;
+    adapter->AttributeFunction(attribute->data);
     *methodObject = TranspileFunction(attribute, "", writeTo, nullptr, false);
     *writeTo += "\n";
     break;
   case ThatLib::NODE_IDENTIFIER:
     // Igual que assignation pero amb any
+    adapter->AttributeIdentifier(attribute->data);
     transpileType = env->FetchType("Any");
     newVar = new ObjectVariable(transpileType, attribute->data);
     *methodObject = newVar;
@@ -705,6 +721,7 @@ std::string Transpiler::PreTranspileMethod(Node *method, std::string className, 
     *writeTo += transpileType->Transpile() + " " + newVar->Transpile() + ";\n";
     break;
   default:
+    std::cout << "No hauria???" << std::endl;
     // std::cout << "Method has no name?" << std::endl;
     *methodObject = new ObjectContainer();
     return "_";
@@ -712,17 +729,21 @@ std::string Transpiler::PreTranspileMethod(Node *method, std::string className, 
   return methodName;
 }
 
-void Transpiler::PostTranspileMethod(Node* method, std::string kinName, std::string *after){
-  if(method->type != NODE_FUNCTION) return;
-  Object* o = TranspileFunction(method, "c_" + kinName, nullptr, after, true);
+void Transpiler::PostTranspileMethod(Node *method, std::string kinName,
+                                     std::string *after) {
+  if (method->type != NODE_FUNCTION)
+    return;
+  Object *o = TranspileFunction(method, "c_" + kinName, nullptr, after, true);
   delete o;
   *after += "\n";
 }
 
-std::string Transpiler::TranspileReturn(ThatLib::Node *ret, std::string *before) {
+std::string Transpiler::TranspileReturn(ThatLib::Node *ret,
+                                        std::string *before) {
   // Aqui podriem comprovar si el tipus del return és vàlid
   ObjectType *returnType = env->FetchType("Nil");
   std::string exp = "";
+  adapter->Return();
   if (ret->children.size() > 0) {
     // Suport per més expressions?
     exp = TranspileExpression(ret->children[0], &returnType, before);
@@ -735,13 +756,16 @@ std::string Transpiler::TranspileBrk(Node *brk, std::string *before) {
   // TODO
   std::string brkBody;
 
-  if (brk->data == "")
+  if (brk->data == "") {
+    adapter->Break();
     brkBody = "break;";
-  else
+  } else
     brkBody = "goto " + brk->data + ";";
+  adapter->Break(brk->data);
 
   if (brk->children.size() > 0) {
     ObjectType *type; // Hauriem de veure que avalua a bool?
+    adapter->BreakIf();
     return "if(" + TranspileExpression(brk->children[0], &type, before) + ") " +
            brkBody;
   }
@@ -751,35 +775,36 @@ std::string Transpiler::TranspileBrk(Node *brk, std::string *before) {
 
 std::string Transpiler::TranspileInstruction(Node *instruction,
                                              ObjectType **returnType,
-                                             ObjectContainer** scope,
-                                             Scope* root,
-                                             std::string *before) {
+                                             ObjectContainer **scope,
+                                             Scope *root, std::string *before) {
   std::string res = "";
   ObjectType *callRetType = nullptr; // ???
-
 
   if (instruction->type == NODE_GETTER) {
     std::string getterName = instruction->arguments[0]->data;
 
-    ObjectContainer* recievedContainer;
-    res += TranspileInstruction(instruction->children[0], returnType, &recievedContainer, root, before);
+    ObjectContainer *recievedContainer;
+    res += TranspileInstruction(instruction->children[0], returnType,
+                                &recievedContainer, root, before);
     res += "."; // Translate?
-                             //
+                //
     std::cout << "RES: " << res << std::endl;
 
-    if(recievedContainer->Exists(getterName)){
-      Object* gettedObject = recievedContainer->GetObject(getterName); 
+    if (recievedContainer->Exists(getterName)) {
+      Object *gettedObject = recievedContainer->GetObject(getterName);
       // Pot ser un container o no. Si no ho és, agafem el tipus que tenim
 
       // Sabem que no es nullptr perque existeix
-      ObjectContainer* gettedContainer = dynamic_cast<ObjectContainer*>(gettedObject);
-      if(gettedContainer != nullptr){
+      ObjectContainer *gettedContainer =
+          dynamic_cast<ObjectContainer *>(gettedObject);
+      if (gettedContainer != nullptr) {
         *scope = gettedContainer;
         res += getterName;
       }
 
-      ObjectVariable* gettedVariable = dynamic_cast<ObjectVariable*>(gettedObject);
-      if(gettedVariable != nullptr){
+      ObjectVariable *gettedVariable =
+          dynamic_cast<ObjectVariable *>(gettedObject);
+      if (gettedVariable != nullptr) {
         *scope = gettedVariable->GetType()->constructor->typeMethods;
         res += gettedVariable->Transpile();
         *returnType = gettedVariable->GetType();
@@ -788,60 +813,67 @@ std::string Transpiler::TranspileInstruction(Node *instruction,
       }
 
     } else {
-      std::cout << termcolor::red << "Invalid getter" << termcolor::reset << std::endl;
+      std::cout << termcolor::red << "Invalid getter" << termcolor::reset
+                << std::endl;
       return res;
     }
   } else if (instruction->type == NODE_CALL) {
     // Funció dins de qualsevol cosa
-    // té un children que es getter i te el nom de la func i el children del children és el seguent
+    // té un children que es getter i te el nom de la func i el children del
+    // children és el seguent
 
     ObjectContainer *recievedContainer;
 
     std::string functionName;
-    if(instruction->children[0]->children.size() > 0){
+    if (instruction->children[0]->children.size() > 0) {
       functionName = instruction->children[0]->arguments[0]->data;
-      res += TranspileInstruction(instruction->children[0]->children[0], &callRetType, &recievedContainer, root, before);
+      res +=
+          TranspileInstruction(instruction->children[0]->children[0],
+                               &callRetType, &recievedContainer, root, before);
     } else {
-      functionName = instruction->children[0]->data; 
+      functionName = instruction->children[0]->data;
       recievedContainer = root->data;
     }
 
-
-    std::cout << "HJDI=SJADSIOUHA"<< std::endl;
-    if(recievedContainer == nullptr){
+    std::cout << "HJDI=SJADSIOUHA" << std::endl;
+    if (recievedContainer == nullptr) {
       std::cout << termcolor::red << "1" << termcolor::reset << std::endl;
       return res;
     }
 
-    Object* objFunction = recievedContainer->Fetch(functionName);
-    if(objFunction == nullptr){
+    Object *objFunction = recievedContainer->Fetch(functionName);
+    if (objFunction == nullptr) {
       std::cout << termcolor::red << "2" << termcolor::reset << std::endl;
-      return res; 
+      return res;
     }
 
-    ObjectFunction* function = dynamic_cast<ObjectFunction*>(recievedContainer->Fetch(functionName));
-    if(function == nullptr){
+    ObjectFunction *function =
+        dynamic_cast<ObjectFunction *>(recievedContainer->Fetch(functionName));
+    if (function == nullptr) {
       std::cout << termcolor::red << "3" << termcolor::reset << std::endl;
-      return res; 
+      return res;
     }
 
     std::vector<std::string> oldParams;
-    if(callRetType != nullptr){
+    if (callRetType != nullptr) {
       // Tipus que tenim de sota doncs el sobreescrivim amb el template
       oldParams = function->functionArgs;
       function->SetInheritedType(callRetType);
     }
-    
+
     // S'hauria de sobreescriure res amb la funció de verdad
-    ObjectCFunction* cfunction = dynamic_cast<ObjectCFunction*>(function);
-    if(cfunction != nullptr){
-      if(callRetType == nullptr) res = cfunction->cFunctionData->bind;
-      else res += "." + cfunction->cFunctionData->bind;
+    ObjectCFunction *cfunction = dynamic_cast<ObjectCFunction *>(function);
+    if (cfunction != nullptr) {
+      if (callRetType == nullptr)
+        res = cfunction->cFunctionData->bind;
+      else
+        res += "." + cfunction->cFunctionData->bind;
       env->Use(cfunction);
     }
 
-    ObjectNativeFunction* nativeFunction = dynamic_cast<ObjectNativeFunction*>(function);
-    if(nativeFunction != nullptr){
+    ObjectNativeFunction *nativeFunction =
+        dynamic_cast<ObjectNativeFunction *>(function);
+    if (nativeFunction != nullptr) {
       res += ".";
       res += nativeFunction->GetName();
     }
@@ -851,20 +883,23 @@ std::string Transpiler::TranspileInstruction(Node *instruction,
     // Check args
     res += "(";
     for (int i = 0; i < instruction->arguments.size(); i++) {
-     res += TranspileExpression(instruction->arguments[i], &argType, before);
-     argTypes.push_back(argType);
-      if(i < instruction->arguments.size() - 1) res += ",";
+      res += TranspileExpression(instruction->arguments[i], &argType, before);
+      argTypes.push_back(argType);
+      if (i < instruction->arguments.size() - 1)
+        res += ",";
     }
     res += ")";
 
-    if(!function->CheckArgs(argTypes, env)){
-      std::cout << termcolor::red << "Invalid types" << termcolor::reset << std::endl;
-      return res; 
+    if (!function->CheckArgs(argTypes, env)) {
+      std::cout << termcolor::red << "Invalid types" << termcolor::reset
+                << std::endl;
+      return res;
     }
 
     // Desfem els canvis de template
-    if(callRetType != nullptr) function->functionArgs = oldParams;
-    
+    if (callRetType != nullptr)
+      function->functionArgs = oldParams;
+
     *scope = funcType->constructor->typeMethods;
     *returnType = funcType;
 
@@ -872,22 +907,26 @@ std::string Transpiler::TranspileInstruction(Node *instruction,
     ObjectType *indexType = nullptr, *accessorType = nullptr;
     ObjectContainer *beforeContainer;
 
-    res += TranspileInstruction(instruction->children[0], &callRetType, &beforeContainer, root, before);
+    res += TranspileInstruction(instruction->children[0], &callRetType,
+                                &beforeContainer, root, before);
     if (callRetType->constructor == env->FetchProtoType("Arr")) {
       accessorType = callRetType->children[0];
     }
-  
-    res += "[" + TranspileExpression(instruction->arguments[0], &indexType, before) + "]";
+
+    res += "[" +
+           TranspileExpression(instruction->arguments[0], &indexType, before) +
+           "]";
 
     std::cout << accessorType << std::endl;
-    if(accessorType == nullptr){
-      if(callRetType != nullptr){
-        std::string typeName = callRetType->constructor->cTypeInfo->accessor_map[indexType->identifier];
+    if (accessorType == nullptr) {
+      if (callRetType != nullptr) {
+        std::string typeName = callRetType->constructor->cTypeInfo
+                                   ->accessor_map[indexType->identifier];
         *returnType = env->FetchType(typeName);
         *scope = (*returnType)->constructor->typeMethods;
       }
-      // std::cout << termcolor::red << "Accessor nullptr" << termcolor::reset << std::endl;
-      // return res;
+      // std::cout << termcolor::red << "Accessor nullptr" << termcolor::reset
+      // << std::endl; return res;
     } else {
       *returnType = accessorType;
       *scope = accessorType->constructor->typeMethods;
@@ -895,33 +934,37 @@ std::string Transpiler::TranspileInstruction(Node *instruction,
   } else {
     // Com que tenim una expressió el instruction container serà el del tipus
     // Pot ser també un identifier nose
-    ObjectType* expressionType;
+    ObjectType *expressionType;
     res = TranspileExpression(instruction, &expressionType, before);
     std::cout << "RES::: " << res << std::endl;
 
-    if(instruction->type == NODE_IDENTIFIER){
+    if (instruction->type == NODE_IDENTIFIER) {
       // Es un identifier, no té childs, hem d'aconseguir l'objecte des de root
       // i retornar-lo
       std::cout << "Ñe hauria de ser array" << std::endl;
-      Object* identifierObject = root->GetObject(instruction->data);
-      if(identifierObject == nullptr){
-        std::cout << termcolor::red << "Identifier '" + instruction->data + "' doesn't exists" << termcolor::reset << std::endl;
+      Object *identifierObject = root->GetObject(instruction->data);
+      if (identifierObject == nullptr) {
+        std::cout << termcolor::red
+                  << "Identifier '" + instruction->data + "' doesn't exists"
+                  << termcolor::reset << std::endl;
         return res;
       }
-      // Aqui ara hem de veure com assignar el tipus a containers, funcions, etc..
-      // Tots els tipus fills de Object
+      // Aqui ara hem de veure com assignar el tipus a containers, funcions,
+      // etc.. Tots els tipus fills de Object
       *returnType = nullptr;
-     
-      ObjectContainer* identifierContainer = dynamic_cast<ObjectContainer*>(identifierObject);
-      if(identifierContainer != nullptr){
+
+      ObjectContainer *identifierContainer =
+          dynamic_cast<ObjectContainer *>(identifierObject);
+      if (identifierContainer != nullptr) {
         *scope = identifierContainer;
         return res;
       }
-      ObjectVariable* identifierVariable = dynamic_cast<ObjectVariable*>(identifierObject);
-      if(identifierVariable != nullptr){
-        ObjectType* varType = identifierVariable->GetType();
+      ObjectVariable *identifierVariable =
+          dynamic_cast<ObjectVariable *>(identifierObject);
+      if (identifierVariable != nullptr) {
+        ObjectType *varType = identifierVariable->GetType();
         *scope = varType->constructor->typeMethods;
-        *returnType = varType; 
+        *returnType = varType;
       }
     } else {
       // Ha de ser una expressió, de la qual podem determinar el tipus
@@ -939,6 +982,7 @@ std::string Transpiler::TranspileArray(ThatLib::Node *array,
   std::vector<ObjectType *> argTypes;
 
   result += "{";
+  adapter->Array(array->children.size());
   for (int i = 0; i < array->children.size(); i++) {
     ObjectType *elementType;
     std::string exp =
@@ -982,7 +1026,7 @@ ThatLib::Package *Transpiler::LoadPackage(std::string packageName) {
   return package;
 }
 
-ThatLib::Package *Transpiler::LoadHeadlessPackage(std::string path){
+ThatLib::Package *Transpiler::LoadHeadlessPackage(std::string path) {
   Package *package = ThatLib::FetchInternalPackage(path);
 
   loadedPackages.push_back(package);

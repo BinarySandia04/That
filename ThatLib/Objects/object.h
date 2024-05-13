@@ -7,6 +7,12 @@
 
 namespace ThatLib {
 
+enum Privacy {
+  PUBLIC,
+  PRIVATE,
+  STATIC,
+};
+
 class Object {
 public:
   Object(){};

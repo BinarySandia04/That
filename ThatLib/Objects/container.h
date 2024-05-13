@@ -6,12 +6,6 @@ namespace ThatLib {
 
 class Object;
 
-enum Privacy {
-  PUBLIC,
-  PRIVATE,
-  STATIC,
-};
-
 class ObjectContainerData {
 public:
   ObjectContainerData(Privacy, Object*);
