@@ -14,6 +14,7 @@
 #include "toml++/toml.hpp"
 
 #include <ThatLib/Ast/ast.h>
+#include <ThatLib/Transpiler/debug_adapter.h>
 #include <ThatLib/Utils/thatpath.h>
 
 #include "Formatter/formatter.h"
@@ -84,8 +85,10 @@ void Transpile(std::string code, std::string fileName) {
   ThatLib::GenerateAst(code, fileName, ast, programFlags & Flags::DEBUG);
   
   ThatCXX::CppAdapter adapter;
+  ThatLib::DebugAdapter debugAdapter;
 
   ThatLib::Transpiler transpiler(&adapter);
+  ThatLib::Transpiler debugTranspiler(&debugAdapter);
 
 #ifdef __linux
   fs::path homePath = fs::path(getenv("HOME")) / fs::path(".that");
@@ -120,6 +123,10 @@ void Transpile(std::string code, std::string fileName) {
 
   std::string transCode, cxxargs;
   std::vector<std::string> libNames;
+
+  std::cout << "DEBUG ADAPTER:" << std::endl << "-----------------------------" << std::endl;
+  debugTranspiler.GenerateSource(ast, &cxxargs, &libNames);
+  std::cout << "--------------------------" << std::endl;
   transCode = transpiler.GenerateSource(ast, &cxxargs, &libNames);
 
   std::cout << "ADAPTER OUTPUT: " << std::endl << adapter.GetResult() << std::endl;

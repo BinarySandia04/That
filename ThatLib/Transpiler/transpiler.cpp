@@ -172,7 +172,7 @@ std::string Transpiler::TranspileAssignation(Node *assignation,
 
   ObjectType *expType;
 
-  adapter->OpenAssignation();
+  adapter->Assignation();
   if (assignation->children.size() > 1) {
     Texpression =
         TranspileExpression(assignation->children[1], &expType, before);
@@ -183,12 +183,11 @@ std::string Transpiler::TranspileAssignation(Node *assignation,
     adapter->AssignationVariable(assignation->children[0]->data);
 
     if (!env->Exists(ogIdentifier)) {
-      adapter->AssignationNewVariable();
+      adapter->NewVariable();
       ObjectVariable *newVariable = new ObjectVariable(expType, ogIdentifier);
       newVariable->SetType(expType);
 
       if (assignation->arguments.size() > 0) {
-        adapter->AssignationValue();
         Node *type = assignation->arguments[0];
 
         ogTypeStr = type->data;
@@ -211,8 +210,6 @@ std::string Transpiler::TranspileAssignation(Node *assignation,
       }
     }
 
-    adapter->CloseAssignation();
-
     return TtypeStr + " " +
            dynamic_cast<ObjectVariable *>(env->Fetch(ogIdentifier))
                ->Transpile() +
@@ -228,7 +225,6 @@ std::string Transpiler::TranspileAssignation(Node *assignation,
     accessorTranspiled = TranspileInstruction(
         currentNode, &lType, &fromContainer, env->GetTopScope(), before);
   }
-  adapter->CloseAssignation();
   return accessorTranspiled + " " + assignation->data + " " + Texpression;
 }
 

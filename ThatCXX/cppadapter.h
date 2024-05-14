@@ -3,6 +3,7 @@
 #include <ThatLib/Transpiler/adapter.h>
 
 #include <string>
+#include <stack>
 
 namespace ThatCXX {
 
@@ -12,7 +13,6 @@ public:
   std::string GetResult();
 
   // --- Override methods
-  /*
   void OpenBlock();
   void CloseBlock();
 
@@ -24,10 +24,12 @@ public:
   void Chr(std::string data);
   void Id(std::string data);
   void Binary(std::string op);
-  */
 
 private:
+  std::stack<std::string> opStack;
   std::string res;
+
+  void WriteToExpStack(std::string data);
 };
 
 }; // namespace ThatCXX

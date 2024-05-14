@@ -1,5 +1,19 @@
 get 'std.io
 
-std.println(2+2*2)
-a: Int = 5
+std.println( (2+2) *2)
+a: Int
 b: Bul = yep && nop
+if b == yep {
+  std.println("Yep si")
+  lup 30 {
+    std.println("Miau!!!")
+  }
+} els {
+  std.println("Miau no!!!")
+}
+
+fn primers [n: Int] => Int {
+  ret n
+}
+
+primers(20)
