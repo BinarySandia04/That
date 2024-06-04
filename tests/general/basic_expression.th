@@ -6,10 +6,10 @@ b: Bul = yep && nop
 if b == yep {
   std.println("Yep si")
   lup 30 {
-    std.println("Miau!!!")
+    std.println("dhsajdhaskjh!!!")
   }
 } els {
-  std.println("Miau no!!!")
+  std.println("no!!!")
 }
 
 fn primers [n: Int] => Int {
