@@ -1,4 +1,4 @@
 #!/bin/bash
 
 ./build.sh
-../build/src/that/That
+.build/That/that

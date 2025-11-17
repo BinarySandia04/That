@@ -1,0 +1,97 @@
+# Syntax
+
+Load packages:
+
+```
+get 'package/name'
+```
+
+
+Keywords:
+
+```
+if els eif brk fn kin hoc lup ret
+```
+
+Booleans:
+
+```
+yep nop nil
+```
+
+Types:
+```
+Int Str Any Nil Num Arr Map Bul Chr
+```
+
+Strings:
+```
+"Hello"
+```
+
+Comments:
+```
+// Hello I'm a comment
+```
+
+# Examples
+
+Brainf*ck interpreter:
+
+```
+get 'std.io
+
+b: Str = std.read.str("C> ")
+in: Str = std.read.str("I> ")
+m: Arr<Int> = [0]
+p: Int = 0
+ip: Int = 0
+
+n: Int = 0
+lup i | b.size() {
+  if b[i] == '>' {
+    p += 1
+    if p >= m.size(): m.push(0)
+  }
+  eif b[i] == '<' {
+    p -= 1
+    if p < 0 {
+      std.println("Err")
+      ret 0
+    }
+  }
+  eif b[i] == '+' {
+    m[p] += 1
+    if m[p] == 256: m[p] = 0
+  }
+  eif b[i] == '-' {
+    m[p] -= 1
+    if m[p] == -1: m[p] = 255
+  }
+  eif b[i] == '.' : std.printchr(m[p])
+  eif b[i] == ',' {
+    m[p] = in[ip]
+    ip += 1
+  }
+  eif b[i] == '[' {
+    if m[p] == 0 {
+      i += 1
+      lup n > 0 || b[i] != ']' {
+        if b[i] == '[' : n += 1
+        if b[i] == ']' : n -= 1
+        i += 1
+      }
+    }
+  }
+  eif b[i] == ']' {
+    if m[p] != 0 {
+      i -= 1
+      lup n > 0 || b[i] != '[' {
+        if b[i] == '[' : n -= 1
+        if b[i] == ']' : n += 1
+        i -= 1
+      } 
+    }
+  }
+}
+```
