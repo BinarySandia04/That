@@ -7,6 +7,8 @@ set(CMAKE_CXX_LIBS "-O2")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+add_compile_options(-Wno-deprecated-literal-operator)
+
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_LIBS}")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
@@ -22,5 +24,5 @@ find_package(Git)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 add_subdirectory(ThatLib)
-add_subdirectory(ThatCXX)
+# add_subdirectory(ThatCXX)
 add_subdirectory(That)

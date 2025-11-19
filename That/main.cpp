@@ -1,6 +1,6 @@
 #include "main.h"
 
-#include "src/resource.h"
+#include "resource.h"
 
 #include <filesystem>
 #include <iostream>
@@ -8,14 +8,17 @@
 #include <vector>
 
 #include "argh/argh.h"
-#include "termcolor/termcolor.hpp"
 
 #include <ThatLib/Libs/packages.h>
 #include <ThatLib/Logs/logs.h>
 #include <ThatLib/Utils/system.h>
 #include <ThatLib/Utils/thatpath.h>
+#include <ThatLib/Logs/logs.h>
+
+#include "VM/vm.h"
 
 using namespace ThatLib;
+using namespace That;
 namespace fs = std::filesystem;
 
 int main(int argc, char *argv[]) {
@@ -27,7 +30,7 @@ int main(int argc, char *argv[]) {
     } else {
       InitProject();
     }
-  } else if (cmdl[1] == "package" || cmdl[1] == "p") {
+  } else if (cmdl[1] == "package") {
     if (cmdl[2] != "") {
       try {
         Package *pack = ThatLib::FetchPackage(cmdl[2]);
@@ -40,6 +43,9 @@ int main(int argc, char *argv[]) {
         Logs::Error(err.what());
       }
     } else {
+      Logs::Print("Usage: that package [PACKAGE]");
+    }
+  } else if(cmdl[1] == "packages" ){
 
       std::vector<ThatLib::Package *> packages;
       ThatLib::FetchPackages(&packages);
@@ -50,10 +56,30 @@ int main(int argc, char *argv[]) {
       for (int i = 0; i < packages.size(); i++) {
         delete packages[i];
       }
+  } else if (cmdl[1] == "shell"){
+    // Shell
+    Logs::Print("Open shell");
+  } else if (cmdl[1] == "script" || cmdl[1] == "s"){
+    // Script that s
+    Logs::Print("Run script with vm");
+    if(cmdl[2] == ""){
+      Logs::Print("Usage: that script [SCRIPT]");
+      return 0;
     }
-  } else {
-    Logs::Gradient("That programming language", Logs::Color(92, 145, 230),
-                   Logs::Color(187, 28, 255));
+
+    VM vm = VM();
+    vm.Run(cmdl[2]);
+  } else if (cmdl[1] == "ir"){
+    // Intermidiate representation
+    Logs::Print("Intermidiate representation");
+    
+    // Load file and run it to the VM
+    
+  }
+  else {
+    /*
+    // Logs::Gradient("That programming language", Logs::Color(92, 145, 230),
+    //               Logs::Color(187, 28, 255));
 
     std::vector<ThatLib::Package *> packages;
     ThatLib::FetchPackages(&packages);
@@ -63,6 +89,16 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < packages.size(); i++) {
       delete packages[i];
     }
+    */
+    Logs::Print("Usage:  that [OPTIONS] COMMAND <FILE>");
+    Logs::Print("");
+    Logs::Print("Common Commands:");
+    Logs::Print("  shell \tOpens a shell session");
+    Logs::Print("  script\tRuns a .that script");
+    Logs::Print("  ir    \tGenerates the intermidiate representation of a .that script");
+    Logs::Print("");
+    Logs::Print("Common Options:");
+    Logs::Print("  -d, --debug\tEnable debug mode");
   }
 }
 
@@ -98,11 +134,9 @@ void PrintPackageInfo(ThatLib::Package *package) {
     if (currentSubpackage != bind->subpackage) {
       currentSubpackage = bind->subpackage;
       if (currentSubpackage == "")
-        std::cout << termcolor::bold << termcolor::cyan << "base"
-                  << termcolor::reset << ":" << std::endl;
+        std::cout << "base:" << std::endl;
       else
-        std::cout << termcolor::bold << currentSubpackage << termcolor::reset
-                  << ":" << std::endl;
+        std::cout << currentSubpackage << ":" << std::endl;
     }
 
     CFunction *cfunc = dynamic_cast<CFunction *>(bind);
@@ -154,8 +188,7 @@ void PrintPackageInfo(ThatLib::Package *package) {
 }
 
 void PrintBindStatus(std::string letter, Binding *bind) {
-  std::cout << "   " << termcolor::bold;
-  std::cout << termcolor::yellow << letter << termcolor::reset << " ";
+  std::cout << "   " << letter << " ";
 }
 
 void ShowBinds(Package *pack) {
@@ -182,13 +215,8 @@ void ShowBinds(Package *pack) {
 }
 
 void PrintPackage(ThatLib::Package *package) {
-  std::cout << termcolor::bold << package->packInfo.name << termcolor::reset
-            << termcolor::color<255, 128, 0> << " [" << termcolor::reset
-            << package->packInfo.version << termcolor::color<255, 128, 0> << "]"
-            << termcolor::reset << ": ";
+  std::cout << package->packInfo.name << " [" << package->packInfo.version << "]" << ": ";
 
-  std::cout << termcolor::bold << package->binds.size() << termcolor::reset
-            << " bindings";
-  std::cout << termcolor::reset;
+  std::cout << package->binds.size() << " bindings";
   std::cout << std::endl;
 }

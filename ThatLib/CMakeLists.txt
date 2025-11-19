@@ -2,6 +2,8 @@ include(CMakePrintHelpers)
 
 set(PROJECT_NAME ThatLib)
 
+set(CMAKE_CXX_STANDARD 17)
+
 # We set files
 file(GLOB src "*.h" "*.cpp")
 source_group("src" FILES ${src})
@@ -19,8 +21,12 @@ file(GLOB_RECURSE Transpiler "Transpiler/*.h" "Transpiler/*.cpp")
 source_group("Transpiler" FILES ${Transpiler})
 file(GLOB_RECURSE Formatter "Formatter/*.h" "Formatter/*.cpp")
 source_group("Formatter" FILES ${Formatter})
+file(GLOB_RECURSE Environment "Environment/*.h" "Environment/*.cpp")
+source_group("Environment" FILES ${Environment})
+file(GLOB_RECURSE Adapter "Adapter/*.h" "Adapter/*.cpp")
+source_group("Adapter" FILES ${Adapter})
 
-set(ALL_FILES ${src} ${Ast} ${Libs} ${Logs} ${Utils} ${Objects} ${Transpiler} ${Formatter})
+set(ALL_FILES ${src} ${Ast} ${Libs} ${Logs} ${Utils} ${Objects} ${Transpiler} ${Formatter} ${Environment} ${Adapter})
 set(ROOT_NAMESPACE ThatLib)
 
 add_library(${PROJECT_NAME} STATIC ${ALL_FILES})

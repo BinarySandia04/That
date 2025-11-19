@@ -15,9 +15,9 @@
 #include "Objects/function.h"
 #include "Objects/variable.h"
 #include "Objects/operation.h"
-#include "Objects/environment.h"
+#include "Environment/environment.h"
 #include "Formatter/formatter.h"
-#include "adapter.h"
+#include "Adapter/adapter.h"
 
 namespace ThatLib {
 

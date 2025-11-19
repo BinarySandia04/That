@@ -1,7 +1,7 @@
 #include "error.h"
 
 #include <cstdint>
-#include "termcolor/termcolor.hpp"
+#include "stc/stc.hpp"
 #include <iostream>
 #include <cmath>
 
@@ -28,8 +28,8 @@ void Error::Print(std::string source) {
   CountLines();
   SetLineNum();
 
-  std::cout << termcolor::bold << this->fileName << ":" << line << ":" << column << termcolor::reset << " ";
-  std::cout << termcolor::red << termcolor::bold << "Error: " << termcolor::reset;
+  std::cout << stc::bold << this->fileName << ":" << line << ":" << column << stc::reset << " ";
+  std::cout << stc::rgb_fg(255, 0, 0) << stc::bold << "Error: " << stc::reset;
   std::cout << this->content << std::endl;
 
   PrintInline();
@@ -87,7 +87,7 @@ void Error::PrintSourceLine(std::string source, int line){
 void Error::PrintErrorSourceLine(std::string source, int line, int column, int length){
   if(line <= 0) return;
 
-  std::cout << " " << termcolor::bold << line << termcolor::reset;
+  std::cout << " " << stc::bold << line << stc::reset;
   int trailing = 5 - int(log10(line) + 1);
   for(int i = 0; i < trailing; i++) std::cout << " ";
   std::cout << "| ";
@@ -106,7 +106,7 @@ void Error::PrintErrorSourceLine(std::string source, int line, int column, int l
   }
 
   std::cout << source.substr(start, column - 1);
-  std::cout << termcolor::red << termcolor::bold << source.substr(start + column - 1, length) << termcolor::reset;
+  std::cout << stc::rgb_fg(255, 0, 0) << stc::bold << source.substr(start + column - 1, length) << stc::reset;
   std::cout << source.substr(start + column + length - 1, end - start - column - length + 1) << std::endl;
 }
 

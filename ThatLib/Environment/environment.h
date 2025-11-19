@@ -12,8 +12,7 @@
 #include "Objects/type.h"
 #include "Objects/operation.h"
 #include "Objects/function.h"
-
-#include "scope.h"
+#include "Objects/scope.h"
 
 namespace fs = std::filesystem;
 

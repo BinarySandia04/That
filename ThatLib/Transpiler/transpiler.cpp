@@ -1,6 +1,5 @@
 #include "transpiler.h"
 #include "Objects/container.h"
-#include "Objects/environment.h"
 
 #include "Ast/node.h"
 #include "Libs/internal_package.h"
@@ -289,7 +288,7 @@ std::string Transpiler::TranspileExpression(Node *expression,
     break;
   default:
     // expression->Debug(0);
-    std::cout << termcolor::red << "Err?" << termcolor::reset << std::endl;
+    Logs::Error("Err?");
     break;
   }
 
@@ -807,8 +806,7 @@ std::string Transpiler::TranspileInstruction(Node *instruction,
       }
 
     } else {
-      std::cout << termcolor::red << "Invalid getter" << termcolor::reset
-                << std::endl;
+      Logs::Error("Invalid getter");
       return res;
     }
   } else if (instruction->type == NODE_CALL) {
@@ -831,20 +829,20 @@ std::string Transpiler::TranspileInstruction(Node *instruction,
     
     // std::cout << "HJDI=SJADSIOUHA" << std::endl;
     if (recievedContainer == nullptr) {
-      std::cout << termcolor::red << "1" << termcolor::reset << std::endl;
+      Logs::Error("1");
       return res;
     }
 
     Object *objFunction = recievedContainer->Fetch(functionName);
     if (objFunction == nullptr) {
-      std::cout << termcolor::red << "2" << termcolor::reset << std::endl;
+      Logs::Error("2");
       return res;
     }
 
     ObjectFunction *function =
         dynamic_cast<ObjectFunction *>(recievedContainer->Fetch(functionName));
     if (function == nullptr) {
-      std::cout << termcolor::red << "3" << termcolor::reset << std::endl;
+      Logs::Error("3");
       return res;
     }
 
@@ -889,8 +887,7 @@ std::string Transpiler::TranspileInstruction(Node *instruction,
     res += ")";
 
     if (!function->CheckArgs(argTypes, env)) {
-      std::cout << termcolor::red << "Invalid types" << termcolor::reset
-                << std::endl;
+      Logs::Error("Invalid types");
       return res;
     }
 
@@ -943,9 +940,7 @@ std::string Transpiler::TranspileInstruction(Node *instruction,
       // std::cout << "Ñe hauria de ser array" << std::endl;
       Object *identifierObject = root->GetObject(instruction->data);
       if (identifierObject == nullptr) {
-        std::cout << termcolor::red
-                  << "Identifier '" + instruction->data + "' doesn't exists"
-                  << termcolor::reset << std::endl;
+        Logs::Error("Identifier '" + instruction->data + "' does not exists");
         return res;
       }
       // Aqui ara hem de veure com assignar el tipus a containers, funcions,

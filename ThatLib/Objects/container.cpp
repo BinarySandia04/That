@@ -3,7 +3,6 @@
 #include <iostream>
 
 #include "Logs/logs.h"
-#include "termcolor/termcolor.hpp"
 
 using namespace ThatLib;
 
@@ -44,8 +43,7 @@ ObjectContainer::~ObjectContainer() {
 void ObjectContainer::Print(int space) {
   std::cout << std::string(space, ' ') << "[ObjectContainer]" << std::endl;
   for (auto &p : containerData) {
-    std::cout << std::string(space + 3, ' ') << termcolor::yellow << p.first
-              << termcolor::reset << ": ";
+    ThatLib::Logs::Print(std::string(space + 3, ' ') + p.first + ": ");
     if (p.second != nullptr)
       p.second->object->Print(space + 3);
     else

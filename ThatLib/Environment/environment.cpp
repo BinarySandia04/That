@@ -2,8 +2,6 @@
 
 #include <iostream>
 
-#include "termcolor/termcolor.hpp"
-
 #include "Logs/logs.h"
 #include <algorithm>
 #include <stdexcept>
@@ -16,8 +14,6 @@ ThatLib::Environment::Environment() {
 }
 
 ThatLib::Environment::~Environment() {
-  // std::cout << termcolor::red << ScopeCount() << termcolor::reset <<
-  // std::endl;
   PopScope();
   delete reserved;
 }
@@ -37,8 +33,6 @@ void Environment::DumpEnvironment() {
   std::cout << "--------------------------------------------" << std::endl;
 }
 void Environment::PushScope() {
-  // std::cout << termcolor::green << "Pushed scope" << termcolor::reset <<
-  // std::endl;
   if (environment.size() > 0) {
     environment.push_back(new Scope(environment[environment.size() - 1]));
   } else

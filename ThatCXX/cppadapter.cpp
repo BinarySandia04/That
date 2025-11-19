@@ -6,8 +6,6 @@
 
 using namespace ThatCXX;
 
-
-
 CppAdapter::CppAdapter(){
   res = "";
 }

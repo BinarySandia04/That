@@ -11,8 +11,6 @@
 
 #include <ThatLib/Logs/logs.h>
 
-#include "termcolor/termcolor.hpp"
-
 using namespace ThatLib;
 
 Object *ThatLib::GetObjectFromBinding(Binding *b) {

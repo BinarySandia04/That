@@ -4,7 +4,7 @@
 
 #include <ThatLib/Libs/packages.h>
 
-#include "src/resource.h"
+#include "resource.h"
 
 void InitProject();
 void InitPackage();

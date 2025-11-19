@@ -3,8 +3,11 @@ set(CMAKE_INSTALL_MESSAGE LAZY)
 
 file(GLOB src "*.h" "*.cpp")
 source_group("src" FILES ${src})
-
-set(ALL_FILES ${src})
+file(GLOB IR "IR/*.h" "IR/*.cpp")
+source_group("IR" FILES ${IR})
+file(GLOB_RECURSE VM "VM/*.h" "VM/*.cpp")
+source_group("VM" FILES ${VM})
+set(ALL_FILES ${src} ${IR} ${VM})
 set(ROOT_NAMESPACE That)
 
 # Odio CMAKE
@@ -39,7 +42,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../external") 
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../external/argh/include")
-target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../external/termcolor/include")
+target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../external/stc/include")
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../external/tomlplusplus/include")
 
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "that")

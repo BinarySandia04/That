@@ -13,7 +13,7 @@ bool ThatLib::GenerateAst(std::string code, std::string fileName, Node *ast, boo
 
   if(debug){
     for(int i = 0; i < tokens.size(); i++){
-      std::cout << termcolor::yellow << tokens[i].ToString() << termcolor::reset << std::endl;
+      ThatLib::Logs::Debug(tokens[i].ToString());
     }
   }
 
