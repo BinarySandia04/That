@@ -1,7 +1,8 @@
 get 'std.io
 
-c: Chr = 'H'
+c: Chr = "H"
 s: Str = "Hola"
 std.println("Hola \nque\ttal" + c)
+std.println("Yep nop")
 
-if s[0] == 'o' : std.println("Si")
+if s[0] == "o" : std.println("Si")

@@ -1,49 +1,60 @@
-set(PROJECT_NAME That)
-set(CMAKE_INSTALL_MESSAGE LAZY)
+include(CMakePrintHelpers)
 
+set(PROJECT_NAME That)
+
+set(CMAKE_CXX_STANDARD 17)
+
+# We set files
 file(GLOB src "*.h" "*.cpp")
 source_group("src" FILES ${src})
-file(GLOB IR "IR/*.h" "IR/*.cpp")
-source_group("IR" FILES ${IR})
-file(GLOB_RECURSE VM "VM/*.h" "VM/*.cpp")
-source_group("VM" FILES ${VM})
-set(ALL_FILES ${src} ${IR} ${VM})
+file(GLOB_RECURSE Ast "Ast/*.h" "Ast/*.cpp")
+source_group("Ast" FILES ${Ast})
+file(GLOB_RECURSE Libs "Libs/*.h" "Libs/*.cpp")
+source_group("Libs" FILES ${Libs})
+file(GLOB_RECURSE Logs "Logs/*.h" "Logs/*.cpp")
+source_group("Logs" FILES ${Logs})
+file(GLOB_RECURSE Utils "Utils/*.h" "Utils/*.cpp")
+source_group("Utils" FILES ${Utils})
+file(GLOB_RECURSE Objects "Objects/*.h" "Objects/*.cpp")
+source_group("Objects" FILES ${Objects})
+file(GLOB_RECURSE Transpiler "Transpiler/*.h" "Transpiler/*.cpp")
+source_group("Transpiler" FILES ${Transpiler})
+file(GLOB_RECURSE Formatter "Formatter/*.h" "Formatter/*.cpp")
+source_group("Formatter" FILES ${Formatter})
+file(GLOB_RECURSE Environment "Environment/*.h" "Environment/*.cpp")
+source_group("Environment" FILES ${Environment})
+file(GLOB_RECURSE Adapter "Adapter/*.h" "Adapter/*.cpp")
+source_group("Adapter" FILES ${Adapter})
+
+set(ALL_FILES ${src} ${Ast} ${Libs} ${Logs} ${Utils} ${Objects} ${Transpiler} ${Formatter} ${Environment} ${Adapter})
 set(ROOT_NAMESPACE That)
 
-# Odio CMAKE
-FUNCTION(ADD_RESOURCES out_var)
-  SET(result)
-  FOREACH(in_f ${ARGN})
-    FILE(RELATIVE_PATH src_f ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/res/${in_f})
-    SET(out_f "${PROJECT_BINARY_DIR}/${in_f}.o")
-    cmake_path(GET out_f PARENT_PATH dirPath)
-    ADD_CUSTOM_COMMAND(OUTPUT ${out_f}
-      COMMAND mkdir -p ${dirPath} && pushd ${PROJECT_NAME} > /dev/null && pushd res > /dev/null && ld -r -b binary -o ${out_f} ${in_f} && popd > /dev/null && popd > /dev/null
-      DEPENDS res/${in_f}
-      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-      COMMENT "Building resource object ${out_f}"
-      VERBATIM
-      )
-    LIST(APPEND result ${out_f})
-  ENDFOREACH()
-  SET(${out_var} "${result}" PARENT_SCOPE)
-ENDFUNCTION()
-
-# Glob resource files
-file(GLOB_RECURSE resourceFiles RELATIVE "${CMAKE_SOURCE_DIR}/That/res" "res/*")
-
-add_resources(resources ${resourceFiles})
-
-add_executable(${PROJECT_NAME} ${ALL_FILES} ${resources})
-
-target_link_libraries(${PROJECT_NAME} PRIVATE
-  ThatLib
+add_library(${PROJECT_NAME} STATIC ${ALL_FILES})
+target_include_directories(${PROJECT_NAME} PUBLIC
+    "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../external") 
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../external/argh/include")
-target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../external/stc/include")
+target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../external/termcolor/include")
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../external/tomlplusplus/include")
+target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../external") 
+# target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../external/cppparser/pub")
 
-set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "that")
-install(TARGETS ${PROJECT_NAME} DESTINATION bin)
+
+if (NOT WIN32)
+    target_link_libraries(That libdl.so)
+endif ()
+
+cmake_print_variables(PROJECT_SOURCE_DIR)
+
+# Public headers accessible when using the lib
+file(GLOB PUBLIC_HEADERS "*.h" "Ast/*.h" "Libs/*.h" "Logs/*.h" "Utils/*.h" "Objects/*.h" "Transpiler/*.h" "Formatter/*.h")
+
+target_sources(${PROJECT_NAME} 
+    PRIVATE ${ALL_FILES}
+    PUBLIC FILE_SET HEADERS 
+    BASE_DIRS ${PROJECT_SOURCE_DIR}
+    FILES ${PUBLIC_HEADERS})
+
+install(TARGETS ${PROJECT_NAME} FILE_SET HEADERS)
+
